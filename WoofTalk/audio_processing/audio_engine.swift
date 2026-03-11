@@ -1,75 +1,200 @@
-//
-//  audio_engine.swift
-//  WoofTalk
-//
-//  Created by vandopha on 11/3/26.
-//
+// AudioEngine.swift
+// WoofTalk
 
 import AVFoundation
 
-class AudioEngine {
-    private let engine = AVAudioEngine()
-    private let inputNode: AVAudioInputNode
-    private let outputNode: AVAudioOutputNode
+/// The core audio engine that manages audio session configuration, capture, and playback
+final class AudioEngine {
     
-    init() throws {
-        inputNode = engine.inputNode
-        outputNode = engine.outputNode
-        try configureAudioSession()
-        try configureAudioEngine()
+    // MARK: - Public Properties
+    
+    /// Current audio session state
+    var audioSessionState: AudioSessionState = .inactive
+    
+    /// Latency metrics for the audio pipeline
+    var latencyMetrics: LatencyMetrics = LatencyMetrics()
+    
+    /// Whether the engine is currently running
+    var isRunning: Bool {
+        audioEngine.isRunning
     }
     
+    // MARK: - Private Properties
+    
+    private let audioEngine = AVAudioEngine()
+    private let audioSessionManager = AudioSessionManager()
+    private let audioCapture: AudioCapture
+    private let audioPlayback: AudioPlayback
+    private let speechRecognizer: SpeechRecognizer
+    
+    private var bufferProcessingQueue = DispatchQueue(
+        label: "com.wooftalk.audio.processing",
+        qos: .userInitiated
+    )
+    
+    // MARK: - Initialization
+    
+    init() {
+        self.audioCapture = AudioCapture(audioEngine: audioEngine)
+        self.audioPlayback = AudioPlayback(audioEngine: audioEngine)
+        self.speechRecognizer = SpeechRecognizer()
+        
+        setupAudioEngine()
+        setupObservers()
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Start the audio engine with real-time processing
     func start() throws {
-        try engine.start()
+        try configureAudioSession()
+        try startAudioEngine()
+        audioSessionState = .active
     }
     
+    /// Stop the audio engine and clean up resources
     func stop() {
-        engine.stop()
+        audioEngine.stop()
+        audioSessionManager.deactivateSession()
+        audioSessionState = .inactive
     }
     
-    func getEngine() -> AVAudioEngine {
-        return engine
+    /// Process audio buffer for speech recognition
+    func processAudioBuffer(_ buffer: AVAudioPCMBuffer) -> RecognitionResult? {
+        let startTime = Date()
+        
+        // Process audio buffer through speech recognition
+        let result = speechRecognizer.recognize(buffer: buffer)
+        
+        // Measure latency
+        let processingTime = Date().timeIntervalSince(startTime)
+        latencyMetrics.lastProcessingTime = processingTime
+        latencyMetrics.totalProcessingTime += processingTime
+        latencyMetrics.bufferCount += 1
+        
+        return result
     }
-}
-
-extension AudioEngine {
+    
+    /// Play synthesized audio for translation output
+    func playTranslation(_ text: String) throws {
+        try audioPlayback.play(text: text)
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupAudioEngine() {
+        // Configure audio engine format
+        let format = AudioFormat.defaultFormat
+        audioEngine.inputNode.installTap(
+            onBus: 0,
+            bufferSize: 2048, // 5ms at 44.1kHz
+            format: format
+        ) { [weak self] buffer, when in
+            self?.handleAudioBuffer(buffer)
+        }
+    }
+    
     private func configureAudioSession() throws {
-        let session = AVAudioSession.sharedInstance()
-        
-        try session.setCategory(.playAndRecord, options: [
-            .defaultToSpeaker,
-            .allowBluetooth,
-            .mixWithOthers
-        ])
-        
-        try session.setPreferredSampleRate(44100)
-        try session.setPreferredIOBufferDuration(0.005) // 5ms buffer
-        try session.setActive(true)
+        try audioSessionManager.configureSession(
+            category: .playAndRecord,
+            options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers]
+        )
     }
     
-    private func configureAudioEngine() throws {
-        // Basic configuration - more specific setup will be done in capture/playback modules
-        engine.connect(engine.inputNode, to: engine.mainMixerNode, format: AudioFormats.captureFormat)
-        engine.connect(engine.mainMixerNode, to: engine.outputNode, format: AudioFormats.playbackFormat)
+    private func startAudioEngine() throws {
+        try audioEngine.start()
+    }
+    
+    private func handleAudioBuffer(_ buffer: AVAudioPCMBuffer) {
+        bufferProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Process buffer for speech recognition
+            let recognitionResult = self.processAudioBuffer(buffer)
+            
+            // Handle recognition result
+            if let result = recognitionResult {
+                self.handleRecognitionResult(result)
+            }
+        }
+    }
+    
+    private func handleRecognitionResult(_ result: RecognitionResult) {
+        // This would be handled by the translation engine in S02
+        // For now, we just log the result
+        print("Recognition result: \(result.text)")
+    }
+    
+    private func setupObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(audioRouteChanged(_:)),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func audioRouteChanged(_ notification: Notification) {
+        print("Audio route changed: \(notification.userInfo ?? [:])")
     }
 }
 
-enum AudioEngineError: LocalizedError {
+// MARK: - Supporting Types
+
+struct AudioSessionState: CustomStringConvertible {
+    let isActive: Bool
+    let category: AVAudioSession.Category?
+    let categoryOptions: AVAudioSession.CategoryOptions
+    
+    var description: String {
+        return "AudioSessionState(isActive: \(isActive), category: \(category?.rawValue ?? "none"))"
+    }
+    
+    static let active = AudioSessionState(
+        isActive: true,
+        category: .playAndRecord,
+        categoryOptions: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers]
+    )
+    
+    static let inactive = AudioSessionState(
+        isActive: false,
+        category: nil,
+        categoryOptions: []
+    )
+}
+
+struct LatencyMetrics {
+    var lastProcessingTime: TimeInterval = 0
+    var totalProcessingTime: TimeInterval = 0
+    var bufferCount: Int = 0
+    var averageProcessingTime: TimeInterval {
+        return bufferCount > 0 ? totalProcessingTime / Double(bufferCount) : 0
+    }
+}
+
+struct RecognitionResult {
+    let text: String
+    let confidence: Float
+    let timestamp: Date
+    let isFinal: Bool
+}
+
+enum AudioEngineError: Error, LocalizedError {
     case audioSessionConfigurationFailed
-    case audioEngineConfigurationFailed
-    case audioSessionAlreadyActive
-    case audioHardwareNotAvailable
+    case audioEngineStartFailed
+    case microphonePermissionDenied
+    case audioRouteUnavailable
     
     var errorDescription: String? {
         switch self {
         case .audioSessionConfigurationFailed:
-            return "Failed to configure audio session"
-        case .audioEngineConfigurationFailed:
-            return "Failed to configure audio engine"
-        case .audioSessionAlreadyActive:
-            return "Audio session is already active"
-        case .audioHardwareNotAvailable:
-            return "Audio hardware is not available"
+            return "Failed to configure audio session."
+        case .audioEngineStartFailed:
+            return "Failed to start audio engine."
+        case .microphonePermissionDenied:
+            return "Microphone permission denied."
+        case .audioRouteUnavailable:
+            return "No available audio route."
         }
     }
 }
