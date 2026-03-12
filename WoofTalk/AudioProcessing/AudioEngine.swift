@@ -1,79 +1,92 @@
+// MARK: - AudioEngine
+
 import AVFoundation
 
-class AudioEngine {
+/// Core audio processing engine for real-time speech-to-speech translation
+final class AudioEngine {
     
-    private let engine = AVAudioEngine()
-    private let inputNode: AVAudioInputNode
-    private let outputNode: AVAudioOutputNode
-    private var isRunning = false
+    // MARK: Properties
+    private let audioEngine = AVAudioEngine()
+    private let audioSessionManager = AudioSessionManager()
+    private let audioCapture = AudioCapture()
+    private let audioPlayback = AudioPlayback()
+    private let speechRecognizer = SpeechRecognition()
     
+    // MARK: Initialization
     init() {
-        self.inputNode = engine.inputNode
-        self.outputNode = engine.outputNode
-        configureAudioSession()
-        setupAudioGraph()
+        setupAudioEngine()
     }
     
-    private func configureAudioSession() {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.playAndRecord, 
-                                   options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
-            try session.setPreferredSampleRate(44100.0)
-            try session.setPreferredIOBufferDuration(0.005) // 5ms buffer for low latency
-            try session.setActive(true)
-        } catch {
-            print("Audio session configuration failed: \(error)")
-            assertionFailure("Audio session configuration failed")
-        }
-    }
-    
-    private func setupAudioGraph() {
-        let inputFormat = inputNode.outputFormat(forBus: 0)
-        let mainMixer = engine.mainMixerNode
-        
-        inputNode.installTap(onBus: 0, 
-                             bufferSize: 1024, 
-                             format: inputFormat) { [weak self] (buffer, time) in
-            self?.processAudioBuffer(buffer, at: time)
-        }
-        
-        engine.prepare()
-    }
-    
-    private func processAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {
-        // Basic audio processing - this will be enhanced in S02
-        // For now, we just log buffer information for debugging
-        let sampleRate = buffer.format.sampleRate
-        let frameLength = buffer.frameLength
-        let channelCount = buffer.format.channelCount
-        
-        print("Processing buffer: \(sampleRate)Hz, \(frameLength) frames, \(channelCount) channels")
-    }
-    
+    // MARK: Public Methods
     func start() throws {
-        guard !isRunning else { return }
-        
-        do {
-            try engine.start()
-            isRunning = true
-            print("Audio engine started successfully")
-        } catch {
-            print("Failed to start audio engine: \(error)")
-            throw error
-        }
+        try audioSessionManager.configureSession()
+        try audioEngine.start()
+        audioCapture.startCapture()
     }
     
     func stop() {
-        guard isRunning else { return }
-        
-        engine.stop()
-        inputNode.removeTap(onBus: 0)
-        isRunning = false
-        print("Audio engine stopped")
+        audioEngine.stop()
+        audioCapture.stopCapture()
+        audioSessionManager.deactivateSession()
     }
     
-    deinit {
-        stop()
+    func processAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {
+        // Process audio buffer for speech recognition
+        speechRecognizer.processAudioBuffer(buffer, at: time)
+    }
+    
+    func playAudio(_ audioData: Data) throws {
+        try audioPlayback.playAudio(audioData)
+    }
+    
+    // MARK: Private Methods
+    private func setupAudioEngine() {
+        // Configure audio engine for low-latency processing
+        audioEngine.mainMixerNode.volume = 0.0
+        
+        // Set up audio format
+        let format = AudioFormats.pcmFormat
+        
+        // Connect audio nodes for real-time processing
+        if let inputNode = audioEngine.inputNode {
+            let inputFormat = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 5120, format: inputFormat) { [weak self] (buffer, time) in
+                self?.processAudioBuffer(buffer, at: time)
+            }
+        }
+        
+        // Connect to output for monitoring
+        audioEngine.connect(audioEngine.inputNode!, to: audioEngine.mainMixerNode, format: format)
+    }
+}
+
+// MARK: - AudioEngineDelegate
+
+protocol AudioEngineDelegate: AnyObject {
+    func audioEngine(_ engine: AudioEngine, didRecognizeSpeech text: String)
+    func audioEngine(_ engine: AudioEngine, didFailWithError error: Error)
+    func audioEngineDidStart(_ engine: AudioEngine)
+    func audioEngineDidStop(_ engine: AudioEngine)
+}
+
+// MARK: - AudioEngine Errors
+
+enum AudioEngineError: Error, LocalizedError {
+    case audioSessionConfigurationFailed
+    case audioEngineStartFailed
+    case microphonePermissionDenied
+    case speechRecognitionFailed
+    
+    var errorDescription: String? {
+        switch self {
+        case .audioSessionConfigurationFailed:
+            return "Failed to configure audio session"
+        case .audioEngineStartFailed:
+            return "Failed to start audio engine"
+        case .microphonePermissionDenied:
+            return "Microphone permission denied"
+        case .speechRecognitionFailed:
+            return "Speech recognition failed"
+        }
     }
 }

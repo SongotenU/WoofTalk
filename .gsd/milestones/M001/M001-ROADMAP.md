@@ -12,7 +12,7 @@
 
 ## Slices
 
-- [ ] **S01: Audio Processing Foundation** `risk:high` `depends:[]`
+- [x] **S01: Audio Processing Foundation** `risk:high` `depends:[]`
   > After this: App can capture, process, and play audio with low latency.
 
 - [ ] **S02: Translation Engine** `risk:high` `depends:[S01]`

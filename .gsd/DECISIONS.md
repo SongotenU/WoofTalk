@@ -14,4 +14,10 @@
 | D006 | M001/S02 | architecture | Offline capability | Core vocabulary works offline | Requirement R003 mandates offline functionality | No |
 | D007 | M001/S03 | ui | UI framework | UIKit (likely) | Native iOS performance requirements | Yes — if SwiftUI proves viable |
 | D008 | M001/S04 | storage | Offline storage | SQLite for caching | Efficient storage of translation models and phrases | Yes — if file-based proves better |
+| D010 | M001/S01 | audio | Audio processing framework | AVFoundation + Speech Framework | Native iOS performance and low-latency requirements | No |
+| D011 | M001/S01 | audio | Buffer size for latency | 5ms buffer size | Targets <100ms capture-to-processing latency | No |
+| D012 | M001/S01 | audio | Speech recognition approach | iOS Speech Framework for human voice | Native integration and reliability | No |
+| D013 | M001/S01 | audio | Audio format standard | 44.1 kHz, 16-bit PCM | Industry standard for audio processing | No |
+| D014 | M001/S01 | audio | Error handling strategy | Comprehensive error handling with graceful degradation | Critical for user experience and reliability | No |
+| D015 | M001/S01 | audio | Audio synthesis capabilities | Full synthesis with tones, speech, effects | Valuable for testing and user feedback | No |
 | D009 | M001/S05 | deployment | App Store compliance | Full compliance with guidelines | Essential for App Store approval | No |
