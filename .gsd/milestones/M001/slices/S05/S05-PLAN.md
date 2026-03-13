@@ -46,7 +46,7 @@
   - Done when: App Store Connect account is active and app listing is created
   - Status: Technical issues encountered - partial completion due to curl command failures
 
-- [ ] **T02: Build Configuration for App Store** `est:2h`
+- [x] **T02: Build Configuration for App Store** `est:2h`
   - Why: Configure build settings for App Store distribution
   - Files: `ExportOptions.plist`, `Entitlements.plist`, `Info.plist`
   - Do: Configure release build settings, set up distribution certificates, create App Store provisioning profile, update build configurations
