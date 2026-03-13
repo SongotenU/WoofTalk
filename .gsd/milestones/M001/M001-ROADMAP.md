@@ -21,7 +21,7 @@
 - [x] **S03: Core UI & UX** `risk:medium` `depends:[S02]`
   > After this: Native iOS app with intuitive translation interface.
 
-- [ ] **S04: Offline Mode** `risk:medium` `depends:[S03]`
+- [x] **S04: Offline Mode** `risk:medium` `depends:[S03]`
   > After this: Core translation works without internet connection.
 
 - [ ] **S05: App Store Integration** `risk:low` `depends:[S04]`
