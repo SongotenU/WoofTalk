@@ -14,8 +14,18 @@ struct WoofTalkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            TabView {
+                TranslationView()
+                    .tabItem {
+                        Label("Translate", systemImage: "bubble.left.and.bubble.right")
+                    }
+                
+                OfflineModeView()
+                    .tabItem {
+                        Label("Offline", systemImage: "moon.fill")
+                    }
+            }
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
 }

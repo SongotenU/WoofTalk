@@ -1,1 +1,5 @@
-["execute-task/M001/S02/T05","complete-slice/M001/S02","reassess-roadmap/M001/S02"]
+<<<<<<< HEAD
+["execute-task/M001/S02/T05","complete-slice/M001/S02","reassess-roadmap/M001/S02","research-slice/M001/S03","plan-slice/M001/S03","execute-task/M001/S03/T01"]
+=======
+["execute-task/M001/S02/T05","complete-slice/M001/S02","research-slice/M001/S03","plan-slice/M001/S03","execute-task/M001/S03/T01"]
+>>>>>>> gsd/M001/S03

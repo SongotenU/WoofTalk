@@ -18,7 +18,7 @@
 - [x] **S02: Translation Engine** `risk:high` `depends:[S01]`
   > After this: Real-time translation between human speech and dog vocalizations.
 
-- [ ] **S03: Core UI & UX** `risk:medium` `depends:[S02]`
+- [x] **S03: Core UI & UX** `risk:medium` `depends:[S02]`
   > After this: Native iOS app with intuitive translation interface.
 
 - [ ] **S04: Offline Mode** `risk:medium` `depends:[S03]`

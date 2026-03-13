@@ -20,6 +20,8 @@ final class TranslationViewController: UIViewController {
     private var isTranslating = false
     private var currentLatency: TimeInterval = 0
     private var translationHistory: [TranslationRecord] = []
+    private let settings = Settings.shared
+    private var audioLevel: Float = 0
     
     // MARK: - Initialization
     init(realTranslationController: RealTranslationController,
@@ -47,6 +49,9 @@ final class TranslationViewController: UIViewController {
         
         // Update initial state
         updateUIState()
+        
+        // Battery monitoring
+        monitorBatteryUsage()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -244,8 +249,26 @@ final class TranslationViewController: UIViewController {
             message: error.localizedDescription,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        // Add retry action
+        alert.addAction(UIAlertAction(title: "Retry", style: .default) { _ in
+            self.retryTranslation()
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
+    }
+    
+    private func retryTranslation() {
+        // Attempt to restart translation
+        do {
+            try realTranslationController.startTranslation()
+            isTranslating = true
+            controlPanel.setTranslateButton(title: "Stop", color: .systemRed)
+            updateUIState()
+        } catch {
+            showError(error)
+        }
     }
 }
 
@@ -284,7 +307,8 @@ extension TranslationViewController: RealTranslationControllerDelegate {
         let record = TranslationRecord(
             humanText: text,
             dogTranslation: toDogTranslation,
-            timestamp: Date()
+            timestamp: Date(),
+            latency: currentLatency
         )
         translationHistory.insert(record, at: 0)
         
@@ -293,10 +317,22 @@ extension TranslationViewController: RealTranslationControllerDelegate {
         
         // Update status
         statusLabel.text = "Translated: \(text)"
+        
+        // Success feedback
+        if settings.enableVibration {
+            // Trigger vibration feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+        }
     }
     
     func realTranslationController(_ controller: RealTranslationController, didFailWithError error: Error) {
         showError(error)
+        
+        // Update UI to show error state
+        controlPanel.setTranslateButton(title: "Translate", color: .systemBlue)
+        isTranslating = false
+        updateUIState()
     }
     
     func realTranslationController(_ controller: RealTranslationController, didPlayAudio duration: TimeInterval) {
@@ -329,6 +365,11 @@ extension TranslationViewController: AudioTranslationBridgeDelegate {
     
     func audioTranslationBridge(_ bridge: AudioTranslationBridge, didFailWithError error: Error) {
         showError(error)
+        
+        // Update UI to show error state
+        controlPanel.setTranslateButton(title: "Translate", color: .systemBlue)
+        isTranslating = false
+        updateUIState()
     }
     
     func audioTranslationBridge(_ bridge: AudioTranslationBridge, didUpdateProcessingStats stats: AudioTranslationBridge.ProcessingStats) {
@@ -386,6 +427,33 @@ extension TranslationViewController {
         let helpVC = HelpViewController()
         let navVC = UINavigationController(rootViewController: helpVC)
         present(navVC, animated: true)
+    }
+    
+    // MARK: - Battery Optimization
+    
+    private func optimizeForBattery() {
+        // Reduce animation quality when battery is low
+        if UIDevice.current.batteryState != .unplugged {
+            UIView.setAnimationsEnabled(false)
+        }
+    }
+    
+    private func monitorBatteryUsage() {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(batteryLevelChanged), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
+    }
+    
+    @objc private func batteryLevelChanged() {
+        let batteryLevel = UIDevice.current.batteryLevel
+        if batteryLevel < 0.2 {
+            // Reduce processing when battery is low
+            realTranslationController.latencyThreshold = 3.0
+        } else if batteryLevel < 0.5 {
+            realTranslationController.latencyThreshold = 2.5
+        } else {
+            realTranslationController.latencyThreshold = 2.0
+        }
     }
 }
 
