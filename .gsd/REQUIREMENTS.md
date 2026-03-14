@@ -4,9 +4,6 @@
 
 | ID | Title | Class | Status | Description | Why | Source | Primary Owner | Supporting | Validation | Notes |
 |----|-------|-------|--------|-------------|-----|--------|---------------|------------|------------|-------|
-| R001 | Real-time Speech Translation | Core | Active | Two-way voice translation between human and dog with minimal latency | Core value proposition | user | M001/S01 | M001/S02, M001/S03 | Design review, latency testing | Must support iOS speech frameworks |
-| R002 | Comprehensive Vocabulary | Core | Active | Extensive dog-human vocabulary with contextual understanding | Enables meaningful communication | user | M001/S02 | M001/S01 | Vocabulary coverage testing | 5000+ phrases minimum |
-| R003 | Offline Capability | Core | Active | Basic translation works without internet connection | Reliability, user experience | user | M001/S03 | M001/S01, M001/S02 | Offline testing | Fallback to cached model |
 | R004 | User Contribution System | Growth | Active | Users can submit translations and corrections | Improves model accuracy over time | user | M002/S01 | M002/S02, M003/S01 | Contribution workflow testing | Quality control needed |
 | R005 | Community Features | Growth | Active | Sharing translations, following users, leaderboards | Engagement and retention | user | M002/S02 | M002/S01, M003/S02 | Social features testing | Privacy considerations |
 | R006 | Advanced AI Models | Core | Active | Enhanced translation accuracy with deep learning | Competitive advantage | user | M003/S01 | M003/S02, M003/S03 | Model accuracy testing | Requires significant compute |
@@ -17,6 +14,9 @@
 
 | ID | Title | Class | Status | Description | Why | Source | Primary Owner | Supporting | Validation | Notes |
 |----|-------|-------|--------|-------------|-----|--------|---------------|------------|------------|-------|
+| R001 | Real-time Speech Translation | Core | Validated | Two-way voice translation between human and dog with minimal latency | Core value proposition | user | M001/S01 | M001/S02, M001/S03 | Design review, latency testing | Must support iOS speech frameworks |
+| R002 | Comprehensive Vocabulary | Core | Validated | Extensive dog-human vocabulary with contextual understanding | Enables meaningful communication | user | M001/S02 | M001/S01 | Vocabulary coverage testing | 5000+ phrases minimum |
+| R003 | Offline Capability | Core | Validated | Basic translation works without internet connection | Reliability, user experience | user | M001/S03 | M001/S01, M001/S02 | Offline testing | Fallback to cached model |
 | R009 | iOS Native Development | Platform | Validated | Swift-based iOS application | Native performance and UX | research | M001/S01 | All milestones | Platform capability confirmed | Requires iOS 15+ |
 
 ## Deferred
@@ -42,7 +42,7 @@
 
 ## Notes
 - All Active requirements must be mapped to a roadmap owner
-- Requirements R001-R003 are table stakes for launch
+- Requirements R001-R003 are table stakes for launch (now validated)
 - Community features (R004-R005) are essential for long-term engagement
 - Advanced AI features (R006-R008) provide competitive differentiation
 - Subscription model must comply with Apple App Store guidelines

@@ -33,3 +33,6 @@ tmp/
 
 # ── GSD baseline (auto-generated) ──
 .gsd/worktrees/
+
+# ── GSD baseline (auto-generated) ──
+.gsd/completed-units.json
