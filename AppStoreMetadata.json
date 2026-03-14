@@ -1,0 +1,55 @@
+{
+  "appName": "WoofTalk",
+  "bundleId": "com.wooftalk.app",
+  "primaryCategory": "Entertainment",
+  "secondaryCategory": "Lifestyle",
+  "primaryLanguage": "English",
+  "description": "WoofTalk is a real-time voice translation app that bridges the communication gap between humans and dogs. Simply speak to your dog in human language, and the app translates into dog vocalizations with contextual accuracy. Conversely, listen to your dog's barks and understand what they're trying to say. With offline capability, you can communicate with your furry friend anywhere, anytime.",
+  "keywords": [
+    "dog",
+    "translation",
+    "pet",
+    "communication",
+    "voice",
+    "speech",
+    "AI",
+    "offline",
+    "animal",
+    "puppy",
+    "barks",
+    "woof",
+    "pet care"
+  ],
+  "marketingUrl": "https://wooftalk.app",
+  "supportUrl": "https://wooftalk.app/support",
+  "privacyPolicyUrl": "https://wooftalk.app/privacy",
+  "termsOfServiceUrl": "https://wooftalk.app/terms",
+  "pricing": {
+    "type": "subscription",
+    "freeTrialDays": 7,
+    "tiers": [
+      {
+        "name": "Monthly",
+        "price": 4.99,
+        "period": "month"
+      },
+      {
+        "name": "Annual",
+        "price": 29.99,
+        "period": "year"
+      }
+    ]
+  },
+  "reviewContact": {
+    "email": "review@wooftalk.app",
+    "phone": "+1-555-0123"
+  },
+  "copyright": "© 2025 WoofTalk LLC. All rights reserved.",
+  "version": "1.0.0",
+  "releaseType": "initial",
+  "ageRating": "4+",
+  "exportCompliance": {
+    "usesEncryption": true,
+    "encryptionExportCompliance": "CCATS complying"
+  }
+}

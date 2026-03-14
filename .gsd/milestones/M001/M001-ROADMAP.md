@@ -24,7 +24,7 @@
 - [x] **S04: Offline Mode** `risk:medium` `depends:[S03]`
   > After this: Core translation works without internet connection.
 
-- [ ] **S05: App Store Integration** `risk:low` `depends:[S04]`
+- [x] **S05: App Store Integration** `risk:low` `depends:[S04]`
   > After this: App passes App Store review and is available for download.
 
 ---
