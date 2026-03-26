@@ -1,5 +1,3 @@
-// MARK: - ControlPanelView
-
 import UIKit
 
 final class ControlPanelView: UIView {
@@ -26,6 +24,15 @@ final class ControlPanelView: UIView {
         return stackView
     }()
     
+    private let modeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.text = "Mode: —"
+        return label
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -38,9 +45,11 @@ final class ControlPanelView: UIView {
     private func setupUI() {
         addSubview(translateButton)
         addSubview(statusStackView)
+        addSubview(modeLabel)
         
         translateButton.translatesAutoresizingMaskIntoConstraints = false
         statusStackView.translatesAutoresizingMaskIntoConstraints = false
+        modeLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             translateButton.topAnchor.constraint(equalTo: topAnchor),
@@ -50,7 +59,13 @@ final class ControlPanelView: UIView {
         ])
         
         NSLayoutConstraint.activate([
-            statusStackView.topAnchor.constraint(equalTo: translateButton.bottomAnchor, constant: 12),
+            modeLabel.topAnchor.constraint(equalTo: translateButton.bottomAnchor, constant: 8),
+            modeLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            modeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            statusStackView.topAnchor.constraint(equalTo: modeLabel.bottomAnchor, constant: 12),
             statusStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
             statusStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
             statusStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
@@ -132,6 +147,14 @@ final class ControlPanelView: UIView {
         if let indicator = statusStackView.arrangedSubviews[index].subviews.first as? UIView {
             indicator.backgroundColor = active ? .systemGreen : .systemGray
         }
+    }
+    
+    func setCurrentMode(_ mode: TranslationMode, aiReady: Bool? = nil) {
+        var text = "Mode: \(mode.rawValue)"
+        if mode == .ai, let ready = aiReady {
+            text += ready ? " (Ready)" : " (Loading)"
+        }
+        modeLabel.text = text
     }
     
     @objc private func translateButtonTapped() {

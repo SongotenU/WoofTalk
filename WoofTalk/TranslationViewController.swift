@@ -2,6 +2,7 @@
 
 import UIKit
 import AVFoundation
+import Combine
 
 /// Real-time translation display and user feedback interface
 final class TranslationViewController: UIViewController {
@@ -23,6 +24,10 @@ final class TranslationViewController: UIViewController {
     private let settings = Settings.shared
     private var audioLevel: Float = 0
     
+    // MARK: - Observability
+    private var cancellables = Set<AnyCancellable>()
+    private var latestIsAIReady = true
+    
     // MARK: - Initialization
     init(realTranslationController: RealTranslationController,
          audioTranslationBridge: AudioTranslationBridge) {
@@ -39,6 +44,17 @@ final class TranslationViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Convenience Initializer for Default Usage
+    convenience init() {
+        let engine = TranslationEngine()
+        let capture = AudioCapture()
+        let recognition = SpeechRecognition()
+        let playback = AudioPlayback()
+        let bridge = AudioTranslationBridge(translationEngine: engine)
+        let controller = RealTranslationController(translationEngine: engine, audioCapture: capture, speechRecognition: recognition, audioPlayback: playback, translationBridge: bridge)
+        self.init(realTranslationController: controller, audioTranslationBridge: bridge)
+    }
+    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,6 +62,24 @@ final class TranslationViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupGestures()
+        
+        // Observe translation mode and AI ready state
+        realTranslationController.modeManager.$currentMode
+            .receive(on: RunLoop.main)
+            .sink { [weak self] mode in
+                self?.handleModeChange(mode)
+            }
+            .store(in: &cancellables)
+        
+        realTranslationController.modeManager.$isAIReady
+            .receive(on: RunLoop.main)
+            .sink { [weak self] ready in
+                self?.handleAIReadyChange(ready)
+            }
+            .store(in: &cancellables)
+        
+        // Set initial mode display
+        controlPanel.setCurrentMode(realTranslationController.modeManager.currentMode, aiReady: realTranslationController.modeManager.isAIReady)
         
         // Update initial state
         updateUIState()
@@ -139,6 +173,16 @@ final class TranslationViewController: UIViewController {
     private func setupDelegates() {
         realTranslationController.delegate = self
         audioTranslationBridge.delegate = self
+    }
+    
+    // MARK: - Mode Handling
+    private func handleModeChange(_ mode: TranslationMode) {
+        controlPanel.setCurrentMode(mode, aiReady: latestIsAIReady)
+    }
+    
+    private func handleAIReadyChange(_ ready: Bool) {
+        latestIsAIReady = ready
+        controlPanel.setCurrentMode(realTranslationController.modeManager.currentMode, aiReady: ready)
     }
     
     // MARK: - Permission Handling
@@ -323,6 +367,15 @@ extension TranslationViewController: RealTranslationControllerDelegate {
             // Trigger vibration feedback
             let generator = UIImpactFeedbackGenerator(style: .medium)
             generator.impactOccurred()
+        }
+    }
+    
+    func realTranslationController(_ controller: RealTranslationController, didTranslate text: String, toDogTranslation: String, mode: TranslationMode, qualityScore: TranslationQualityScore?) {
+        // Show quality score for AI mode
+        if mode == .ai, let score = qualityScore {
+            translationView.showQualityScore(score)
+            // Update status to include quality
+            statusLabel.text = "Translated: \(text) (Quality: \(Int(score.confidence * 100))%)"
         }
     }
     
