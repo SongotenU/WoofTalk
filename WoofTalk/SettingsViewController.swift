@@ -110,6 +110,7 @@ extension SettingsViewController: UITableViewDataSource {
     
     private func createTranslationModeControl() -> UIView {
         let segmented = UISegmentedControl(items: ["AI", "Rule-Based", "Auto"])
+        segmented.accessibilityIdentifier = "translationModeControl"
         // Find the current mode's index
         let modes: [TranslationMode] = [.ai, .ruleBased, .auto]
         if let index = modes.firstIndex(of: settings.translationMode) {

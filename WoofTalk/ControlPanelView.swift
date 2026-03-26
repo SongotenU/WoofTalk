@@ -43,16 +43,44 @@ final class ControlPanelView: UIView {
     }
     
     private func setupUI() {
+        // Top bar with settings and help buttons
+        let topBarStackView = UIStackView()
+        topBarStackView.axis = .horizontal
+        topBarStackView.distribution = .fill
+        topBarStackView.alignment = .center
+        topBarStackView.spacing = 8
+        topBarStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let settingsButton = UIButton(type: .system)
+        settingsButton.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
+        settingsButton.accessibilityIdentifier = "settingsButton"
+        
+        let helpButton = UIButton(type: .system)
+        helpButton.setImage(UIImage(systemName: "questionmark.circle"), for: .normal)
+        helpButton.addTarget(self, action: #selector(helpTapped), for: .touchUpInside)
+        helpButton.accessibilityIdentifier = "helpButton"
+        
+        topBarStackView.addArrangedSubview(settingsButton)
+        topBarStackView.addArrangedSubview(helpButton)
+        
+        addSubview(topBarStackView)
         addSubview(translateButton)
         addSubview(statusStackView)
         addSubview(modeLabel)
         
-        translateButton.translatesAutoresizingMaskIntoConstraints = false
-        statusStackView.translatesAutoresizingMaskIntoConstraints = false
-        modeLabel.translatesAutoresizingMaskIntoConstraints = false
+        // Constraints
+        NSLayoutConstraint.activate([
+            topBarStackView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            topBarStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            settingsButton.widthAnchor.constraint(equalToConstant: 44),
+            settingsButton.heightAnchor.constraint(equalToConstant: 44),
+            helpButton.widthAnchor.constraint(equalToConstant: 44),
+            helpButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
         
         NSLayoutConstraint.activate([
-            translateButton.topAnchor.constraint(equalTo: topAnchor),
+            translateButton.topAnchor.constraint(equalTo: topBarStackView.bottomAnchor, constant: 8),
             translateButton.leadingAnchor.constraint(equalTo: leadingAnchor),
             translateButton.trailingAnchor.constraint(equalTo: trailingAnchor),
             translateButton.heightAnchor.constraint(equalToConstant: 50)
@@ -159,5 +187,13 @@ final class ControlPanelView: UIView {
     
     @objc private func translateButtonTapped() {
         delegate?.controlPanelDidTapTranslate(self)
+    }
+    
+    @objc private func settingsTapped() {
+        delegate?.controlPanelDidTapSettings(self)
+    }
+    
+    @objc private func helpTapped() {
+        delegate?.controlPanelDidTapHelp(self)
     }
 }

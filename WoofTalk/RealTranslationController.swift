@@ -7,7 +7,7 @@ final class RealTranslationController {
     
     // MARK: - Properties
     private let translationEngine: TranslationEngine
-    private let aiTranslationService: AITranslationService
+    private let aiTranslationService: AITranslationServiceProtocol
     let modeManager: TranslationModeManager
     private let audioCapture: AudioCapture
     private let speechRecognition: SpeechRecognition
@@ -66,16 +66,17 @@ final class RealTranslationController {
          audioCapture: AudioCapture,
          speechRecognition: SpeechRecognition,
          audioPlayback: AudioPlayback,
-         translationBridge: AudioTranslationBridge) {
+         translationBridge: AudioTranslationBridge,
+         modeManager: TranslationModeManager? = nil,
+         aiService: AITranslationServiceProtocol? = nil) {
         
         self.translationEngine = translationEngine
         self.audioCapture = audioCapture
         self.speechRecognition = speechRecognition
         self.audioPlayback = audioPlayback
         self.translationBridge = translationBridge
-        // Initialize AI service and mode manager
-        self.aiTranslationService = AITranslationService.shared
-        self.modeManager = TranslationModeManager(aiService: AITranslationService.shared)
+        self.aiTranslationService = aiService ?? AITranslationService.shared
+        self.modeManager = modeManager ?? TranslationModeManager(aiService: self.aiTranslationService)
         
         setupDelegates()
     }

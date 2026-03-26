@@ -23,12 +23,26 @@ final class WoofTalkUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSettingsModeToggle() throws {
         let app = XCUIApplication()
         app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        
+        // Wait for settings button
+        let settingsButton = app.buttons["settingsButton"]
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
+        settingsButton.tap()
+        
+        // Settings presented; find the translation mode segmented control
+        let segmentedControl = app.segmentedControls["translationModeControl"]
+        XCTAssertTrue(segmentedControl.waitForExistence(timeout: 2))
+        
+        // Toggle to AI mode
+        segmentedControl.buttons["AI"].tap()
+        XCTAssertEqual(segmentedControl.value as? String, "AI")
+        
+        // Toggle to Auto mode
+        segmentedControl.buttons["Auto"].tap()
+        XCTAssertEqual(segmentedControl.value as? String, "Auto")
     }
 
     @MainActor
