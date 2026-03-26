@@ -8,6 +8,7 @@ final class RealTranslationController {
     // MARK: - Properties
     private let translationEngine: TranslationEngine
     private let aiTranslationService: AITranslationService
+    private let modeManager: TranslationModeManager
     private let audioCapture: AudioCapture
     private let speechRecognition: SpeechRecognition
     private let audioPlayback: AudioPlayback
@@ -72,6 +73,9 @@ final class RealTranslationController {
         self.speechRecognition = speechRecognition
         self.audioPlayback = audioPlayback
         self.translationBridge = translationBridge
+        // Initialize AI service and mode manager
+        self.aiTranslationService = AITranslationService.shared
+        self.modeManager = TranslationModeManager(aiService: AITranslationService.shared)
         
         setupDelegates()
     }
@@ -346,11 +350,19 @@ protocol RealTranslationControllerDelegate: AnyObject {
     func realTranslationController(_ controller: RealTranslationController, didUpdateMetrics metrics: RealTranslationController.TranslationMetrics)
     func realTranslationController(_ controller: RealTranslationController, didTransitionFrom oldState: RealTranslationController.TranslationState, to newState: RealTranslationController.TranslationState)
     func realTranslationController(_ controller: RealTranslationController, didTranslate text: String, toDogTranslation: String)
+    func realTranslationController(_ controller: RealTranslationController, didTranslate text: String, toDogTranslation: String, mode: TranslationMode, qualityScore: TranslationQualityScore?)
     func realTranslationController(_ controller: RealTranslationController, didTranslatePartial text: String, toPartialTranslation: String)
     func realTranslationController(_ controller: RealTranslationController, didRecognizePartialSpeech text: String)
     func realTranslationController(_ controller: RealTranslationController, didFailWithError error: Error)
     func realTranslationController(_ controller: RealTranslationController, didPlayAudio duration: TimeInterval)
     func realTranslationController(_ controller: RealTranslationController, didUpdateAudioLevel level: Float)
+}
+
+// Provide default empty implementation for the optional detailed translation callback
+extension RealTranslationControllerDelegate {
+    func realTranslationController(_ controller: RealTranslationController, didTranslate text: String, toDogTranslation: String, mode: TranslationMode, qualityScore: TranslationQualityScore?) {
+        // Default: do nothing
+    }
 }
 
 // MARK: - RealTranslationController Errors
@@ -427,32 +439,32 @@ extension RealTranslationController: SpeechRecognitionDelegate {
     }
     
     func speechRecognition(_ recognition: SpeechRecognition, didCompleteFinalRecognition text: String) {
-        // Perform translation
         let startTime = CACurrentMediaTime()
         
-        translationEngine.translateHumanToDog(text) { [weak self] result in
+        Task { [weak self] in
             guard let self = self else { return }
-            
-            let endTime = CACurrentMediaTime()
-            let latency = endTime - startTime
-            
-            switch result {
-            case .success(let dogTranslation):
-                // Update metrics
+            do {
+                let result = try await self.modeManager.translate(input: text, direction: .humanToDog)
+                let endTime = CACurrentMediaTime()
+                let latency = endTime - startTime
                 self.updateMetrics(latency: latency, success: true)
-                
-                // Notify delegate
-                self.delegate?.realTranslationController(self, didTranslate: text, toDogTranslation: dogTranslation)
-                
-                // Synthesize dog vocalization
-                self.synthesizeAndPlayDogVocalization(dogTranslation)
-                
-            case .failure(let error):
-                // Update metrics
-                self.updateMetrics(latency: latency, success: false)
-                
-                // Notify delegate
-                self.delegate?.realTranslationController(self, didFailWithError: error)
+                // Basic delegate callback
+                self.delegate?.realTranslationController(self, didTranslate: text, toDogTranslation: result.text)
+                // Detailed callback with mode and quality
+                self.delegate?.realTranslationController(self, didTranslate: text, toDogTranslation: result.text, mode: result.mode, qualityScore: result.qualityScore)
+                // Synthesize and play
+                self.synthesizeAndPlayDogVocalization(result.text)
+            } catch {
+                // Fallback to rule-based translation
+                let fallbackText = self.aiTranslationService.fallbackTranslate(input: text, direction: .humanToDog)
+                let endTime = CACurrentMediaTime()
+                let latency = endTime - startTime
+                self.updateMetrics(latency: latency, success: true)
+                // Basic callback
+                self.delegate?.realTranslationController(self, didTranslate: text, toDogTranslation: fallbackText)
+                // Detailed callback for fallback
+                self.delegate?.realTranslationController(self, didTranslate: text, toDogTranslation: fallbackText, mode: .ruleBased, qualityScore: nil)
+                self.synthesizeAndPlayDogVocalization(fallbackText)
             }
         }
     }
