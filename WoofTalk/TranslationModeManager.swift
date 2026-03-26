@@ -97,11 +97,13 @@ final class TranslationModeManager: ObservableObject {
 enum TranslationMode: String, CaseIterable {
     case ai = "AI"
     case ruleBased = "Rule-Based"
+    case auto = "Auto"
     
     var displayName: String {
         switch self {
         case .ai: return "AI Translation"
         case .ruleBased: return "Rule-Based"
+        case .auto: return "Auto"
         }
     }
     
@@ -109,6 +111,7 @@ enum TranslationMode: String, CaseIterable {
         switch self {
         case .ai: return "Contextual translations using AI"
         case .ruleBased: return "Traditional translation engine"
+        case .auto: return "Automatic mode selection"
         }
     }
 }

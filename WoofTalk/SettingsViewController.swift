@@ -1,6 +1,7 @@
 // MARK: - SettingsViewController
 
 import UIKit
+import TranslationModeManager  // Not needed if same target, but safe
 
 final class SettingsViewController: UIViewController {
     
@@ -41,7 +42,7 @@ final class SettingsViewController: UIViewController {
 
 extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 6
+        return 7
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -59,12 +60,15 @@ extension SettingsViewController: UITableViewDataSource {
             cell.textLabel?.text = "Translation Language"
             cell.accessoryView = createLanguageControl()
         case 3:
+            cell.textLabel?.text = "Translation Mode"
+            cell.accessoryView = createTranslationModeControl()
+        case 4:
             cell.textLabel?.text = "Enable Vibration"
             cell.accessoryView = createVibrationSwitch()
-        case 4:
+        case 5:
             cell.textLabel?.text = "Clear History"
             cell.accessoryType = .disclosureIndicator
-        case 5:
+        case 6:
             cell.textLabel?.text = "About"
             cell.accessoryType = .disclosureIndicator
         default:
@@ -104,12 +108,32 @@ extension SettingsViewController: UITableViewDataSource {
         return toggle
     }
     
+    private func createTranslationModeControl() -> UIView {
+        let segmented = UISegmentedControl(items: ["AI", "Rule-Based", "Auto"])
+        // Find the current mode's index
+        let modes: [TranslationMode] = [.ai, .ruleBased, .auto]
+        if let index = modes.firstIndex(of: settings.translationMode) {
+            segmented.selectedSegmentIndex = index
+        } else {
+            segmented.selectedSegmentIndex = 1 // Default to Rule-Based if not found
+        }
+        segmented.addTarget(self, action: #selector(translationModeChanged(_:)), for: .valueChanged)
+        return segmented
+    }
+    
     @objc private func latencyThresholdChanged(_ sender: UISlider) {
         settings.latencyThreshold = Double(sender.value)
     }
     
     @objc private func audioQualityChanged(_ sender: UISegmentedControl) {
         settings.audioQuality = AudioQuality(rawValue: sender.selectedSegmentIndex) ?? .medium
+    }
+    
+    @objc private func translationModeChanged(_ sender: UISegmentedControl) {
+        let modes: [TranslationMode] = [.ai, .ruleBased, .auto]
+        if sender.selectedSegmentIndex < modes.count {
+            settings.translationMode = modes[sender.selectedSegmentIndex]
+        }
     }
     
     @objc private func languageChanged(_ sender: UISegmentedControl) {
