@@ -8,7 +8,7 @@ final class RealTranslationController {
     // MARK: - Properties
     private let translationEngine: TranslationEngine
     private let aiTranslationService: AITranslationService
-    private let modeManager: TranslationModeManager
+    let modeManager: TranslationModeManager
     private let audioCapture: AudioCapture
     private let speechRecognition: SpeechRecognition
     private let audioPlayback: AudioPlayback
