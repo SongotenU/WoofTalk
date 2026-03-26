@@ -36,3 +36,6 @@ tmp/
 
 # ── GSD baseline (auto-generated) ──
 .gsd/completed-units.json
+
+# ── GSD baseline (auto-generated) ──
+.gsd

@@ -20,6 +20,11 @@ struct WoofTalkApp: App {
                         Label("Translate", systemImage: "bubble.left.and.bubble.right")
                     }
                 
+                CommunityPhraseBrowserView()
+                    .tabItem {
+                        Label("Community", systemImage: "person.3.fill")
+                    }
+                
                 OfflineModeView()
                     .tabItem {
                         Label("Offline", systemImage: "moon.fill")

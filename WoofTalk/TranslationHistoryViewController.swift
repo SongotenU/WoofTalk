@@ -2,13 +2,18 @@
 
 import UIKit
 
-final class TranslationHistoryViewController: UIViewController {
+final class TranslationHistoryViewController: UIViewController, TranslationHistoryCellDelegate {
     
+    // MARK: - Properties
     private let translationHistory: [TranslationRecord]
     private var tableView: UITableView!
+    private let contributionManager: ContributionManager
+    private let contributionSyncManager: ContributionSyncManager
     
-    init(translationHistory: [TranslationRecord]) {
+    init(translationHistory: [TranslationRecord], contributionManager: ContributionManager, contributionSyncManager: ContributionSyncManager) {
         self.translationHistory = translationHistory
+        self.contributionManager = contributionManager
+        self.contributionSyncManager = contributionSyncManager
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -56,7 +61,7 @@ extension TranslationHistoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "HistoryCell", for: indexPath) as! TranslationHistoryCell
         let record = translationHistory[indexPath.row]
-        cell.configure(with: record)
+        cell.configure(with: record, contributionManager: contributionManager, contributionSyncManager: contributionSyncManager)
         return cell
     }
 }
@@ -73,94 +78,10 @@ extension TranslationHistoryViewController: UITableViewDelegate {
     }
 }
 
-// MARK: - TranslationHistoryCell
+// MARK: - TranslationHistoryCellDelegate
 
-final class TranslationHistoryCell: UITableViewCell {
-    
-    private let humanTextLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.numberOfLines = 2
-        return label
-    }()
-    
-    private let dogTranslationLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
-        label.numberOfLines = 2
-        label.textColor = .systemBlue
-        return label
-    }()
-    
-    private let timestampLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        return label
-    }()
-    
-    private let latencyLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 12)
-        label.textAlignment = .right
-        return label
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupUI() {
-        selectionStyle = .none
-        
-        let stackView = UIStackView(arrangedSubviews: [humanTextLabel, dogTranslationLabel, timestampLabel])
-        stackView.axis = .vertical
-        stackView.spacing = 4
-        
-        let rightStack = UIStackView(arrangedSubviews: [latencyLabel])
-        rightStack.axis = .vertical
-        rightStack.alignment = .trailing
-        
-        let container = UIStackView(arrangedSubviews: [stackView, rightStack])
-        container.spacing = 16
-        container.alignment = .top
-        
-        contentView.addSubview(container)
-        
-        container.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
-        ])
-    }
-    
-    func configure(with record: TranslationRecord) {
-        humanTextLabel.text = "Human: \(record.humanText)"
-        dogTranslationLabel.text = "Dog: \(record.dogTranslation)"
-        timestampLabel.text = formatTimestamp(record.timestamp)
-        latencyLabel.text = String(format: "%.1f s", record.latency)
-        
-        // Color latency based on performance
-        if record.latency < 1.0 {
-            latencyLabel.textColor = .systemGreen
-        } else if record.latency < 2.0 {
-            latencyLabel.textColor = .systemOrange
-        } else {
-            latencyLabel.textColor = .systemRed
-        }
-    }
-    
-    private func formatTimestamp(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+extension TranslationHistoryViewController: TranslationHistoryCellDelegate {
+    func translationHistoryCell(_ cell: TranslationHistoryCell, wantsToShow alert: UIAlertController) {
+        present(alert, animated: true)
     }
 }

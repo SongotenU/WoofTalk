@@ -2,8 +2,22 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="qualityScore" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="validationNotes" optional="YES" attributeType="String"/>
+        <attribute name="isModerator" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="Translation" representedClassName="Translation" syncable="YES" codeGenerationType="manual/none">
+        <attribute name="originalText" optional="NO" attributeType="String"/>
+        <attribute name="translatedText" optional="NO" attributeType="String"/>
+        <attribute name="modeUsed" optional="YES" attributeType="String"/>
+        <attribute name="qualityScore" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="modelVersion" optional="YES" attributeType="String"/>
+        <attribute name="inferenceTime" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="Item" positionX="-63" positionY="-18" width="128" height="88"/>
+        <element name="Translation" positionX="100" positionY="100" width="200" height="150"/>
     </elements>
 </model>

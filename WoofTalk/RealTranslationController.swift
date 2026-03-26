@@ -3,11 +3,11 @@
 import Foundation
 import AVFoundation
 
-/// Manages real-time translation state and timing for audio-to-audio translation
 final class RealTranslationController {
     
     // MARK: - Properties
     private let translationEngine: TranslationEngine
+    private let aiTranslationService: AITranslationService
     private let audioCapture: AudioCapture
     private let speechRecognition: SpeechRecognition
     private let audioPlayback: AudioPlayback
@@ -17,10 +17,21 @@ final class RealTranslationController {
     private var translationStartTime: Date?
     private var totalTranslationTime: TimeInterval = 0
     private var translationCount = 0
-    private var latencyThreshold: TimeInterval = 2.0 // Target <2 second latency
+    private var latencyThreshold: TimeInterval = 1.0
+    
+    // Streaming
+    private var enableStreaming = false
+    private var chunkSize: Int = 50
+    private var streamingBuffer: String = ""
+    private var lastPartialTranslation: String = ""
+    private var streamingTask: Task<Void, Never>?
+    
+    // Continuous mode
+    private var isContinuousMode = false
+    private var continuousTimer: Timer?
     
     // Translation state
-    private enum TranslationState {
+    enum TranslationState {
         case idle
         case capturing
         case recognizing
@@ -40,6 +51,8 @@ final class RealTranslationController {
         var translationSuccessRate: Double = 0
         var totalTranslations: Int = 0
         var failedTranslations: Int = 0
+        var streamingChunks: Int = 0
+        var lastChunkLatency: TimeInterval = 0
     }
     
     private var metrics = TranslationMetrics()
@@ -164,6 +177,110 @@ final class RealTranslationController {
         return metrics
     }
     
+    // MARK: - Streaming API
+    func setStreamingEnabled(_ enabled: Bool) {
+        enableStreaming = enabled
+    }
+    
+    func setChunkSize(_ size: Int) {
+        chunkSize = max(10, min(size, 200))
+    }
+    
+    func processStreamingText(_ text: String) {
+        guard enableStreaming else { return }
+        
+        streamingBuffer += text + " "
+        
+        if streamingBuffer.count >= chunkSize {
+            processStreamingChunk()
+        }
+    }
+    
+    private func processStreamingChunk() {
+        guard !streamingBuffer.isEmpty else { return }
+        
+        let chunk = streamingBuffer
+        streamingBuffer = ""
+        metrics.streamingChunks += 1
+        
+        let startTime = CACurrentMediaTime()
+        
+        Task {
+            do {
+                let result = try await aiTranslationService.translate(
+                    input: chunk,
+                    direction: .humanToDog
+                )
+                
+                let endTime = CACurrentMediaTime()
+                let latency = endTime - startTime
+                metrics.lastChunkLatency = latency
+                
+                updateMetrics(latency: latency, success: true)
+                
+                lastPartialTranslation = result.translatedText
+                delegate?.realTranslationController(self, didTranslatePartial: chunk, toPartialTranslation: result.translatedText)
+                
+                synthesizeAndPlayDogVocalization(result.translatedText)
+                
+            } catch {
+                updateMetrics(latency: CACurrentMediaTime() - startTime, success: false)
+                delegate?.realTranslationController(self, didFailWithError: error)
+            }
+        }
+    }
+    
+    // MARK: - Continuous Mode
+    func setContinuousMode(_ enabled: Bool) {
+        isContinuousMode = enabled
+        
+        if enabled && isTranslating {
+            startContinuousMode()
+        } else {
+            stopContinuousMode()
+        }
+    }
+    
+    func isContinuousModeEnabled() -> Bool {
+        return isContinuousMode
+    }
+    
+    private func startContinuousMode() {
+        continuousTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.continuousModeTick()
+        }
+    }
+    
+    private func stopContinuousMode() {
+        continuousTimer?.invalidate()
+        continuousTimer = nil
+    }
+    
+    private func continuousModeTick() {
+        guard isTranslating else { return }
+    }
+    
+    // MARK: - AI Translation
+    func translateWithAI(input: String, direction: TranslationDirection = .humanToDog) async throws -> AITranslationResult {
+        let startTime = CACurrentMediaTime()
+        
+        let result = try await aiTranslationService.translate(input: input, direction: direction)
+        
+        let latency = CACurrentMediaTime() - startTime
+        updateMetrics(latency: latency, success: true)
+        
+        return result
+    }
+    
+    // MARK: - Latency Threshold
+    func setLatencyThreshold(_ threshold: TimeInterval) {
+        latencyThreshold = max(0.1, threshold)
+    }
+    
+    func getLatencyThreshold() -> TimeInterval {
+        return latencyThreshold
+    }
+    
     // MARK: - Private Methods
     private func setupDelegates() {
         // Audio capture delegate
@@ -229,8 +346,11 @@ protocol RealTranslationControllerDelegate: AnyObject {
     func realTranslationController(_ controller: RealTranslationController, didUpdateMetrics metrics: RealTranslationController.TranslationMetrics)
     func realTranslationController(_ controller: RealTranslationController, didTransitionFrom oldState: RealTranslationController.TranslationState, to newState: RealTranslationController.TranslationState)
     func realTranslationController(_ controller: RealTranslationController, didTranslate text: String, toDogTranslation: String)
+    func realTranslationController(_ controller: RealTranslationController, didTranslatePartial text: String, toPartialTranslation: String)
+    func realTranslationController(_ controller: RealTranslationController, didRecognizePartialSpeech text: String)
     func realTranslationController(_ controller: RealTranslationController, didFailWithError error: Error)
     func realTranslationController(_ controller: RealTranslationController, didPlayAudio duration: TimeInterval)
+    func realTranslationController(_ controller: RealTranslationController, didUpdateAudioLevel level: Float)
 }
 
 // MARK: - RealTranslationController Errors
