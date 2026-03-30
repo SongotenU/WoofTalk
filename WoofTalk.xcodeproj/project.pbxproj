@@ -14,13 +14,6 @@
 			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
 			remoteInfo = WoofTalk;
 		};
-		9F2C83D32F61688100E4A788 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9F2C83AE2F61687F00E4A788 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
-			remoteInfo = WoofTalk;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
