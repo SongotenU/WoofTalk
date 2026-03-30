@@ -6,7 +6,7 @@
         <attribute name="validationNotes" optional="YES" attributeType="String"/>
         <attribute name="isModerator" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
     </entity>
-    <entity name="Translation" representedClassName="Translation" syncable="YES" codeGenerationType="manual/none">
+    <entity name="Translation" representedClassName="Translation" syncable="YES" codeGenerationType="class">
         <attribute name="originalText" optional="NO" attributeType="String"/>
         <attribute name="translatedText" optional="NO" attributeType="String"/>
         <attribute name="modeUsed" optional="YES" attributeType="String"/>
