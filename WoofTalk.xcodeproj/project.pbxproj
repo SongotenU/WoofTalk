@@ -26,16 +26,19 @@
 		9F2C83B82F61687F00E4A788 /* WoofTalk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalk;
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83CB2F61688100E4A788 /* WoofTalkTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkTests;
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83D52F61688100E4A788 /* WoofTalkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkUITests;
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
