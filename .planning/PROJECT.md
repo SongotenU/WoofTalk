@@ -10,14 +10,16 @@ The core value is enabling natural communication between humans and dogs through
 
 ## Current State
 
-v3.0 (M004) Complete:
-- Platform Expansion — Android app, Supabase backend, cross-platform sync (6 phases, 29 requirements, 81 files)
+v3.1 (M005) Complete:
+- Web + Smartwatch — Next.js web app, Wear OS companion app (4 phases, 24 requirements)
 
 Current codebase includes:
 - **iOS**: SwiftUI translation app with voice, community, AI, analytics
 - **Android**: Kotlin + Jetpack Compose app with full iOS parity
 - **Backend**: Supabase (PostgreSQL, 8 tables, 30+ RLS policies, 6 Edge Functions)
 - **Cross-platform**: Shared auth, synced history, realtime activity feed
+- **Web**: Next.js app with voice I/O, community, social, PWA, Supabase sync
+- **Watch**: Wear OS companion app with voice input, glanceable results, Supabase sync
 
 ## Current Milestone: v3.1 Web + Smartwatch
 

@@ -6,7 +6,13 @@ import { fetchTranslations } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
 
 export default function HistoryPage() {
-  const [translations, setTranslations] = useState<any[]>([]);
+  const [translations, setTranslations] = useState<Array<{
+    human_text: string;
+    animal_text: string;
+    source_language: string;
+    target_language: string;
+    confidence: number;
+  }>>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,6 +44,8 @@ export default function HistoryPage() {
           <div className="flex gap-4">
             <Link href="/translate" className="text-muted-foreground hover:text-foreground">Translate</Link>
             <Link href="/history" className="text-primary font-medium">History</Link>
+            <Link href="/community" className="text-muted-foreground hover:text-foreground">Community</Link>
+            <Link href="/social" className="text-muted-foreground hover:text-foreground">Social</Link>
             <Link href="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
           </div>
         </div>
