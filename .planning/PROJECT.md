@@ -31,22 +31,83 @@ Current codebase includes:
 - Offline-first architecture
 - Error reporting infrastructure
 
+## Current Milestone: v3.0 Platform Expansion
+
+**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
+
+**Target features:**
+- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
+- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
+- Cross-platform account sync — shared history, phrases, social graph
+- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
+
+## Current Milestone: v3.0 Platform Expansion
+
+**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
+
+**Target features:**
+- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
+- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
+- Cross-platform account sync — shared history, phrases, social graph
+- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
+
+## Current Milestone: v3.0 Platform Expansion
+
+**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
+
+**Target features:**
+- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
+- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
+- Cross-platform account sync — shared history, phrases, social graph
+- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
+
 ## Next Milestone Goals
 
-**M004: Platform Expansion**
-- Android app development
+**M005: Platform Expansion (continued)**
 - Web version
 - Smartwatch companion app
-- Cross-platform sync
+
+**M006: Enterprise**
+- API access, admin features, and enterprise solutions
 
 ## Architecture / Key Patterns
 
+### iOS (Existing)
 - SwiftUI for modern, declarative UI
 - Core Data for persistence (translation history, user data, community phrases)
 - AVFoundation for voice input/output capabilities
 - Rule-based translation for MVP, can enhance with AI later
 - Community features for user engagement and content diversity
 - Subscription model for premium features
+
+### Android (v3.0 — New)
+- Kotlin + Jetpack Compose for modern, declarative UI
+- Room Database for local persistence (Core Data equivalent)
+- SpeechRecognizer + TextToSpeech for voice I/O
+- Translation engine logic ported from Swift to Kotlin
+- Shared cloud backend for cross-platform sync
+
+### Shared Backend (v3.0 — New)
+- Firebase or Supabase for auth, database, cloud sync
+- REST/GraphQL API for cross-platform data access
+- Real-time sync for community features and social graph
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ## Capability Contract
 
@@ -57,6 +118,7 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M001: Core Translation App — Complete iOS app with translation, voice, community, and premium features
 - [x] M002: Community Features — Complete with all 6 slices
 - [x] M003: Advanced Features — AI translation, real-time, multi-language, analytics, performance, integration
-- [ ] M004: Platform Expansion — Android, Web, and Smartwatch
-- [ ] M005: Enterprise — API access, admin features, and enterprise solutions
-- [ ] M006: AR/VR — Augmented reality and virtual reality translation features
+- [x] M004: Platform Expansion — Android, Web, and Smartwatch
+- [ ] M005: Platform Expansion (continued) — Web, Smartwatch
+- [ ] M006: Enterprise — API access, admin features, and enterprise solutions
+- [ ] M007: AR/VR — Augmented reality and virtual reality translation features
