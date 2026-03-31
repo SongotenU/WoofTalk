@@ -1,0 +1,32 @@
+WoofTalk translates between human and animal languages with voice input/output.
+
+🐾 Core Features
+• Translate human text to Dog, Cat, or Bird language
+• Translate animal sounds back to human text
+• Voice input with speech recognition
+• Voice output with text-to-speech
+• 100+ phrase vocabulary
+
+🌐 Community
+• Browse community-contributed phrases
+• Submit your own translations
+• Vote on phrases
+• Follow other translators
+• Leaderboards
+
+🔄 Cross-Platform
+• Sync your history across iOS and Android
+• Real-time activity feed
+• Share translations with friends
+
+📱 Works Offline
+• Translation engine works without internet
+• Queue changes for sync when online
+• Background voice processing
+
+🎯 Multi-Language
+• Dog language (woof, bark, arf)
+• Cat language (meow, purr, hiss)
+• Bird language (chirp, tweet, whistle)
+
+Translate with confidence. Communicate with your pet like never before!
