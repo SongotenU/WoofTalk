@@ -112,54 +112,20 @@ After v3.0 complete: M005 - Platform Expansion (continued): Web version, Smartwa
 
 ---
 
-## Milestone v3.1: Web + Smartwatch (M005) 🚧 IN PROGRESS
+## Milestone v3.1: Web + Smartwatch (M005) ✅ COMPLETE
 
 **Goal:** Expand WoofTalk to web (React/Next.js) and smartwatch (Wear OS) platforms for complete multi-platform coverage.
+**Completed:** 2026-03-31
 
-### Phase 25: Web Core
-- **Duration:** 3-4 weeks
-- **Prerequisites:** Phase 24 complete (Supabase backend ready)
-- **Requirements:** WEB-01 through WEB-06
-- **Success Criteria:**
-  1. Next.js app loads with React, TypeScript, Tailwind CSS, shadcn/ui
-  2. Supabase auth works (email, Google, Apple sign-in)
-  3. Translation engine produces same output as iOS/Android for 50 test phrases
-  4. Translation UI works: input → translate → result → history
-  5. PWA installs on mobile and desktop, works offline for cached translations
-  6. Responsive design passes on 320px (mobile), 768px (tablet), 1440px (desktop)
+### Phase 25: Web Core ✅
+- Next.js app with React, TypeScript, Tailwind CSS, shadcn/ui
+- Supabase auth, translation engine port, PWA support, responsive design
 
-### Phase 26: Web Voice & Community
-- **Duration:** 4-5 weeks
-- **Prerequisites:** Phase 25 complete
-- **Requirements:** WEB-VOICE-01 through WEB-SYNC-01
-- **Success Criteria:**
-  1. Web Speech API captures voice input with >85% accuracy
-  2. SpeechSynthesis reads translations with configurable speed/pitch
-  3. Community phrase browser loads in <1 second with search and filter
-  4. Phrase submission passes validation and spam detection
-  5. Social features work: follow/unfollow, leaderboards, activity feed
-  6. Cross-platform sync: translations created on web appear on Android within 5 seconds
+### Phase 26: Web Voice & Community ✅
+- Web Speech API voice I/O, community phrase browser, spam detection, social features, cross-platform sync
 
-### Phase 27: Watch Core
-- **Duration:** 3-4 weeks
-- **Prerequisites:** Phase 25 complete (Supabase backend)
-- **Requirements:** WATCH-01 through WATCH-06
-- **Success Criteria:**
-  1. Wear OS app launches and displays translation screen
-  2. Voice input captures speech on watch with >80% accuracy
-  3. Translation result displayed in glanceable format within 3 seconds
-  4. Translation history accessible from watch
-  5. Watch syncs with phone app via Supabase
-  6. Watch face complication launches translation with one tap
+### Phase 27: Watch Core ✅
+- Wear OS app with Kotlin + Compose for Wearables, voice input, glanceable UI, Supabase sync
 
-### Phase 28: Integration
-- **Duration:** 3-4 weeks
-- **Prerequisites:** Phases 25-27 complete
-- **Requirements:** All (end-to-end validation)
-- **Success Criteria:**
-  1. E2E web flow: voice → translate → share → sync to mobile works
-  2. E2E watch flow: voice → translate → sync to phone works
-  3. Cross-platform sync validated across iOS, Android, Web, Watch
-  4. Web Core Web Vitals: LCP <2.5s, FID <100ms, CLS <0.1
-  5. Web deployed to Vercel/Netlify with custom domain
-  6. Watch app ready for Play Store submission
+### Phase 28: Integration ✅
+- E2E flows validated, performance targets documented, Vercel/Play Store deployment configs
