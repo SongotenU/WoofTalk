@@ -6,6 +6,8 @@ import { translate, detectLanguage } from "@/lib/translation/engine";
 import { translationCache } from "@/lib/translation/cache";
 import type { TranslationDirection, TranslationResult } from "@/lib/translation/types";
 import { supabase, fetchTranslations, saveTranslation } from "@/lib/supabase";
+import { VoiceInput } from "@/components/VoiceInput";
+import { VoiceOutput } from "@/components/VoiceOutput";
 
 export default function TranslatePage() {
   const [inputText, setInputText] = useState("");
@@ -13,6 +15,10 @@ export default function TranslatePage() {
   const [selectedLang, setSelectedLang] = useState<"dog" | "cat" | "bird">("dog");
   const [isTranslating, setIsTranslating] = useState(false);
   const [history, setHistory] = useState<TranslationResult[]>([]);
+
+  const handleVoiceResult = (transcript: string) => {
+    setInputText(transcript);
+  };
 
   const handleTranslate = async () => {
     if (!inputText.trim()) return;
@@ -63,12 +69,17 @@ export default function TranslatePage() {
       </nav>
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder="Enter text to translate..."
-          className="w-full min-h-[120px] p-4 border rounded-lg text-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-        />
+        <div className="relative">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Enter text to translate..."
+            className="w-full min-h-[120px] p-4 pr-16 border rounded-lg text-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <div className="absolute right-3 top-3">
+            <VoiceInput onResult={handleVoiceResult} />
+          </div>
+        </div>
 
         <div className="flex items-center justify-between mt-4">
           <div className="flex gap-2">
@@ -98,11 +109,16 @@ export default function TranslatePage() {
 
         {result && (
           <div className="mt-8 p-6 bg-card rounded-lg border">
-            <p className="text-sm text-muted-foreground mb-2">Translation:</p>
-            <p className="text-2xl font-medium text-primary">{result.outputText}</p>
-            <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-              <span>Confidence: {(result.confidence * 100).toFixed(0)}%</span>
-              <span>Source: {result.source}</span>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-2">Translation:</p>
+                <p className="text-2xl font-medium text-primary">{result.outputText}</p>
+                <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
+                  <span>Confidence: {(result.confidence * 100).toFixed(0)}%</span>
+                  <span>Source: {result.source}</span>
+                </div>
+              </div>
+              <VoiceOutput text={result.outputText} />
             </div>
           </div>
         )}

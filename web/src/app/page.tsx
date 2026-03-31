@@ -8,6 +8,8 @@ export default function HomePage() {
           <span className="text-2xl font-bold text-primary">🐾 WoofTalk</span>
           <div className="flex gap-4">
             <Link href="/auth/signin" className="text-muted-foreground hover:text-foreground">Sign In</Link>
+            <Link href="/translate" className="text-muted-foreground hover:text-foreground">Translate</Link>
+            <Link href="/community" className="text-muted-foreground hover:text-foreground">Community</Link>
             <Link href="/translate" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">Translate</Link>
           </div>
         </div>

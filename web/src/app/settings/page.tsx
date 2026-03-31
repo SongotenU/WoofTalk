@@ -1,13 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase, signOut } from "@/lib/supabase";
+import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [cacheSize, setCacheSize] = useState(1000);
+  const [voiceRate, setVoiceRate] = useState(1.0);
+  const [voicePitch, setVoicePitch] = useState(1.0);
+  const { speak } = useSpeechSynthesis();
+
+  useEffect(() => {
+    const savedRate = localStorage.getItem('voiceRate');
+    const savedPitch = localStorage.getItem('voicePitch');
+    if (savedRate) setVoiceRate(parseFloat(savedRate));
+    if (savedPitch) setVoicePitch(parseFloat(savedPitch));
+  }, []);
+
+  const handleVoiceRateChange = (value: number) => {
+    setVoiceRate(value);
+    localStorage.setItem('voiceRate', value.toString());
+  };
+
+  const handleVoicePitchChange = (value: number) => {
+    setVoicePitch(value);
+    localStorage.setItem('voicePitch', value.toString());
+  };
+
+  const previewVoice = () => {
+    speak("Hello", { rate: voiceRate, pitch: voicePitch });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,6 +42,8 @@ export default function SettingsPage() {
           <div className="flex gap-4">
             <Link href="/translate" className="text-muted-foreground hover:text-foreground">Translate</Link>
             <Link href="/history" className="text-muted-foreground hover:text-foreground">History</Link>
+            <Link href="/community" className="text-muted-foreground hover:text-foreground">Community</Link>
+            <Link href="/social" className="text-muted-foreground hover:text-foreground">Social</Link>
             <Link href="/settings" className="text-primary font-medium">Settings</Link>
           </div>
         </div>
@@ -64,6 +91,46 @@ export default function SettingsPage() {
               onChange={(e) => setCacheSize(Number(e.target.value))}
               className="w-full"
             />
+          </div>
+
+          <div className="p-4 bg-card rounded-lg border">
+            <h2 className="text-lg font-semibold mb-4">Voice</h2>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">Speed: {voiceRate.toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={voiceRate}
+                  onChange={(e) => handleVoiceRateChange(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">Pitch: {voicePitch.toFixed(1)}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={voicePitch}
+                  onChange={(e) => handleVoicePitchChange(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <button
+                onClick={previewVoice}
+                className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm"
+              >
+                Preview Voice
+              </button>
+            </div>
           </div>
 
           <div className="p-4 bg-card rounded-lg border">
