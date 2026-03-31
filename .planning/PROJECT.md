@@ -10,62 +10,25 @@ The core value is enabling natural communication between humans and dogs through
 
 ## Current State
 
-v1.0 (M001 + M002) Complete:
-- Core Translation Engine (M001) - shipped
-- Community Features (M002) - shipped with all 6 slices complete
-
-v2.0 (M003) Complete:
-- Advanced Features (M003) - all 6 slices complete (AI translation, real-time, multi-language, analytics, performance, integration)
+v3.0 (M004) Complete:
+- Platform Expansion — Android app, Supabase backend, cross-platform sync (6 phases, 29 requirements, 81 files)
 
 Current codebase includes:
-- Translation engine with voice input/output
-- Core Data persistence
-- AI translation with quality scoring
-- Real-time streaming translation
-- Multi-language support (Dog, Cat, Bird)
-- Advanced analytics with dashboard
-- Performance optimization (memory, battery, network)
-- Community phrase contribution system
-- Social features (sharing, following, leaderboards)
-- Moderation and quality control
-- Offline-first architecture
-- Error reporting infrastructure
+- **iOS**: SwiftUI translation app with voice, community, AI, analytics
+- **Android**: Kotlin + Jetpack Compose app with full iOS parity
+- **Backend**: Supabase (PostgreSQL, 8 tables, 30+ RLS policies, 6 Edge Functions)
+- **Cross-platform**: Shared auth, synced history, realtime activity feed
 
-## Current Milestone: v3.0 Platform Expansion
+## Current Milestone: v3.1 Web + Smartwatch
 
-**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
+**Goal:** Expand WoofTalk to web and smartwatch platforms for complete multi-platform coverage.
 
 **Target features:**
-- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
-- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
-- Cross-platform account sync — shared history, phrases, social graph
-- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
-
-## Current Milestone: v3.0 Platform Expansion
-
-**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
-
-**Target features:**
-- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
-- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
-- Cross-platform account sync — shared history, phrases, social graph
-- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
-
-## Current Milestone: v3.0 Platform Expansion
-
-**Goal:** Expand WoofTalk from iOS-only to Android with shared cloud backend and full cross-platform account sync.
-
-**Target features:**
-- Shared cloud backend (Firebase/Supabase) for auth, database, cloud sync
-- Android app (Kotlin + Jetpack Compose) — full feature parity with iOS
-- Cross-platform account sync — shared history, phrases, social graph
-- 6-phase execution: Backend → Android Core → Android Voice → Android Community → Sync → Integration
+- **Web app** (React/Next.js) — Full parity with mobile: translation, voice, community, social, sync
+- **Smartwatch** (Wear OS) — Quick translation companion: voice input, quick translate, history
+- **4-phase execution**: Web Core → Web Voice & Community → Watch Core → Integration
 
 ## Next Milestone Goals
-
-**M005: Platform Expansion (continued)**
-- Web version
-- Smartwatch companion app
 
 **M006: Enterprise**
 - API access, admin features, and enterprise solutions
@@ -87,10 +50,18 @@ Current codebase includes:
 - Translation engine logic ported from Swift to Kotlin
 - Shared cloud backend for cross-platform sync
 
-### Shared Backend (v3.0 — New)
-- Firebase or Supabase for auth, database, cloud sync
-- REST/GraphQL API for cross-platform data access
-- Real-time sync for community features and social graph
+### Web (v3.1 — New)
+- React/Next.js for modern web app
+- Web Speech API for voice I/O
+- Supabase client for shared backend
+- Tailwind CSS + shadcn/ui for UI components
+- PWA support for offline functionality
+
+### Smartwatch (v3.1 — New)
+- Wear OS (Kotlin) for watch app
+- SpeechRecognizer for voice input
+- Quick translation companion experience
+- Synced with phone app via Supabase
 
 ## Evolution
 
@@ -119,6 +90,6 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M002: Community Features — Complete with all 6 slices
 - [x] M003: Advanced Features — AI translation, real-time, multi-language, analytics, performance, integration
 - [x] M004: Platform Expansion — Android, Web, and Smartwatch
-- [ ] M005: Platform Expansion (continued) — Web, Smartwatch
+- [x] M005: Platform Expansion (continued) — Web, Smartwatch → v3.1
 - [ ] M006: Enterprise — API access, admin features, and enterprise solutions
 - [ ] M007: AR/VR — Augmented reality and virtual reality translation features
