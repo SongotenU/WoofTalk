@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Enabling natural communication between humans and dogs through bidirectional translation with voice capabilities
-**Current focus:** v4.0 Complete — Milestone ready for deployment
+**Current focus:** v4.0 Complete — Ready for production deployment
 
 ## Current Position
 
@@ -37,23 +37,28 @@ Progress: [██████████] 100%
 
 ## Accumulated Context
 
-### Decisions
+### Previous Milestones
+- **v1.0 (M001+M002)**: Core Translation Engine + Community Features — Complete iOS app
+- **v2.0 (M003)**: Advanced Features — AI translation, real-time, multi-language
+- **v3.0 (M004)**: Platform Expansion — Android app, Supabase backend, cross-platform sync
+- **v3.1 (M005)**: Web + Smartwatch — Next.js web app, Wear OS companion app
+- **v4.0**: Enterprise — REST API gateway, admin dashboard, org/team management
 
-- [v4.0 roadmap]: 4-phase structure: API Gateway & Data Model (29) → Admin Dashboard (30) → Org & Team (31) → Integration (32)
-- [Stack]: Supabase Edge Functions + Upstash Redis + PostgreSQL + Next.js admin routes; no separate backend, no GraphQL, no external RBAC
+### Key Stack
+- **Backend**: Supabase (PostgreSQL, Edge Functions, RLS) + Upstash Redis
+- **API**: Hono (Deno) + zod validation + bcrypt API keys
+- **Web**: Next.js App Router + Tailwind + shadcn/ui
+- **Mobile**: iOS (Swift), Android (Kotlin + Compose)
+- **Watch**: Wear OS (Kotlin + Compose for Wearables)
 
-### Pending Todos
-
-None yet.
-
-### Blockers/Concerns
-
-- Phase 29 migration risk: Adding org_id columns to existing tables needs batched backfills to avoid PostgreSQL lock contention
-- Phase 29 Upstash cost: Rate limiting token volume needs estimation before committing
-- Phase 30 consumer client impact: RLS policy changes with OR conditions may affect existing client query performance
+### Known Tech Debt
+- Duplicate `audio_processing/` directory in iOS (~1,161 lines)
+- TranslationCache exists but never connected to TranslationEngine
+- LanguageDetectionManager O(n²) nested loop on audio hot path
+- Missing retry + circuit breaker for AI translation
+- Multiple NotificationCenter/Timer memory leaks
 
 ## Session Continuity
 
 Last session: 2026-04-02
-Stopped at: ROADMAP.md created, STATE.md updated
-Resume file: None
+Stopped at: v4.0 complete, PR open for merge
