@@ -79,9 +79,9 @@
 
 - [x] **Phase 33: Admin Auth** ✅ — middleware.ts, admin-auth.ts, 7 API routes protected
 - [x] **Phase 34: API Security Hardening** ✅ — IP allowlist, OpenAPI spec, CORS lockdown
-- [x] **Phase 35: Consumer Client Regression** ✅ — e2e-consumer-regression.sh for 4 Edge Functions — Automated tests for 4 existing Edge Functions against new RLS
-- [x] **Phase 36: Email - [ ] **Phase 36: Email & Invites** Invites** ✅ — Resend integration, /invite/accept page — Resend/SendGrid integration for org invites, `/invite/:token` acceptance
-- [x] **Phase 37: Deployment - [ ] **Phase 37: Deployment & E2E Verification** E2E** ✅ — DEPLOYMENT.md, env docs, test scripts — Live test run, VERIFICATION.md
+- [x] **Phase 35: Consumer Client Regression** ✅ — e2e-consumer-regression.sh for 4 Edge Functions
+- [x] **Phase 36: Email & Invites** ✅ — Resend integration, /invite/accept page
+- [x] **Phase 37: Deployment & E2E** ✅ — DEPLOYMENT.md, env docs, test scripts
 
 ## Phase Details
 
@@ -134,7 +134,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 33. Admin Auth | Planned | Pending | — |
+| 33. Admin Auth | Planned | Complete    | 2026-04-02 |
 | 34. API Security Hardening | Planned | Pending | — |
 | 35. Consumer Regression Suite | Planned | Pending | — |
 | 36. Email & Invites | Planned | Pending | — |
