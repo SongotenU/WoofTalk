@@ -77,11 +77,11 @@
 
 ## Phases
 
-- [ ] **Phase 33: Admin Auth** — Next.js middleware with `is_admin()`, API route auth guards, `/403` page
-- [ ] **Phase 34: API Security Hardening** — Per-key IP allowlisting (API-09), OpenAPI playground (API-08), CORS tightening
-- [ ] **Phase 35: Consumer Regression Suite** — Automated tests for translate, phrases-search, leaderboard, activity-batch Edge Functions against new RLS
-- [ ] **Phase 36: Email & Invites** — Resend/SendGrid integration for org invites, `/invite/:token` acceptance flow
-- [ ] **Phase 37: Deployment & E2E Verification** — Run `e2e-enterprise-test.sh` against live Supabase, generate VERIFICATION.md, document all env vars
+- [x] **Phase 33: Admin Auth** ✅ — middleware.ts, admin-auth.ts, 7 API routes protected
+- [x] **Phase 34: API Security Hardening** ✅ — IP allowlist, OpenAPI spec, CORS lockdown
+- [ ] **Phase 35: Consumer Client Regression** — Automated tests for 4 existing Edge Functions against new RLS
+- [ ] **Phase 36: Email & Invites** — Resend/SendGrid integration for org invites, `/invite/:token` acceptance
+- [ ] **Phase 37: Deployment & E2E Verification** — Live test run, VERIFICATION.md
 
 ## Phase Details
 
