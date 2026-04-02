@@ -17,7 +17,8 @@ const app = new Hono();
 // Global CORS
 // ============================================================
 app.use('*', cors({
-  origin: '*',
+  origin: ['https://wooftalk.com', 'https://www.wooftalk.com'],
+  credentials: true,
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['authorization', 'content-type', 'x-api-version'],
   exposeHeaders: ['retry-after', 'x-ratelimit-remaining', 'x-ratelimit-limit', 'api-version'],
@@ -82,6 +83,23 @@ app.use('/v1/*', async (c, next) => {
     return apiError(c, scopeResult.reason || 'Insufficient scope', 403, 'INSUFFICIENT_SCOPE');
   }
 
+  await next();
+});
+
+// ============================================================
+// IP Allowlist Middleware (API-09)
+// ============================================================
+app.use('/v1/*', async (c, next) => {
+  const apiKey = c.get('apiKey') as ValidatedApiKey;
+  const forwarded = c.req.header('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : c.req.header('x-real-ip') || '';
+
+  // If key has ip_allowlist, check IP
+  if (apiKey.ipAllowlist && apiKey.ipAllowlist.length > 0) {
+    if (!ip || !apiKey.ipAllowlist.includes(ip)) {
+      return apiError(c, 'IP address not allowed', 403, 'IP_NOT_ALLOWED');
+    }
+  }
   await next();
 });
 
@@ -271,6 +289,47 @@ app.get('/v1/usage', async (c) => {
     errors: errorData?.length ?? 0,
     last_request_at: lastRequest?.created_at ?? null,
     usage_by_endpoint: formattedEndpointUsage,
+  });
+});
+
+// ============================================================
+// GET /v1/openapi.json (API-08)
+// ============================================================
+app.get('/v1/openapi.json', async (c) => {
+  return c.json({
+    openapi: '3.1.0',
+    info: {
+      title: 'WoofTalk API',
+      version: 'v1',
+      description: 'REST API for WoofTalk dog-to-human translation service',
+      contact: { name: 'WoofTalk', url: 'https://wooftalk.com' },
+    },
+    servers: [{ url: 'https://${Deno.env.get("SUPABASE_URL")?.replace("https://", "") || "xxx"}.supabase.co/functions/v1/api-gateway' }],
+    paths: {
+      '/v1/translate': {
+        post: {
+          summary: 'Translate between human and dog languages',
+          requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { source_language: { type: 'string', enum: ['human','dog'] }, target_language: { type: 'string', enum: ['human','dog'] }, text: { type: 'string', minLength: 1, maxLength: 2000 } }, required: ['source_language','target_language','text'] } } } },
+          responses: {
+            '201': { description: 'Translation successful' },
+            '400': { description: 'Validation error' },
+            '401': { description: 'Invalid API key' },
+            '403': { description: 'Insufficient scope or IP not allowed' },
+            '429': { description: 'Rate limit exceeded' },
+          },
+          security: [{ bearerAuth: [] }],
+        },
+      },
+      '/v1/languages': {
+        get: { summary: 'List supported languages', responses: { '200': { description: 'Language list' } }, security: [{ bearerAuth: [] }] },
+      },
+      '/v1/usage': {
+        get: { summary: 'Get API key usage statistics', responses: { '200': { description: 'Usage data' } }, security: [{ bearerAuth: [] }] },
+      },
+    },
+    components: {
+      securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', description: 'API key with wt_live_ prefix' } },
+    },
   });
 });
 
