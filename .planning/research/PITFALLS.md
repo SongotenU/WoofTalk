@@ -1,317 +1,184 @@
 # Pitfalls Research
 
-**Domain:** iOS to Android Port (SwiftUI/Swift → Kotlin/Jetpack Compose)
-**Researched:** 2026-03-31
+**Domain:** M006 Enterprise — Adding API Access, Admin Dashboard, Team/Org Management to Existing Multi-Platform Product
+**Researched:** 2026-04-02
 **Confidence:** HIGH
 
-This document catalogs common pitfalls when porting WoofTalk from iOS to Android, with specific warning signs, prevention strategies, and phase assignments.
+## Critical Pitfalls (5)
 
----
-
-## Critical Pitfalls
-
-### Pitfall 1: Direct SwiftUI View Translation (Anti-Pattern)
+### Pitfall 1: Exposing PostgREST Directly as Public API
 
 **What goes wrong:**
-Translating SwiftUI `@State` and `@ObservedObject` patterns directly to Compose state results in uncontrolled recomposition, UI flickering, and severe performance degradation. Developers often create ViewModels with exact SwiftUI equivalents without understanding Compose's lifecycle.
+Using Supabase's auto-generated PostgREST API as the consumer-facing API leaks database schema, provides no versioning control, and ties API contracts to internal table structures. When you inevitably change your database schema, all third-party integrations break.
 
 **Why it happens:**
-SwiftUI's property wrappers (`@State`, `@Binding`, `@ObservedObject`) have implicit lifecycle tied to the view. Compose's `remember`, `mutableStateOf`, and `collectAsState` behave differently—composables can restart from any saved state, not just where they left off.
+Supabase makes PostgREST so easy that it's tempting to just "let API consumers hit it directly." But PostgREST is designed for your own clients, not third-party consumers.
 
-**How to avoid:**
-1. Create Android-specific ViewModels using `ViewModel` with `StateFlow` instead of mirroring SwiftUI patterns
-2. Use `rememberSaveable` for state that survives configuration changes
-3. Implement proper `LaunchedEffect` and `DisposableEffect` for side effects
-4. Use `derivedStateOf` to prevent unnecessary recompositions
+**Prevention:**
+1. Always proxy API access through Edge Functions (already the recommended architecture)
+2. Define explicit API response schemas independent of database tables
+3. Version your API from day 1 (`/v1/`, `/v2/`)
+4. Monitor API key usage separately from user sessions
 
-**Warning signs:**
-- ViewModel contains `@State` properties that are mutated directly
-- Composable functions call expensive operations on every render
-- UI flickers or resets on configuration changes
-- Memory leaks from uncollected coroutine scopes
+**Phase to address:** Phase 29: API Gateway
 
-**Phase to address:** Phase 1 (Foundation) — UI pattern architecture must be defined before implementation
-
----
-
-### Pitfall 2: Core Data to Room Schema Migration Without Testing
+### Pitfall 2: API Key Leakage in Client Bundles
 
 **What goes wrong:**
-Assuming Core Data entities map 1:1 to Room entities causes data loss, relationship corruption, and failed migrations. Core Data's object graph and relationship handling differs fundamentally from Room's SQLite-based model.
+Placing API keys or secrets in Next.js client bundles, iOS Info.plist, or Android strings.xml. Keys get extracted, leading to unlimited unauthorized usage and unexpected Supabase costs.
 
 **Why it happens:**
-Core Data supports relationships with cascade delete rules, optional vs non-optional, and inverse relationships that don't exist in Room. The iOS Core Data model (Contribution, User with relationships) requires explicit migration strategy.
+Easy to confuse server-side API calls with client-side API calls in Next.js App Router. `use client` files get bundled and shipped.
 
-**How to avoid:**
-1. Create Room entities as new implementation, not direct translation
-2. Map Core Data models to Room DAOs with explicit migration scripts
-3. Export iOS Core Data to JSON for Android import testing
-4. Use Room's `Migration` class with `fallbackToDestructiveMigration()` only for development
+**Prevention:**
+1. Never expose API keys in any client code — all API key auth goes through Edge Functions
+2. Use Supabase service keys only in server-side contexts (Edge Functions, server components)
+3. Implement IP allowlisting for admin API access
+4. Set key expiry with automatic rotation
 
-**Warning signs:**
-- Room entity has same property names as Core Data but different nullability
-- Relationships not explicitly defined in Room entities
-- No migration strategy documented before Phase 2
-- Attempting to share Core Data model files with Android
+**Phase to address:** Phase 29: API Gateway
 
-**Phase to address:** Phase 2 (Data Layer) — Database schema must be designed before migration
-
----
-
-### Pitfall 3: AVFoundation → MediaRecorder/ExoPlayer Permission Gap
+### Pitfall 3: RBAC via String Metadata — Doesn't Scale
 
 **What goes wrong:**
-iOS AVFoundation handles permissions and audio session configuration implicitly. Android requires explicit runtime permissions (`RECORD_AUDIO`), foreground service declarations, and audio focus management that are easy to miss, causing runtime crashes.
+Current auth uses `raw_user_meta_data->>'role'` (string check in PostgreSQL) for admin/moderator flags. This pattern does not scale to multi-org RBAC where a user can be Owner in org_A, Admin in org_B, and just a consumer elsewhere. String comparisons in RLS policies become exponentially complex.
 
 **Why it happens:**
-Swift's `AVAudioSession.sharedInstance().requestRecordPermission` auto-prompts. Android's `Manifest.permission.RECORD_AUDIO` requires manual permission request with rationale, and audio playback in background requires `<uses-permission android:name="android.permission.FOREGROUND_SERVICE">` and service implementation.
+Starts simple for a small app. When orgs are added, the metadata approach collides with org-scoped role requirements.
 
-**How to avoid:**
-1. Implement permission flow using `ActivityResultContracts.RequestPermission`
-2. Add `<uses-permission android:name="android.permission.FOREGROUND_SERVICE">` for background audio
-3. Use `AudioAttributes` and `AudioFocusRequest` for proper audio session management
-4. Implement ForegroundService for continuous audio processing
+**Prevention:**
+1. Create proper `organization_members` join table with role column (not metadata)
+2. Use SQL functions like `user_has_role(user_id, org_id, role)` in RLS policies
+3. Migrate existing `raw_user_meta_data` roles to the new table structure
+4. Keep `raw_user_meta_data->>'role'` as a fallback during migration transition
 
-**Warning signs:**
-- App crashes on first audio interaction without permission
-- Audio stops when app goes to background
-- Multiple audio apps conflict (no audio focus handling)
-- No service declaration in AndroidManifest.xml
+**Phase to address:** Phase 30: Data Model & RBAC
 
-**Phase to address:** Phase 3 (Audio/Video) — Platform-specific permission architecture before implementation
-
----
-
-### Pitfall 4: Shared Backend Without API Versioning Strategy
+### Pitfall 4: Schema Backfills Cause Downtime
 
 **What goes wrong:**
-iOS and Android share backend but endpoints lack versioning, causing sync failures when one platform's data format changes. The translation service, community phrases, and user profiles break unexpectedly.
+Adding `org_id UUID` column to tables with existing user data (users, community_phrases, translations) requires full table scans. PostgreSQL 14+ acquires an ACCESS EXCLUSIVE lock during ALTER TABLE, blocking all reads/writes for the duration.
 
 **Why it happens:**
-Both platforms use the same API but iOS pushes format changes first. Without backward compatibility, Android receives unparseable responses or crashes.
+Supabase's managed PostgreSQL makes it easy to run migrations interactively. On a table with 1M+ rows, `ALTER TABLE ... ADD COLUMN` can take minutes.
 
-**How to avoid:**
-1. Implement API versioning from Day 1 (`/api/v1/`, `/api/v2/`)
-2. Use feature flags for gradual rollout across platforms
-3. Create shared API client library used by both iOS and Android
-4. Document format contracts and enforce with JSON Schema validation
+**Prevention:**
+1. Use `ALTER TABLE ... ADD COLUMN ... DEFAULT NULL` (fast in PG 11+)
+2. Backfill in batches with `UPDATE` chunks and `pg_sleep()` between batches
+3. Run migrations during low-traffic windows
+4. Consider adding org_id columns during v3.1→v4.0 transition when user base is still manageable
 
-**Warning signs:**
-- Backend changes immediately break Android (or vice versa)
-- No API changelog or version deprecation schedule
-- Both platforms hit same endpoints with different expectations
-- Missing API response validation beyond status codes
+**Phase to address:** Phase 30: Data Model & RBAC
 
-**Phase to address:** Phase 4 (Cloud) — Backend architecture must define versioning before platform integration
-
----
-
-### Pitfall 5: Cross-Platform Account Sync Without Unified Identity
+### Pitfall 5: Admin Dashboard Scope Creep
 
 **What goes wrong:**
-Users create separate accounts on iOS and Android, or OAuth tokens don't transfer between platforms, causing account fragmentation, lost data, and support nightmares.
+Starting with "just a simple user management panel" and building a full Salesforce-style admin tool before the actual enterprise features (API access, RBAC) exist. This delays revenue-generating capabilities by months.
 
 **Why it happens:**
-Different OAuth providers (Sign in with Apple on iOS, Google Play Games on Android) or lack of email-based identity bridging. The User model doesn't account for multi-platform identity.
+Admin dashboards feel productive — you can see and touch them. The invisible infrastructure work (API gateway, RLS policies) is harder to demo.
 
-**How to avoid:**
-1. Implement email/password as universal identity anchor
-2. Create unified user ID that maps to platform-specific OAuth IDs
-3. Use shared authentication provider (e.g., Firebase Auth) for cross-platform tokens
-4. Implement account linking flow for existing users
+**Prevention:**
+1. Scope admin MVP to: user list, content moderation (ban/report), role management
+2. Defer: charts/dashboards, bulk operations, export features
+3. Build admin UI last, after the data model it manages is stable
+4. Prioritize API gateway before admin — real customers pay for API access, not admin panels
 
-**Warning signs:**
-- Same email results in two different accounts
-- OAuth tokens are platform-specific with no refresh mechanism
-- No account linking UI in settings
-- User ID differs between iOS and Android for same logical user
+**Phase to address:** Phase 31: Admin Dashboard
 
-**Phase to address:** Phase 4 (Cloud) — Auth architecture must support unified identity before implementation
+## Moderate Pitfalls (4)
 
----
-
-### Pitfall 6: Offline-First Without Conflict Resolution Strategy
+### Pitfall 6: Rate Limiting Per-Key Instead of Per-Org
 
 **What goes wrong:**
-iOS uses Core Data with NSPersistentCloudKit for offline changes. Android implementation lacks conflict resolution, causing data loss, duplicates, or stale data when offline changes sync.
+Each API key has its own rate limit. An org with 5 keys can hit 5x the intended rate, defeating per-org pricing tiers.
 
-**Why it happens:**
-Core Data's merge policy handles conflicts implicitly. Room requires explicit conflict resolution (last-write-wins, merge, or manual). WoofTalk's offline translation cache and community contributions need conflict handling.
+**Prevention:** Rate limit at the org level (upstash key = `rl:org:{org_id}`), allow per-key overrides only as enterprise exceptions.
 
-**How to avoid:**
-1. Define conflict resolution strategy per entity (last-write-wins for translations, merge for community contributions)
-2. Use Room's `onConflict` clause for simple cases
-3. Implement manual conflict resolution UI for complex cases (user contributions)
-4. Add "sync status" field to track pending/local changes
+**Phase to address:** Phase 29: API Gateway
 
-**Warning signs:**
-- Duplicate entries appear after going online
-- Local changes overwritten by server without notification
-- No "last synced" timestamp in UI
-- Offline edits silently lost on sync
-
-**Phase to address:** Phase 2 (Data Layer) — Offline strategy must be designed before Room implementation
-
----
-
-### Pitfall 7: Fragment Lifecycle Mismatch with SwiftUI Lifecycle
+### Pitfall 7: Consumer Users Lose Data During Org Migration
 
 **What goes wrong:**
-Android Fragments have complex lifecycle (onCreate → onViewCreated → onResume → onPause → onDestroy) that doesn't map to SwiftUI's simpler lifecycle. Translation state is lost, audio continues playing, or memory leaks occur.
+When a consumer user joins an org, their existing translation history and community contributions become orphaned if the migration doesn't properly link their personal `org_id` to the organization.
 
-**Why it happens:**
-SwiftUI's `.onAppear` and `.onDisappear` fire once per navigation. Android's Fragment lifecycle fires multiple times (configuration changes, back navigation, process death). The audio engine from iOS needs explicit lifecycle binding in Android.
+**Prevention:** Implement explicit migration flow: `UPDATE translations SET org_id = ? WHERE user_id = ? AND org_id IS NULL` when user accepts org invite.
 
-**How to avoid:**
-1. Use Jetpack Navigation with NavHost and remember saved state
-2. Bind audio session lifecycle to Fragment's `onResume`/`onPause`
-3. Use `ViewModel` with SavedStateHandle for state persistence across lifecycle
-4. Implement `onConfigurationChanged` handling explicitly
+**Phase to address:** Phase 30: Data Model & RBAC
 
-**Warning signs:**
-- Translation progress lost on rotation
-- Audio continues after navigating away from translation screen
-- Memory leak from unclosed resources on Fragment destroy
-- State resets when returning to previous screen
-
-**Phase to address:** Phase 1 (Foundation) — Navigation and lifecycle architecture must be designed first
-
----
-
-### Pitfall 8: Background Execution Limits Ignoring Doze Mode
+### Pitfall 8: API Response Shapes Diverge from Consumer App
 
 **What goes wrong:**
-iOS background audio is straightforward. Android's Doze mode, App Standby, and background execution limits kill ongoing translation processing, causing incomplete translations and frustrated users.
+The API returns data in a different format than the mobile/web clients expect, forcing you to maintain parallel response serializers or break one side.
 
-**Why it happens:**
-Android 6+ introduced Doze mode that suspends background processing. iOS has background modes but fewer restrictions. WoofTalk's translation processing may be killed mid-translation.
+**Prevention:** Use shared response types (TypeScript interfaces) between Edge Functions and web app. Document API response format explicitly.
 
-**How to avoid:**
-1. Use `WorkManager` for deferrable translation sync work
-2. Request `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` for critical translation features
-3. Implement partial result caching to handle interruptions
-4. Use `ForegroundService` for active translation sessions
+**Phase to address:** Phase 29: API Gateway
 
-**Warning signs:**
-- Translations fail silently when phone is idle
-- No notification that translation was interrupted
-- Battery optimization settings reset translations
-- Background sync never completes
+### Pitfall 9: Role Escalation Through Org Membership
 
-**Phase to address:** Phase 3 (Audio/Video) — Background execution must be designed with Android power management in mind
+**What goes wrong:**
+A user is org Admin, but the RLS policy accidentally allows them to promote themselves to Owner, or they retain admin privileges after leaving the org because the old `raw_user_meta_data->>'role'` check still passes.
 
----
+**Prevention:** Explicit role transition logic (owner transfer requires current owner approval). Clean up old metadata roles during migration.
 
-## Technical Debt Patterns
+**Phase to address:** Phase 30: Data Model & RBAC
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Use `var` instead of `val` in Kotlin | Faster initial development | Mutable state bugs, harder testing | Never — use `val` by default |
-| Skip Room migrations in dev | Faster iteration | Data loss in production | Only with `fallbackToDestructiveMigration()` during active dev |
-| Single Activity architecture | Simpler initial setup | Harder to manage complex navigation | Acceptable for simple apps;WoofTalk needs Fragments for feature complexity |
-| Copy iOS UI exactly | Familiar UX | Poor Android UX patterns | Only as initial wireframe, must Android-ize |
-| Ignore ProGuard/R8 minification | Debugging easier | App size bloated, security risk | Only in debug builds |
+## Supabase-Specific Pitfalls (3)
 
----
+### Pitfall 10: RLS Policy Explosion
 
-## Integration Gotchas
+**What goes wrong:**
+30 RLS policies today → 90+ after adding org-scoped variants for every table. Debugging becomes impossible; policies contradict each other.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| OpenAI API | Hardcoding API key in Android app | Use backend proxy with API key, or Firebase Remote Config with secrets |
-| Firebase Auth | Different Firebase project per platform | Single Firebase project with both iOS and Android apps configured |
-| Cloud Sync | No retry logic for network failures | Implement exponential backoff with WorkManager |
-| Push Notifications | Separate FCM setup per platform | Single FCM setup with platform-specific payloads |
-| Community Phrase API | Not handling rate limits | Implement local caching with Room, queue submissions |
+**Prevention:**
+1. Use consistent naming convention: `{table}_{action}_{scope}` (e.g., `phrases_select_org_member`)
+2. Test RLS policies with `EXPLAIN` to verify indexes are used
+3. Consider combining OR conditions into single policies where possible
+4. Document each policy's intent as a comment
 
----
+### Pitfall 11: Auth Metadata Confusion
 
-## Performance Traps
+**What goes wrong:**
+Existing Edge Function `is_admin()` checks `raw_user_meta_data->>'role'`. After adding org roles, there are now two places roles can live, and functions check the wrong one.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Excessive recomposition | UI jank, battery drain | Use `derivedStateOf`, stable keys, lazy lists | With list > 100 items, complex animations |
-| Main thread database queries | UI freezes | Use Room with `withContext(Dispatchers.IO)` | Any database operation > 16ms |
-| Large image loading | OOM crashes, slow load | Use Coil/Glide with memory cache limits | With community phrase images > 10MB total |
-| Inefficient JSON parsing | Slow sync | Use Kotlinx Serialization with pre-generated serializers | With community sync > 100 phrases |
-| Memory leak from audio | Gradual slowdown, crashes | Proper lifecycle binding, release in onDestroy | After 30+ minutes of audio use |
+**Prevention:** Deprecate `is_admin()` during migration. Replace with `has_global_role('admin')` and `has_org_role(org_id, 'admin')`.
 
----
+### Pitfall 12: Edge Functions Need org_id Awareness
 
-## Security Mistakes
+**What goes wrong:**
+Existing 6 Edge Functions don't accept or validate `org_id` parameters. Third-party API calls through the gateway bypass org-scoped business logic.
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing OAuth tokens in SharedPreferences | Token theft, account takeover | Use EncryptedSharedPreferences |
-| Hardcoding API endpoints | MITM attacks, endpoint enumeration | Use build config with debug/release variants |
-| No certificate pinning | Man-in-the-middle on public WiFi | Implement certificate pinning for production |
-| Logging sensitive data (user text, translations) | Privacy violation, GDPR fines | Use privacy-aware logging ( Timber with privacy filters) |
-| No rate limiting on translation API | API quota exhaustion, costs | Implement client-side rate limiting with WorkManager |
+**Prevention:** Add org_id extraction from API key (join `api_keys → organizations`) and pass through all translate/stream functions.
 
----
+## Pitfall-to-Phase Mapping
 
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| iOS-style navigation (swipe back everywhere) | Android users expect back button | Use Jetpack Navigation with proper back stack |
-| Not following Material Design 3 | App feels "not Android" | Apply Material 3 theming, use Material components |
-| No haptic feedback on translation completion | Feels "dead" compared to iOS | Add vibration feedback on translation complete |
-| Not handling dark mode | Blinding white UI at night | Implement dark theme from Day 1 |
-| No offline indicator | User doesn't know why translation fails | Always show network status in UI |
-
----
-
-## "Looks Done But Isn't" Checklist
-
-- [ ] **Audio Recording:** Permission requested but rationale dialog missing — verify explainer shown before permission prompt
-- [ ] **Offline Mode:** Translation cached but sync status not shown — verify "pending sync" indicator in UI
-- [ ] **Account Sync:** Login works but cross-platform token refresh fails — verify token refresh works after 1 hour
-- [ ] **Database Migration:** Room schema created but no migration tests — verify migration from empty to populated DB
-- [ ] **Background Audio:** Audio plays but stops when screen locks — verify with Doze mode testing
-- [ ] **Community Phrases:** Phrases load but pagination broken — verify scroll to bottom loads more
-
----
+| Pitfall | Severity | Phase | Prevention |
+|---------|----------|-------|------------|
+| PostgREST as public API | CRITICAL | Phase 29: API Gateway | Always proxy through Edge Functions |
+| API key leakage | CRITICAL | Phase 29: API Gateway | Server-side only, IP allowlisting |
+| RBAC via string metadata | CRITICAL | Phase 30: Data Model & RBAC | Proper org_members table |
+| Schema backfills downtime | CRITICAL | Phase 30: Data Model & RBAC | NULL columns, batched backfill |
+| Admin scope creep | CRITICAL | Phase 31: Admin Dashboard | API first, admin last |
+| Per-key rate limiting | MODERATE | Phase 29: API Gateway | Org-level rate limiting |
+| Consumer data orphan | MODERATE | Phase 30: Data Model & RBAC | Explicit migration on join |
+| API response divergence | MODERATE | Phase 29: API Gateway | Shared response types |
+| Role escalation | MODERATE | Phase 30: Data Model & RBAC | Explicit role transitions |
+| RLS policy explosion | MINOR | Phase 30: Data Model & RBAC | Naming convention, documentation |
+| Auth metadata confusion | MINOR | Phase 30: Data Model & RBAC | Deprecate old patterns |
+| Edge functions org-blind | MINOR | Phase 29: API Gateway | Pass org_id explicitly |
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| ViewModel pattern wrong | MEDIUM | Refactor to StateFlow + ViewModel, add integration tests |
-| Room migration failure | HIGH | Reset DB, re-import from iOS export, add migration tests |
-| Audio permission crash | LOW | Add permission check before any audio operation |
-| Account fragmentation | HIGH | Implement account linking, notify users, provide merge UI |
-| Offline sync loss | MEDIUM | Add conflict resolution, show sync status, implement retry |
-| Background audio killed | MEDIUM | Migrate to ForegroundService, add battery optimization dialog |
+| Schema leaked to public API | MEDIUM | Migrate to Edge Function proxy, communicate breaking change to API consumers |
+| API key compromise | LOW | Rotate all keys, implement key expiry, add IP allowlisting |
+| Role escalation exploit | HIGH | Audit all org memberships, reset suspicious roles, add audit logging |
+| RLS policy contradiction | HIGH | Full policy audit, simplify with OR conditions, add tests for each policy |
+| Admin dashboard overbuilt | MEDIUM-HIGH | Defer admin features, focus engineering on API and RBAC |
 
 ---
 
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| SwiftUI to Compose anti-patterns | Phase 1: Foundation | UI state survives config change, no recomposition loops |
-| Core Data to Room migration | Phase 2: Data Layer | Migration test passes with sample data |
-| AVFoundation permission gaps | Phase 3: Audio/Video | Permission flow complete, background audio works |
-| Backend versioning | Phase 4: Cloud | v2 endpoint works while v1 still supported |
-| Account sync | Phase 4: Cloud | Same email on both platforms shows one account |
-| Offline-first conflicts | Phase 2: Data Layer | Offline edits sync correctly after reconnection |
-| Fragment lifecycle | Phase 1: Foundation | State persists through rotation, audio stops on exit |
-| Background execution limits | Phase 3: Audio/Video | Translation completes in Doze mode |
-
----
-
-## Sources
-
-- Android Developer Documentation: Background execution limits, Doze mode
-- Jetpack Compose: State management best practices
-- Room Database: Migration documentation
-- Firebase: Cross-platform auth patterns
-- Android Architecture Components: ViewModel, SavedStateHandle
-- Migrating from iOS to Android: Common pitfalls (Google Developer Relations)
-- WoofTalk iOS codebase: CoreDataModel.swift, audio_engine.swift, WoofTalkApp.swift
-
----
-
-*Pitfalls research for: iOS to Android port (WoofTalk)*
-*Researched: 2026-03-31*
+*Pitfalls research for: M006 Enterprise — Adding API access, admin dashboard, team/org management*
+*Researched: 2026-04-02*

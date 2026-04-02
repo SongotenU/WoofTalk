@@ -1,0 +1,522 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775102479496,
+  "projectRoot": "/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "scripts",
+      "test"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "AppStoreScreenshots": {
+      "path": "AppStoreScreenshots",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1775102479475,
+      "keyFiles": [
+        "1_iPhone_6.7inch_1.png",
+        "2_iPhone_6.7inch_2.png",
+        "3_iPhone_6.7inch_3.png",
+        "4_iPhone_5.5inch_1.png",
+        "5_iPhone_5.5inch_2.png"
+      ]
+    },
+    "Tests": {
+      "path": "Tests",
+      "purpose": "Test files",
+      "fileCount": 2,
+      "lastAccessed": 1775102479475,
+      "keyFiles": [
+        "CoreDataMigrationTests.swift",
+        "OfflineModeTests.swift"
+      ]
+    },
+    "WoofTalk": {
+      "path": "WoofTalk",
+      "purpose": null,
+      "fileCount": 87,
+      "lastAccessed": 1775102479478,
+      "keyFiles": [
+        "AITranslationErrorHandler.swift",
+        "AITranslationMetadata.swift",
+        "AITranslationResearch.md",
+        "AITranslationService.swift",
+        "AbuseReportingManager.swift"
+      ]
+    },
+    "WoofTalk.xcodeproj": {
+      "path": "WoofTalk.xcodeproj",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775102479478,
+      "keyFiles": [
+        "project.pbxproj",
+        "project.pbxproj.bak"
+      ]
+    },
+    "WoofTalkTests": {
+      "path": "WoofTalkTests",
+      "purpose": null,
+      "fileCount": 24,
+      "lastAccessed": 1775102479479,
+      "keyFiles": [
+        "AITranslationTests.swift",
+        "AbuseReportingTests.swift",
+        "ActivityFeedTests.swift",
+        "CommunityBrowserTests.swift",
+        "CommunityPhraseSyncTests.swift"
+      ]
+    },
+    "WoofTalkUITests": {
+      "path": "WoofTalkUITests",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775102479479,
+      "keyFiles": [
+        "WoofTalkUITests.swift",
+        "WoofTalkUITestsLaunchTests.swift"
+      ]
+    },
+    "android": {
+      "path": "android",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1775102479479,
+      "keyFiles": []
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1775102479480,
+      "keyFiles": []
+    },
+    "offline_manager": {
+      "path": "offline_manager",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775102479480,
+      "keyFiles": [
+        "connectivity_manager.ts",
+        "offline_manager.ts"
+      ]
+    },
+    "offline_storage": {
+      "path": "offline_storage",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775102479480,
+      "keyFiles": [
+        "offline_database.ts",
+        "sqlite_manager.ts"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 2,
+      "lastAccessed": 1775102479480,
+      "keyFiles": [
+        "verify-app-store.sh",
+        "verify-offline.sh"
+      ]
+    },
+    "supabase": {
+      "path": "supabase",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1775102479480,
+      "keyFiles": []
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 0,
+      "lastAccessed": 1775102479480,
+      "keyFiles": []
+    },
+    "ui": {
+      "path": "ui",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1775102479480,
+      "keyFiles": [
+        "offline_mode_view_controller.swift"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 9,
+      "lastAccessed": 1775102479481,
+      "keyFiles": [
+        "next-env.d.ts",
+        "next.config.ts",
+        "package-lock.json",
+        "package.json",
+        "tailwind.config.ts"
+      ]
+    },
+    "web/node_modules": {
+      "path": "web/node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 1,
+      "lastAccessed": 1775102479486,
+      "keyFiles": []
+    },
+    "web/public": {
+      "path": "web/public",
+      "purpose": "Public files",
+      "fileCount": 3,
+      "lastAccessed": 1775102479486,
+      "keyFiles": [
+        "manifest.json",
+        "sw.js",
+        "workbox-cb477421.js"
+      ]
+    },
+    "web/src": {
+      "path": "web/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1775102479486,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": ".planning/ROADMAP.md",
+      "accessCount": 13,
+      "lastAccessed": 1775103904310,
+      "type": "file"
+    },
+    {
+      "path": ".planning/STATE.md",
+      "accessCount": 5,
+      "lastAccessed": 1775103933615,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775103671938,
+      "type": "file"
+    },
+    {
+      "path": "web/src/lib/supabase/server-admin.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775103686630,
+      "type": "file"
+    },
+    {
+      "path": ".planning/REQUIREMENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102498206,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/29-api-gateway-data-model/29-CONTEXT.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102502855,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/29-api-gateway-data-model/29-RESEARCH.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102502907,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/translate/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102523114,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/_shared/middleware.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102523174,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/29-api-gateway-data-model/29-PLAN.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102590793,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0001_organizations.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102631802,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0002_api_keys.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102632000,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0003_api_key_function.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102632195,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/phrases-search/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102636319,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/leaderboard/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102636371,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/activity-batch/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102636426,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0004_add_org_id_columns.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102679603,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0005_migrate_rls_policies.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102679794,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0006_migrate_role_functions.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102679977,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/api-gateway/deno.json",
+      "accessCount": 1,
+      "lastAccessed": 1775102710930,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/_shared/api-key.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102711126,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/_shared/rate-limit.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102711330,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/_shared/response.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102711526,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/api-key-manage/deno.json",
+      "accessCount": 1,
+      "lastAccessed": 1775102749042,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/api-gateway/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102749236,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/api-key-manage/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775102791045,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0007_seed_data.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775102824769,
+      "type": "file"
+    },
+    {
+      "path": "supabase/functions/api-gateway/ENV.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102824963,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/29-api-gateway-data-model/29-01-SUMMARY.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102857497,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/29-api-gateway-data-model/VERIFICATION.md",
+      "accessCount": 1,
+      "lastAccessed": 1775102868120,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/30-admin-dashboard/30-CONTEXT.md",
+      "accessCount": 1,
+      "lastAccessed": 1775103215087,
+      "type": "file"
+    },
+    {
+      "path": ".planning/phases/30-admin-dashboard/30-PLAN.md",
+      "accessCount": 1,
+      "lastAccessed": 1775103228668,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/0008_admin_audit_log.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775103228860,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103240808,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/globals.css",
+      "accessCount": 1,
+      "lastAccessed": 1775103243780,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/layout.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103317615,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/users/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103318053,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/moderation/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103392911,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/analytics/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103393095,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/admin/audit/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103393301,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/users/list/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103423001,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/users/role/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103423198,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/moderation/phrases/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103423387,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/moderation/update/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103423581,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/moderation/bulk/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103423778,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/analytics/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103448025,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/api/admin/audit/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103448210,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/translate/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103481669,
+      "type": "file"
+    },
+    {
+      "path": "web/src/lib/supabase.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775103481720,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/org/layout.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775103496937,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

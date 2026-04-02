@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(gsd:progress)",
+      "Bash(node \"$HOME/.claude/get-shit-done/bin/gsd-tools.cjs\" config-get workflow.research)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Skill(gsd:plan-phase)",
+      "Bash(find /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/web/src/app/api/org -type f -name *.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(find supabase/migrations -name *.sql -type f)",
+      "Bash(find supabase/functions -type f -name *.ts -o -name *.json)",
+      "Bash(git add:*)"
+    ]
+  }
+}
