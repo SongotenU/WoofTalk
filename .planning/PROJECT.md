@@ -21,14 +21,16 @@ Current codebase includes:
 - **Web**: Next.js app with voice I/O, community, social, PWA, Supabase sync
 - **Watch**: Wear OS companion app with voice input, glanceable results, Supabase sync
 
-## Current Milestone: v3.1 Web + Smartwatch
+## Current Milestone: v4.0 Enterprise
 
-**Goal:** Expand WoofTalk to web and smartwatch platforms for complete multi-platform coverage.
+**Goal:** Open WoofTalk platform to third-party integrations via REST API, provide admin tools for content moderation, and support organization/team collaboration with RBAC.
 
 **Target features:**
-- **Web app** (React/Next.js) — Full parity with mobile: translation, voice, community, social, sync
-- **Smartwatch** (Wear OS) — Quick translation companion: voice input, quick translate, history
-- **4-phase execution**: Web Core → Web Voice & Community → Watch Core → Integration
+- **API Gateway** (Supabase Edge Functions) — REST API with API key auth, rate limiting, usage tracking
+- **Admin Dashboard** (Next.js) — User management, content moderation, analytics, bulk actions
+- **Organization & Team Management** — Multi-org hierarchy, role-based access control, org-level API keys
+- **Data Model Expansion** — org-scoped tables, RLS policy migration, schema migration from consumer to multi-tenant
+- **4-phase execution**: API Gateway & Data Model → Admin Dashboard → Organization & Team → Integration
 
 ## Next Milestone Goals
 
