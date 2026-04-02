@@ -138,7 +138,7 @@ function DashboardTab() {
               <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded shrink-0">{t.direction}</span>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {t.direction === "Dog" ? `🐕 "${t.human}"` : `🧑 "${t.dog}"`}
+                  {t.direction === "Dog" ? `[DOG] "${t.human}"` : `[HUMAN] "${t.dog}"`}
                 </p>
                 <p className="text-sm text-gray-500">
                   {t.direction === "Dog" ? `→ "${t.meaning}"` : `→ "${t.dogMeaning}"`}
