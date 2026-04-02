@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Admin-only routes
+// Admin-only route prefixes
 const ADMIN_PATHS = ['/admin'];
 
-// Public paths that bypass auth check
+// Public/static paths that bypass auth check
 const PUBLIC_PATHS = [
   '/_next',
   '/api/health',
@@ -13,6 +13,8 @@ const PUBLIC_PATHS = [
   '/manifest.json',
   '/sw.js',
   '/workbox',
+  '/401',
+  '/403',
 ];
 
 function isPublicPath(path: string): boolean {
@@ -31,9 +33,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check admin routes
+  // Enforce admin auth on admin routes
   if (isAdminPath(pathname)) {
-    const authCookie = request.cookies.get('sb-access-token') || request.cookies.get('supabase-auth-token');
+    const authCookie =
+      request.cookies.get('sb-access-token') ||
+      request.cookies.get('supabase-auth-token');
     const authHeader = request.headers.get('authorization');
 
     if (!authCookie && !authHeader) {
@@ -43,16 +47,67 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Admin route access is checked server-side in page.tsx via getAdminClient().isAdmin().
-    // For API routes, each handler does its own check.
-    // This middleware just prevents unauthenticated access and provides 403 for known non-admin users.
-    // The actual is_admin() check is done server-side to avoid leaking admin-only routes.
+    // Call Supabase edge-compatible is_admin check via service function
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // If we have a session cookie but admin check fails on page load, the page component
-    // will handle redirect. Here we just ensure there's some auth token present.
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+      const supabaseUrl = SUPABASE_URL;
+      const supabaseKey = SUPABASE_SERVICE_KEY;
+
+      // Validate the session via Supabase Auth
+      const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${(authCookie?.value || authHeader)?.replace(/^Bearer /, '')}`,
+        },
+      });
+
+      if (!userRes.ok) {
+        // Invalid or expired token — reject
+        return NextResponse.json(
+          { message: 'Unauthorized', redirect: '/auth/login' },
+          { status: 401, headers: { location: '/auth/login' } },
+        );
+      }
+
+      const userData = await userRes.json();
+      const userId = userData?.id;
+
+      if (!userId) {
+        return NextResponse.json(
+          { message: 'Unauthorized', redirect: '/auth/login' },
+          { status: 401, headers: { location: '/auth/login' } },
+        );
+      }
+
+      // Check if user is admin or owner in organization_members
+      const adminRes = await fetch(
+        `${supabaseUrl}/rest/v1/organization_members?select=user_id,role&user_id=eq.${userId}&status=eq.active`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+
+      if (adminRes.ok) {
+        const members = await adminRes.json();
+        const isAdmin = members.some(
+          (m: { role: string }) => m.role === 'admin' || m.role === 'owner'
+        );
+
+        if (!isAdmin) {
+          // Authenticated but not admin — redirect to 403
+          return NextResponse.redirect(new URL('/403', request.url));
+        }
+      }
+    }
+
+    // If Supabase env vars not available (dev mode), allow through
+    // but log a warning is not possible in middleware — trust the route-level checks
   }
-
-  // Admin API routes — handled at the route level with requireAdmin() helper
 
   return NextResponse.next();
 }

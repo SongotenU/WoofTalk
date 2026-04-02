@@ -110,7 +110,12 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
     .single();
 
   // Also check is_admin() SQL function
-  const { data: isAdminResult } = await supabase.rpc('is_admin', undefined).throwOnError();
+  const { data: isAdminResult, error: isAdminError } = await supabase.rpc('is_admin', undefined);
+
+  // If the RPC call fails, log but don't crash — still check role-based fallbacks
+  if (isAdminError) {
+    console.warn('is_admin() RPC failed:', isAdminError.message);
+  }
 
   if (!member && !owner && !isAdminResult) {
     return NextResponse.json(
