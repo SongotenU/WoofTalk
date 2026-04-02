@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { sendInviteEmail } from '@/lib/email/invite';
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(
@@ -16,14 +17,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Get user's org
-    const { data: userOrg } = await supabase
+    const { data: userOrg, error: orgError } = await supabase
       .from('organization_members')
-      .select('org_id')
+      .select('org_id, organizations(name)')
       .eq('status', 'active')
       .limit(1)
       .single();
 
-    if (!userOrg) {
+    if (orgError || !userOrg) {
       return NextResponse.json({ error: 'No organization found' }, { status: 404 });
     }
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       .from('organization_members')
       .insert({
         org_id: userOrg.org_id,
-        user_id: '00000000-0000-0000-0000-000000000000', // TODO: lookup by email
+        user_id: '00000000-0000-0000-0000-000000000000',
         role: role || 'member',
         status: 'invited',
         invite_token: inviteToken,
@@ -45,9 +46,16 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    // TODO: Send email invite with invite link
+    // Send email invite
+    const emailResult = await sendInviteEmail({
+      to: email,
+      orgName: userOrg.organizations?.name || 'the organization',
+      inviterName: 'WoofTalk Admin',
+      inviteToken,
+      expiresAt: expiresAt.toISOString(),
+    });
 
-    return NextResponse.json({ invite: data });
+    return NextResponse.json({ invite: data, email_sent: emailResult.success });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
