@@ -39,3 +39,6 @@ tmp/
 
 # ── GSD baseline (auto-generated) ──
 .gsd
+
+.omc/
+*.omc/
