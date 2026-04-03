@@ -1,7 +1,7 @@
 # Phase 38: AR Foundation — Context
 
-**Gathered:** 2026-04-03  
-**Status:** Ready for planning  
+**Gathered:** 2026-04-03
+**Status:** Ready for planning
 **Source:** Research complete via `/gsd:plan-phase 38` (auto-detected existing research)
 
 ---
@@ -24,7 +24,7 @@ This is a client-only extension of the existing WoofTalk platform. No new backen
 **What this phase delivers:**
 - Complete Xcode project for visionOS (Swift 6, RealityKit)
 - Dog bark detection component (Core ML model integrated)
-- AR translation bubble anchored at fixed position (2m)
+- Basic AR translation bubble anchored at fixed position (2m)
 - Edge Function API integration with auth
 - Spatial audio playback from bubble position
 - Verification that all 6 requirements (AR-01 to AR-06) are met

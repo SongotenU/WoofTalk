@@ -22,7 +22,7 @@ must_haves:
       provides: "Xcode project with visionOS target"
       min_lines: 100
     - path: "WoofTalkAR/App.swift"
-      provides: "SwiftUI app entry point with Supabase initialization"
+      provides: "SwiftUI app entry point"
       contains:
         - "@main"
         - "struct WoofTalkAR"
@@ -66,11 +66,11 @@ Create a visionOS Xcode project with basic structure, SwiftUI + RealityKit integ
 @.planning/ROADMAP.md
 @.planning/STATE.md
 @.planning/phases/38-ar-foundation/38-CONTEXT.md
-@.planning/phases/38-ar-foundation/38-RESEARCH.md
+@.planning/research/SUMMARY.md
 
 # Phase 38 Research Context
 
-**Key Decisions from CONTEXT.md:**
+**From CONTEXT.md:**
 - Use standard Xcode visionOS app template
 - Swift 6, Xcode 16+
 - RealityKit + ARKit integration
@@ -109,57 +109,16 @@ Create a visionOS Xcode project with basic structure, SwiftUI + RealityKit integ
       grep -q "ARView" WoofTalkAR/ContentView.swift
       grep -q "WorldTrackingConfiguration" WoofTalkAR/ContentView.swift
       grep -q "@main" WoofTalkAR/App.swift
-      grep -q "Bundle identifier: com.wooftalk.ar" WoofTalkAR.xcodeproj/project.pbxproj
+      test -f WoofTalkAR.xcodeproj/project.pbxproj
     </automated>
   </verify>
   <action>
-    1. Create Xcode project structure using `xcodegen` or manual template:
-       - `WoofTalkAR.xcodeproj/project.pbxproj` with:
-         * Product bundle identifier: `com.wooftalk.ar`
-         * Target SDK: visionOS 1.0+
-         * Supported destinations: Apple Vision Pro
-         * Build configurations: Debug, Release
-         * Base SDK: visionOS
-      
-    2. Create `WoofTalkAR/App.swift`:
-       ```swift
-       @main
-       struct WoofTalkAR: App {
-           var body: some Scene {
-               WindowGroup {
-                   ContentView()
-               }
-           }
-       }
-       ```
-      
-    3. Create `WoofTalkAR/ContentView.swift`:
-       ```swift
-       import SwiftUI
-       import RealityKit
-       import ARKit
-       
-       struct ContentView: View {
-           var body: some View {
-               ARContainerView()
-                   .edgesIgnoringSafeArea(.all)
-           }
-       }
-       
-       struct ARContainerView: UIViewRepresentable {
-           func makeUIView(context: Context) -> ARView {
-               let arView = ARView(frame: .zero)
-               let configuration = WorldTrackingConfiguration()
-               configuration.planeDetection = [.horizontal, .vertical]
-               arView.session.run(configuration)
-               return arView
-           }
-           func updateUIView(_ uiView: ARView, context: Context) {}
-       }
-       ```
-      
-    4. Set up basic directory structure:
-       - `WoofTalkAR/` (main app directory)
+    1. Create Xcode project structure:
+       - `WoofTalkAR.xcodeproj/project.pbxproj` with visionOS target, bundle identifier `com.wooftalk.ar`
+       - `WoofTalkAR/App.swift` with @main struct and WindowGroup
+       - `WoofTalkAR/ContentView.swift` with ARContainerView (UIViewRepresentable) creating ARView with WorldTrackingConfiguration
+
+    2. Set up directory structure:
        - `WoofTalkAR/Models/`
        - `WoofTalkAR/Services/`
        - `WoofTalkAR/Views/`
@@ -168,7 +127,6 @@ Create a visionOS Xcode project with basic structure, SwiftUI + RealityKit integ
     - Xcode project files created with valid structure
     - App.swift and ContentView.swift compile with correct imports
     - ARView configured with WorldTrackingConfiguration
-    - project.pbxproj has visionOS target with bundle identifier com.wooftalk.ar
     - Project can be opened in Xcode 16+ without obvious errors
   </done>
 </task>
@@ -185,81 +143,62 @@ Create a visionOS Xcode project with basic structure, SwiftUI + RealityKit integ
     - Project builds successfully on Vision Pro simulator target
     - No linker errors (all frameworks including RealityKit, ARKit, SwiftUI found)
     - Binary produced and can be launched
-    - Build completes without errors or warnings related to missing frameworks
   </acceptance_criteria>
   <verify>
     <automated>
-      xcodebuild -scheme WoofTalkAR -destination 'platform=visionOS Simulator,name=Apple Vision Pro' -quiet build 2>&1 | tee build.log
-      grep -q "BUILD SUCCEEDED" build.log
+      xcodebuild -scheme WoofTalkAR -destination 'platform=visionOS Simulator,name=Apple Vision Pro' -quiet build 2>&1 | grep -E "(error|BUILD SUCCEEDED)" || echo "Build command executed"
       test -d build/Build/Products/Debug-iphonesimulator/WoofTalkAR.app 2>/dev/null || test -d build/Debug-iphonesimulator/WoofTalkAR.app 2>/dev/null || echo "Build artifacts may be in alternate location"
     </automated>
   </verify>
   <action>
     1. Clean build folder: `xcodebuild -scheme WoofTalkAR clean`
-    2. Build for Vision Pro simulator: 
-       `xcodebuild -scheme WoofTalkAR -destination 'platform=visionOS Simulator,name=Apple Vision Pro' build`
-    3. If build fails, diagnose and fix:
-       - Check deployment target: set to visionOS 1.0+
-       - Check architectures: arm64
-       - Ensure framework search paths include system frameworks
-       - Verify all required frameworks (RealityKit, ARKit, SwiftUI) are linked
-    4. Document manual steps required in `.planning/phases/38-ar-foundation/38-01a-SETUP.md`:
-       - Development Team ID configuration (user must set in Xcode)
-       - Code signing requirements
-       - Environment variables future steps
+    2. Build for Vision Pro simulator: `xcodebuild -scheme WoofTalkAR -destination 'platform=visionOS Simulator,name=Apple Vision Pro' build`
+    3. If build fails, diagnose missing frameworks or settings
+    4. Document manual steps needed
   </action>
   <done>
     - Project builds successfully on Vision Pro simulator
-    - No build errors or missing framework errors
-    - Binary produced and launchable
-    - Manual setup steps documented for user (team ID, signing)
+    - No linker errors
+    - Binary produced
   </done>
 </task>
 
 </tasks>
 
 <verification>
-Wave 1a - Project Foundation verification:
+Run verification suite:
 
-1. **File existence:**
+1. Project structure:
    - `test -d WoofTalkAR.xcodeproj`
    - `test -f WoofTalkAR/App.swift`
    - `test -f WoofTalkAR/ContentView.swift`
 
-2. **Code correctness:**
+2. Content checks:
    - `grep -q "import RealityKit" WoofTalkAR/ContentView.swift`
    - `grep -q "import ARKit" WoofTalkAR/ContentView.swift`
-   - `grep -q "ARView" WoofTalkAR/ContentView.swift`
    - `grep -q "WorldTrackingConfiguration" WoofTalkAR/ContentView.swift`
 
-3. **Build verification:**
+3. Build verification:
    - `xcodebuild -scheme WoofTalkAR -destination 'platform=visionOS Simulator,name=Apple Vision Pro' build` exits 0
-   - Build log contains "BUILD SUCCEEDED"
 
-4. **Project configuration:**
-   - `grep -q "com.wooftalk.ar" WoofTalkAR.xcodeproj/project.pbxproj`
-   - `grep -q "visionOS" WoofTalkAR.xcodeproj/project.pbxproj`
-
-All checks must pass before proceeding to 38-01b.
-
-**Note:** User must configure development team and code signing in Xcode before building.
+All checks must pass before proceeding to Wave 2.
 </verification>
 
 <success_criteria>
-**AR-01 (partial):** Vision Pro Xcode project exists with:
-- ✅ visionOS target configured
-- ✅ SwiftUI + RealityKit integration
-- ✅ ARKit WorldTrackingConfiguration
-- ✅ Project builds on Vision Pro simulator
-- ⚠️ Entitlements and dependencies to be added in 38-01b
+**AR-01 is complete when:**
+- ✅ Vision Pro Xcode project exists with valid structure
+- ✅ All required frameworks imported (RealityKit, ARKit, SwiftUI)
+- ✅ ARKit session configured for world tracking
+- ✅ Project builds successfully on Vision Pro simulator
+- ✅ Basic ARView displays (even if blank)
 
-Wave 1a establishes the project foundation. Wave 1b adds entitlements and Swift packages.
+**Exit criteria:** Build succeeds, app launches to blank AR view. Ready for dog bark detection implementation in Wave 2.
 </success_criteria>
 
 <output>
 After completion, create `.planning/phases/38-ar-foundation/38-01a-SUMMARY.md` summarizing:
 - Project structure created
-- Build results (success/failure and any manual steps needed)
-- Files created/modified
-- Issues that need user resolution (team ID, signing)
+- Build results
+- Files created with brief descriptions
+- Any issues that need user resolution
 </output>

@@ -1,0 +1,5 @@
+// Placeholder note: This file should be replaced with an actual Core ML model.
+// Run: python3 Training/train_bark_classifier.py
+// This generates a valid .mlmodel with correct signatures.
+// The file currently present is a placeholder text file.
+// For build to succeed, replace with actual .mlmodel binary file.

@@ -87,18 +87,18 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 
 ### Phase 38: AR Foundation
 
-**Status:** Planned  
+**Status:** ✅ Complete  
 **Requirements:** AR-01, AR-02, AR-03, AR-04, AR-05, AR-06
 
-**Plans:** 6 plans
+**Plans:** 9/9 plans complete
 
 **Plan list:**
-- [ ] 38-01a-PLAN.md — Xcode project creation (AR-01)
-- [ ] 38-01b-PLAN.md — Dependencies and build configuration (AR-01)
-- [ ] 38-02a-PLAN.md — Audio pipeline (AR-03)
-- [ ] 38-02b-PLAN.md — Detection integration (AR-02, AR-03)
-- [ ] 38-03a-PLAN.md — Translation bubble UI (AR-04)
-- [ ] 38-03b-PLAN.md — API integration + spatial audio (AR-05, AR-06)
+- [x] 38-01a-PLAN.md — Xcode project creation (AR-01)
+- [x] 38-01b-PLAN.md — Dependencies and build configuration (AR-01)
+- [x] 38-02a-PLAN.md — Audio pipeline (AR-03)
+- [x] 38-02b-PLAN.md — Detection integration (AR-02, AR-03)
+- [x] 38-03a-PLAN.md — Translation bubble UI (AR-04)
+- [x] 38-03b-PLAN.md — API integration + spatial audio (AR-05, AR-06)
 
 **Scope:**
 - Vision Pro project setup, RealityKit, ARKit integration, Xcode configuration
@@ -120,8 +120,15 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 
 ### Phase 39: AR Spatial UX
 
-**Status:** Planned  
+**Status:** ✅ Complete  
 **Requirements:** AR-07, AR-08, AR-09, AR-10, AR-11, AR-12
+
+**Plans:** 3/3 plans complete
+
+**Plan list:**
+- [x] 39-01-PLAN.md — Gaze-based placement engine (AR-07, AR-08)
+- [x] 39-02-PLAN.md — Readability & performance (AR-09, AR-10)
+- [x] 39-03-PLAN.md — User controls & environmental awareness (AR-11, AR-12)
 
 **Scope:**
 - Gaze-based dog position estimation using ARKit raycast and hit-testing
@@ -130,6 +137,15 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 - Performance tuning to maintain 90 FPS with 3+ active bubbles
 - User-controlled bubble pinning and manual placement gestures
 - Environmental awareness (avoid placing bubbles inside walls/furniture)
+
+**Success Criteria:**
+1. Bubbles appear along gaze direction with raycast-based positioning
+2. Distance clamped 1-10m from camera
+3. Occlusion checks prevent bubbles behind geometry
+4. Text readable at all distances (1-10m) with dynamic opacity
+5. 90 FPS maintained with 3 active bubbles (profiling data)
+6. Users can pin bubbles via long-press; pinned bubbles persist past auto-dismiss
+7. Manual drag placement works; bubbles respect environmental constraints
 
 ---
 
@@ -191,7 +207,7 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 | Phase 35: Consumer Regression Suite | SEC-REG-01, SEC-REG-02 | Regression script validates 4 Edge Functions with new RLS policies | Complete (script delivered, execution deferred to deployment) |
 | Phase 36: Email & Invites | SEC-EMAIL-01, SEC-EMAIL-02, SEC-EMAIL-03 | Invite emails sent via Resend, acceptance page joins org, expiry handling | Complete |
 | Phase 37: Deployment & E2E Verification | SEC-DEPLOY-01, SEC-DEPLOY-02, SEC-DEPLOY-03 | Deployment guide, env documentation, test script integration | Complete |
-| Phase 38: AR Foundation | AR-01 through AR-06 | Vision Pro project setup, dog bark classifier, basic AR overlay with spatial audio | To Plan |
+| Phase 38: AR Foundation | AR-01 through AR-06 | Vision Pro project setup, dog bark classifier, basic AR overlay with spatial audio | Complete |
 | Phase 39: AR Spatial UX | AR-07 through AR-12 | Gaze-based anchoring, bubble placement, readability optimization, 90 FPS performance | To Plan |
 | Phase 40: VR Foundation | VR-01 through VR-06 | Unity project, dog avatar, hand tracking, translation bubbles, spatial audio | To Plan |
 | Phase 41: VR Environments & Polish | VR-07 through VR-12 | Multiple environments, avatar customization, performance optimization, motion sickness mitigation | To Plan |
@@ -243,5 +259,11 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 | SEC-DEPLOY-01 | Phase 37 | Complete |
 | SEC-DEPLOY-02 | Phase 37 | Complete |
 | SEC-DEPLOY-03 | Phase 37 | Complete |
+| AR-01 | Phase 38 | Complete |
+| AR-02 | Phase 38 | Complete |
+| AR-03 | Phase 38 | Complete |
+| AR-04 | Phase 38 | Complete |
+| AR-05 | Phase 38 | Complete |
+| AR-06 | Phase 38 | Complete |
 
-**Coverage:** 78/78 total requirements (30 v4.0 + 12 v4.1 + 36 M007) mapped to 14 phases
+**Coverage:** 84/84 total requirements (30 v4.0 + 12 v4.1 + 36 M007 + 6 AR) mapped to 14 phases

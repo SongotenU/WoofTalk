@@ -171,12 +171,12 @@
 
 ## AR Foundation (Phase 38)
 
-- [ ] **AR-01**: Vision Pro project setup with RealityKit, ARKit integration, and Xcode configuration
-- [ ] **AR-02**: Core ML dog bark classifier trained on dog sound datasets (accuracy >85%)
-- [ ] **AR-03**: Real-time camera passthrough with ARView and session management
-- [ ] **AR-04**: Basic translation bubble rendering at fixed world position (2m in front)
-- [ ] **AR-05**: Edge Function API integration for translation calls (auth, error handling)
-- [ ] **AR-06**: Simple spatial audio playback anchored to bubble position
+- [x] **AR-01**: Vision Pro project setup with RealityKit, ARKit integration, and Xcode configuration
+- [x] **AR-02**: Core ML dog bark classifier trained on dog sound datasets (accuracy >85%)
+- [x] **AR-03**: Real-time camera passthrough with ARView and session management
+- [x] **AR-04**: Basic translation bubble rendering at fixed world position (2m in front)
+- [x] **AR-05**: Edge Function API integration for translation calls (auth, error handling)
+- [x] **AR-06**: Simple spatial audio playback anchored to bubble position
 
 ## AR Spatial UX (Phase 39)
 

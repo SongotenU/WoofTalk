@@ -1,0 +1,2 @@
+PLACEHOLDER: Replace with actual 48kHz mono WAV file containing silence.
+Generate with: ffmpeg -f lavfi -i "anullsrc=duration=1" -ar 48000 -ac 1 silence.wav
