@@ -90,12 +90,15 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 **Status:** Planned  
 **Requirements:** AR-01, AR-02, AR-03, AR-04, AR-05, AR-06
 
-**Plans:** 3 plans
+**Plans:** 6 plans
 
 **Plan list:**
-- [ ] 38-01-PLAN.md — Project setup & infrastructure (Xcode visionOS project, entitlements, Supabase)
-- [ ] 38-02-PLAN.md — Dog bark detection (Core ML, Vision framework, audio pipeline)
-- [ ] 38-03-PLAN.md — Translation bubble & integration (RealityKit entity, Edge Function, spatial audio)
+- [ ] 38-01a-PLAN.md — Xcode project creation (AR-01)
+- [ ] 38-01b-PLAN.md — Dependencies and build configuration (AR-01)
+- [ ] 38-02a-PLAN.md — Audio pipeline (AR-03)
+- [ ] 38-02b-PLAN.md — Detection integration (AR-02, AR-03)
+- [ ] 38-03a-PLAN.md — Translation bubble UI (AR-04)
+- [ ] 38-03b-PLAN.md — API integration + spatial audio (AR-05, AR-06)
 
 **Scope:**
 - Vision Pro project setup, RealityKit, ARKit integration, Xcode configuration
@@ -174,3 +177,71 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 - Deployment documentation, user guides, fallback strategies (iPhone ARKit for non-Vision Pro)
 
 ---
+
+## Traceability
+
+| Phase | Requirements | Success Criteria | Status |
+|-------|-------------|-----------------|--------|
+| Phase 29: API Gateway & Data Model | API-01 through API-07, DATA-01 through DATA-06 | Third-party can call translate API with a key, get rate-limited response, see usage in dashboard; multi-tenant DB operational | Complete |
+| Phase 30: Admin Dashboard | ADMIN-01 through ADMIN-06 | Admin can find, ban, and moderate content from a single dashboard | Complete |
+| Phase 31: Organization & Team Management | ORG-01 through ORG-06 | Organization can be created, members invited, roles assigned, and org API keys managed | Complete |
+| Phase 32: Integration | E2E-01 through E2E-05 | End-to-end enterprise flow works, RLS prevents cross-org leakage, consumer clients unaffected | Complete |
+| Phase 33: Admin Auth | SEC-AUTH-01, SEC-AUTH-02, SEC-AUTH-03 | All admin pages and API routes protected with middleware session validation and requireAdmin() helper | Complete |
+| Phase 34: API Security Hardening | SEC-API-01, SEC-API-02, SEC-API-03 | IP allowlisting per API key, OpenAPI spec served, CORS tightened | Complete |
+| Phase 35: Consumer Regression Suite | SEC-REG-01, SEC-REG-02 | Regression script validates 4 Edge Functions with new RLS policies | Complete (script delivered, execution deferred to deployment) |
+| Phase 36: Email & Invites | SEC-EMAIL-01, SEC-EMAIL-02, SEC-EMAIL-03 | Invite emails sent via Resend, acceptance page joins org, expiry handling | Complete |
+| Phase 37: Deployment & E2E Verification | SEC-DEPLOY-01, SEC-DEPLOY-02, SEC-DEPLOY-03 | Deployment guide, env documentation, test script integration | Complete |
+| Phase 38: AR Foundation | AR-01 through AR-06 | Vision Pro project setup, dog bark classifier, basic AR overlay with spatial audio | To Plan |
+| Phase 39: AR Spatial UX | AR-07 through AR-12 | Gaze-based anchoring, bubble placement, readability optimization, 90 FPS performance | To Plan |
+| Phase 40: VR Foundation | VR-01 through VR-06 | Unity project, dog avatar, hand tracking, translation bubbles, spatial audio | To Plan |
+| Phase 41: VR Environments & Polish | VR-07 through VR-12 | Multiple environments, avatar customization, performance optimization, motion sickness mitigation | To Plan |
+| Phase 42: Cross-Platform Integration | X-01 through X-06, DATA-ARVR-01 through DATA-ARVR-06 | History sync, store submissions, deployment docs | To Plan |
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| API-01 | Phase 29 | Complete |
+| API-02 | Phase 29 | Complete |
+| API-03 | Phase 29 | Complete |
+| API-04 | Phase 29 | Complete |
+| API-05 | Phase 29 | Complete |
+| API-06 | Phase 29 | Complete |
+| API-07 | Phase 29 | Complete |
+| DATA-01 | Phase 29 | Complete |
+| DATA-02 | Phase 29 | Complete |
+| DATA-03 | Phase 29 | Complete |
+| DATA-04 | Phase 29 | Complete |
+| DATA-05 | Phase 29 | Complete |
+| DATA-06 | Phase 29 | Complete |
+| ADMIN-01 | Phase 30 | Complete |
+| ADMIN-02 | Phase 30 | Complete |
+| ADMIN-03 | Phase 30 | Complete |
+| ADMIN-04 | Phase 30 | Complete |
+| ADMIN-05 | Phase 30 | Complete |
+| ADMIN-06 | Phase 30 | Complete |
+| ORG-01 | Phase 31 | Complete |
+| ORG-02 | Phase 31 | Complete |
+| ORG-03 | Phase 31 | Complete |
+| ORG-04 | Phase 31 | Complete |
+| ORG-05 | Phase 31 | Complete |
+| ORG-06 | Phase 31 | Complete |
+| E2E-01 | Phase 32 | Complete |
+| E2E-02 | Phase 32 | Complete |
+| E2E-03 | Phase 32 | Complete |
+| E2E-04 | Phase 32 | Complete |
+| E2E-05 | Phase 32 | Complete |
+| SEC-AUTH-01 | Phase 33 | Complete |
+| SEC-AUTH-02 | Phase 33 | Complete |
+| SEC-AUTH-03 | Phase 33 | Complete |
+| SEC-API-01 | Phase 34 | Complete |
+| SEC-API-02 | Phase 34 | Complete |
+| SEC-API-03 | Phase 34 | Complete |
+| SEC-REG-01 | Phase 35 | Complete |
+| SEC-REG-02 | Phase 35 | Complete |
+| SEC-EMAIL-01 | Phase 36 | Complete |
+| SEC-EMAIL-02 | Phase 36 | Complete |
+| SEC-EMAIL-03 | Phase 36 | Complete |
+| SEC-DEPLOY-01 | Phase 37 | Complete |
+| SEC-DEPLOY-02 | Phase 37 | Complete |
+| SEC-DEPLOY-03 | Phase 37 | Complete |
+
+**Coverage:** 78/78 total requirements (30 v4.0 + 12 v4.1 + 36 M007) mapped to 14 phases
