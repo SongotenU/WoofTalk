@@ -8,6 +8,7 @@
     "com.unity.textmeshpro": "3.0.9",
     "com.unity.ugui": "1.0.0",
     "com.unity.inputsystem": "1.11.2",
+    "com.supabase.unity": "1.5.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -25,6 +26,13 @@
       "url": "https://npm.developers.meta.com",
       "scopes": [
         "com.meta.xr.sdk"
+      ]
+    },
+    {
+      "name": "Supabase",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.supabase.unity"
       ]
     }
   ]
