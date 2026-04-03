@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!74 &7400000
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_Name: DogBark
+  serializedVersion: 6
+  m_Legacy: 0
+  m_Animated: 1
+  m_LoopTime: 0
+  m_LoopPose: 0
+  m_Speed: 1
+  m_WrapMode: 1
+  m_RotationCurves: []
+  m_CompressedRotationCurves: []
+  m_EulerCurves:
+  - curve:
+      data:
+        path: 'Head'
+        attribute: localEulerAngles.y
+      curve:
+      - time: 0.0
+        value: {x: 0, y: 0, z: 0}
+      - time: 0.15
+        value: {x: 0, y: 5, z: 0}
+      - time: 0.3
+        value: {x: 0, y: 0, z: 0}
+  m_PositionCurves:
+  - curve:
+      data:
+        path: 'Head'
+        attribute: m_LocalPosition.z
+      curve:
+      - time: 0.0
+        value: {x: 0, y: 0, z: 0}
+      - time: 0.15
+        value: {x: 0, y: 0, z: 0.1}
+      - time: 0.5
+        value: {x: 0, y: 0, z: 0}
+  m_ScaleCurves: []
+  m_FloatCurves: []
+  m_SampleRate: 60
+  m_Duration: 0.6
+  m_ShownCurves: []
+  m_MuscleClipSize: 0

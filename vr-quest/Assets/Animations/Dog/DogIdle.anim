@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!74 &7400000
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_Name: DogIdle
+  serializedVersion: 6
+  m_Legacy: 0
+  m_Animated: 1
+  m_LoopTime: 1
+  m_LoopPose: 1
+  m_Speed: 1
+  m_WrapMode: 2
+  m_RotationCurves: []
+  m_CompressedRotationCurves: []
+  m_EulerCurves: []
+  m_PositionCurves: []
+  m_ScaleCurves:
+  - curve:
+      data:
+        path: 'DogBody'
+        attribute: m_LocalScale.y
+      curve:
+      - time: 0.0
+        value: {x: 1.0, y: 1.0, z: 1.0}
+      - time: 1.0
+        value: {x: 1.01, y: 1.01, z: 1.01}
+      - time: 2.0
+        value: {x: 1.0, y: 1.0, z: 1.0}
+  m_FloatCurves: []
+  m_SampleRate: 60
+  m_ShownCurves:
+  - m_Curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1.01
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 2
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      preInfinity: 2
+      postInfinity: 2
+  m_Duration: 2.0
+  m_MuscleClipSize: 0
+  m_StreamedClipPrototypeInfo:
+    m_HasGenericRootTransform: 1
+    m_GenerateMotionCurves: 0
+    m_HasAdditiveReferencePose: 0
