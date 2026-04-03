@@ -191,8 +191,8 @@
 
 - [ ] **VR-01**: Unity project with Meta XR SDK, Oculus Integration, and Quest deployment target
 - [ ] **VR-02**: Dog avatar 3D model with idle, bark, and head-turn animations (FBX rig)
-- [ ] **VR-03**: Hand tracking integration (OVRHand) for menu navigation and gaze-based triggers
-- [ ] **VR-04**: Translation bubble system using TextMeshPro in world space, billboarded to user
+- [x] **VR-03**: Hand tracking integration (OVRHand) for menu navigation and gaze-based triggers
+- [x] **VR-04**: Translation bubble system using TextMeshPro in world space, billboarded to user
 - [ ] **VR-05**: Bark detection using TensorFlow Lite model (same accuracy targets as AR)
 - [ ] **VR-06**: Spatial audio via Oculus Spatializer with attenuation and direction
 
