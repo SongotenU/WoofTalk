@@ -1,0 +1,4 @@
+# Placeholder for TFLite bark detection model
+# Convert from Phase 38 CoreML model: CoreML -> ONNX -> TFLite
+# Input: [1, 1, 1024, 1] Float32, Output: [1, 4] (bark, howl, whine, silence)
+# Place actual .tflite file here when converted.
