@@ -70,72 +70,23 @@
 
 ---
 
-## Milestone v4.1: Security & Deployment Hardening
+## Milestone v4.1: Security & Deployment Hardening ✅ COMPLETE
 
-**Goal:** Close security gaps from v4.0 execution — admin route guards, API IP allowlisting, consumer regression testing, email invites, and E2E verification against live Supabase.
-**Target date:** 2026-04-03
+**Delivered:** 2026-04-02 — Admin auth guards, API IP allowlisting, consumer regression suite, email invites, deployment docs
 
-## Phases
+Archive: `.planning/milestones/v4.1-ROADMAP.md`
 
-- [x] **Phase 33: Admin Auth** ✅ — middleware.ts, admin-auth.ts, 7 API routes protected
-- [x] **Phase 34: API Security Hardening** ✅ — IP allowlist, OpenAPI spec, CORS lockdown
-- [x] **Phase 35: Consumer Client Regression** ✅ — e2e-consumer-regression.sh for 4 Edge Functions
-- [x] **Phase 36: Email & Invites** ✅ — Resend integration, /invite/accept page
-- [x] **Phase 37: Deployment & E2E** ✅ — DEPLOYMENT.md, env docs, test scripts
+---
 
-## Phase Details
+## Milestone M007: AR/VR Mixed Reality
 
-### Phase 33: Admin Auth
-**Goal**: No unauthorized access to admin pages or API routes
-**Depends on**: Phase 29 (org tables, `is_admin()` function)
-**Requirements**: SEC-AUTH-01, SEC-AUTH-02, SEC-AUTH-03
-**Success Criteria**:
-  1. Unauthenticated request to `/admin/users` redirects to `/403`
-  2. Non-admin user hitting `/api/admin/users/role` gets 401
-  3. Admin user can access all admin routes normally
+**Goal:** Extend WoofTalk to immersive platforms with Apple Vision Pro (ARKit) and Meta Quest (Unity) for spatial translation overlays, dog bark detection, and virtual dog avatars.
+**Planned:** 2026-Q2
 
-### Phase 34: API Security Hardening
-**Goal**: Close exposed API surface gaps
-**Depends on**: Phase 29 (api_keys table, api-gateway)
-**Requirements**: SEC-API-01 (IP allowlist), SEC-API-02 (OpenAPI spec), SEC-API-03 (CORS)
-**Success Criteria**:
-  1. API key with non-empty `allowed_ips` rejects requests from other IPs with 403
-  2. `GET /v1/openapi.json` returns valid OpenAPI 3.1 spec
-  3. CORS only allows configured origins, not wildcard `*`
+### Phases: 38-42
 
-### Phase 35: Consumer Regression Suite
-**Goal**: Existing clients not broken by v4.0 RLS migration
-**Depends on**: Phase 29 (RLS policy migration)
-**Requirements**: SEC-REG-01, SEC-REG-02
-**Success Criteria**:
-  1. All 4 existing Edge Functions (translate, phrases-search, leaderboard, activity-batch) return correct responses with session auth
-  2. Consumer users (org_id IS NULL) can still read/write their own data
-  3. Script runs in CI, blocks merge on failure
-
-### Phase 36: Email & Invites
-**Goal**: Complete org invitation flow
-**Depends on**: Phase 31 (invites in DB, invite_token column)
-**Requirements**: SEC-EMAIL-01 (delivery), SEC-EMAIL-02 (acceptance), SEC-EMAIL-03 (expiry)
-**Success Criteria**:
-  1. Invite email sent with token and expiry date
-  2. Visiting `/invite/:token` with valid token joins org and redirects to `/org`
-  3. Expired token returns clear error message
-
-### Phase 37: Deployment & E2E Verification
-**Goal**: Validate complete v4.0 + v4.1 stack against live Supabase
-**Depends on**: Phases 33, 34, 35, 36
-**Requirements**: SEC-DEPLOY-01, SEC-DEPLOY-02, SEC-DEPLOY-03
-**Success Criteria**:
-  1. `e2e-enterprise-test.sh` passes against live deployment with 0 failures
-  2. All env vars documented, secrets rotation guide written
-  3. VERIFICATION.md generated with test results
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 33. Admin Auth | Planned | Complete    | 2026-04-02 |
-| 34. API Security Hardening | Planned | Pending | — |
-| 35. Consumer Regression Suite | Planned | Pending | — |
-| 36. Email & Invites | Planned | Pending | — |
-| 37. Deployment & E2E Verification | Planned | Pending | — |
+- Phase 38: AR Foundation — Vision Pro setup, Core ML dog bark classifier, basic AR overlay, spatial audio
+- Phase 39: AR Spatial UX — Gaze-based anchoring, bubble placement engine, readability, 90 FPS performance
+- Phase 40: VR Foundation — Unity project, dog avatar animations, hand tracking, translation bubbles
+- Phase 41: VR Environments & Polish — Multiple scenes, avatar customization, performance optimization, motion sickness mitigation
+- Phase 42: Cross-Platform Integration — History sync, store submissions (visionOS/Quest), deployment docs

@@ -1,184 +1,143 @@
 # Pitfalls Research
 
-**Domain:** M006 Enterprise — Adding API Access, Admin Dashboard, Team/Org Management to Existing Multi-Platform Product
-**Researched:** 2026-04-02
+**Domain:** M007 AR/VR — Mixed Reality Translation Features
+**Researched:** 2026-04-03
 **Confidence:** HIGH
 
-## Critical Pitfalls (5)
+## Critical Pitfalls (6)
 
-### Pitfall 1: Exposing PostgREST Directly as Public API
+### Pitfall 1: Dog Body Tracking Is Extremely Hard
 
 **What goes wrong:**
-Using Supabase's auto-generated PostgREST API as the consumer-facing API leaks database schema, provides no versioning control, and ties API contracts to internal table structures. When you inevitably change your database schema, all third-party integrations break.
+AR/VR translation requires detecting where the dog is in 3D space to attach translation bubbles. But dog body tracking (pose estimation, skeletal tracking) is not solved by existing AR platforms. Vision Pro can detect human bodies via ARKit, but NOT dogs. Attempting to build custom dog detection/tracking with computer vision will be a multi-year research project.
 
 **Why it happens:**
-Supabase makes PostgREST so easy that it's tempting to just "let API consumers hit it directly." But PostgREST is designed for your own clients, not third-party consumers.
+- ARKit/ARKit 支持人类身体追踪，但不支持动物
+- 计算机视觉模型用于动物姿态估计 (如 Animal Pose) 需要大量标注数据集 (mscoco-animals 只有有限数量)
+- 实时 3D 边界框检测 + sphere fitting 对于摇头摆尾的狗狗非常不稳定
+- 训练自己的模型会变成 AI 研究项目，而非产品特性
 
 **Prevention:**
-1. Always proxy API access through Edge Functions (already the recommended architecture)
-2. Define explicit API response schemas independent of database tables
-3. Version your API from day 1 (`/v1/`, `/v2/`)
-4. Monitor API key usage separately from user sessions
+1. **V1 anchoring strategy:** Anchor translation to **user's gaze direction** or **manual placement** (user points at dog)
+2. **Simple proximity detection:** Use distance from user + audio direction (dog bark localization) to guess dog position
+3. **Defer true dog tracking to M007.2 or later** - label as "advanced" feature
+4. **VR approach:** In VR, dog can be represented as **avatar** with known position (simplified)
 
-**Phase to address:** Phase 29: API Gateway
-
-### Pitfall 2: API Key Leakage in Client Bundles
-
-**What goes wrong:**
-Placing API keys or secrets in Next.js client bundles, iOS Info.plist, or Android strings.xml. Keys get extracted, leading to unlimited unauthorized usage and unexpected Supabase costs.
-
-**Why it happens:**
-Easy to confuse server-side API calls with client-side API calls in Next.js App Router. `use client` files get bundled and shipped.
-
-**Prevention:**
-1. Never expose API keys in any client code — all API key auth goes through Edge Functions
-2. Use Supabase service keys only in server-side contexts (Edge Functions, server components)
-3. Implement IP allowlisting for admin API access
-4. Set key expiry with automatic rotation
-
-**Phase to address:** Phase 29: API Gateway
-
-### Pitfall 3: RBAC via String Metadata — Doesn't Scale
-
-**What goes wrong:**
-Current auth uses `raw_user_meta_data->>'role'` (string check in PostgreSQL) for admin/moderator flags. This pattern does not scale to multi-org RBAC where a user can be Owner in org_A, Admin in org_B, and just a consumer elsewhere. String comparisons in RLS policies become exponentially complex.
-
-**Why it happens:**
-Starts simple for a small app. When orgs are added, the metadata approach collides with org-scoped role requirements.
-
-**Prevention:**
-1. Create proper `organization_members` join table with role column (not metadata)
-2. Use SQL functions like `user_has_role(user_id, org_id, role)` in RLS policies
-3. Migrate existing `raw_user_meta_data` roles to the new table structure
-4. Keep `raw_user_meta_data->>'role'` as a fallback during migration transition
-
-**Phase to address:** Phase 30: Data Model & RBAC
-
-### Pitfall 4: Schema Backfills Cause Downtime
-
-**What goes wrong:**
-Adding `org_id UUID` column to tables with existing user data (users, community_phrases, translations) requires full table scans. PostgreSQL 14+ acquires an ACCESS EXCLUSIVE lock during ALTER TABLE, blocking all reads/writes for the duration.
-
-**Why it happens:**
-Supabase's managed PostgreSQL makes it easy to run migrations interactively. On a table with 1M+ rows, `ALTER TABLE ... ADD COLUMN` can take minutes.
-
-**Prevention:**
-1. Use `ALTER TABLE ... ADD COLUMN ... DEFAULT NULL` (fast in PG 11+)
-2. Backfill in batches with `UPDATE` chunks and `pg_sleep()` between batches
-3. Run migrations during low-traffic windows
-4. Consider adding org_id columns during v3.1→v4.0 transition when user base is still manageable
-
-**Phase to address:** Phase 30: Data Model & RBAC
-
-### Pitfall 5: Admin Dashboard Scope Creep
-
-**What goes wrong:**
-Starting with "just a simple user management panel" and building a full Salesforce-style admin tool before the actual enterprise features (API access, RBAC) exist. This delays revenue-generating capabilities by months.
-
-**Why it happens:**
-Admin dashboards feel productive — you can see and touch them. The invisible infrastructure work (API gateway, RLS policies) is harder to demo.
-
-**Prevention:**
-1. Scope admin MVP to: user list, content moderation (ban/report), role management
-2. Defer: charts/dashboards, bulk operations, export features
-3. Build admin UI last, after the data model it manages is stable
-4. Prioritize API gateway before admin — real customers pay for API access, not admin panels
-
-**Phase to address:** Phase 31: Admin Dashboard
-
-## Moderate Pitfalls (4)
-
-### Pitfall 6: Rate Limiting Per-Key Instead of Per-Org
-
-**What goes wrong:**
-Each API key has its own rate limit. An org with 5 keys can hit 5x the intended rate, defeating per-org pricing tiers.
-
-**Prevention:** Rate limit at the org level (upstash key = `rl:org:{org_id}`), allow per-key overrides only as enterprise exceptions.
-
-**Phase to address:** Phase 29: API Gateway
-
-### Pitfall 7: Consumer Users Lose Data During Org Migration
-
-**What goes wrong:**
-When a consumer user joins an org, their existing translation history and community contributions become orphaned if the migration doesn't properly link their personal `org_id` to the organization.
-
-**Prevention:** Implement explicit migration flow: `UPDATE translations SET org_id = ? WHERE user_id = ? AND org_id IS NULL` when user accepts org invite.
-
-**Phase to address:** Phase 30: Data Model & RBAC
-
-### Pitfall 8: API Response Shapes Diverge from Consumer App
-
-**What goes wrong:**
-The API returns data in a different format than the mobile/web clients expect, forcing you to maintain parallel response serializers or break one side.
-
-**Prevention:** Use shared response types (TypeScript interfaces) between Edge Functions and web app. Document API response format explicitly.
-
-**Phase to address:** Phase 29: API Gateway
-
-### Pitfall 9: Role Escalation Through Org Membership
-
-**What goes wrong:**
-A user is org Admin, but the RLS policy accidentally allows them to promote themselves to Owner, or they retain admin privileges after leaving the org because the old `raw_user_meta_data->>'role'` check still passes.
-
-**Prevention:** Explicit role transition logic (owner transfer requires current owner approval). Clean up old metadata roles during migration.
-
-**Phase to address:** Phase 30: Data Model & RBAC
-
-## Supabase-Specific Pitfalls (3)
-
-### Pitfall 10: RLS Policy Explosion
-
-**What goes wrong:**
-30 RLS policies today → 90+ after adding org-scoped variants for every table. Debugging becomes impossible; policies contradict each other.
-
-**Prevention:**
-1. Use consistent naming convention: `{table}_{action}_{scope}` (e.g., `phrases_select_org_member`)
-2. Test RLS policies with `EXPLAIN` to verify indexes are used
-3. Consider combining OR conditions into single policies where possible
-4. Document each policy's intent as a comment
-
-### Pitfall 11: Auth Metadata Confusion
-
-**What goes wrong:**
-Existing Edge Function `is_admin()` checks `raw_user_meta_data->>'role'`. After adding org roles, there are now two places roles can live, and functions check the wrong one.
-
-**Prevention:** Deprecate `is_admin()` during migration. Replace with `has_global_role('admin')` and `has_org_role(org_id, 'admin')`.
-
-### Pitfall 12: Edge Functions Need org_id Awareness
-
-**What goes wrong:**
-Existing 6 Edge Functions don't accept or validate `org_id` parameters. Third-party API calls through the gateway bypass org-scoped business logic.
-
-**Prevention:** Add org_id extraction from API key (join `api_keys → organizations`) and pass through all translate/stream functions.
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Severity | Phase | Prevention |
-|---------|----------|-------|------------|
-| PostgREST as public API | CRITICAL | Phase 29: API Gateway | Always proxy through Edge Functions |
-| API key leakage | CRITICAL | Phase 29: API Gateway | Server-side only, IP allowlisting |
-| RBAC via string metadata | CRITICAL | Phase 30: Data Model & RBAC | Proper org_members table |
-| Schema backfills downtime | CRITICAL | Phase 30: Data Model & RBAC | NULL columns, batched backfill |
-| Admin scope creep | CRITICAL | Phase 31: Admin Dashboard | API first, admin last |
-| Per-key rate limiting | MODERATE | Phase 29: API Gateway | Org-level rate limiting |
-| Consumer data orphan | MODERATE | Phase 30: Data Model & RBAC | Explicit migration on join |
-| API response divergence | MODERATE | Phase 29: API Gateway | Shared response types |
-| Role escalation | MODERATE | Phase 30: Data Model & RBAC | Explicit role transitions |
-| RLS policy explosion | MINOR | Phase 30: Data Model & RBAC | Naming convention, documentation |
-| Auth metadata confusion | MINOR | Phase 30: Data Model & RBAC | Deprecate old patterns |
-| Edge functions org-blind | MINOR | Phase 29: API Gateway | Pass org_id explicitly |
-
-## Recovery Strategies
-
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Schema leaked to public API | MEDIUM | Migrate to Edge Function proxy, communicate breaking change to API consumers |
-| API key compromise | LOW | Rotate all keys, implement key expiry, add IP allowlisting |
-| Role escalation exploit | HIGH | Audit all org memberships, reset suspicious roles, add audit logging |
-| RLS policy contradiction | HIGH | Full policy audit, simplify with OR conditions, add tests for each policy |
-| Admin dashboard overbuilt | MEDIUM-HIGH | Defer admin features, focus engineering on API and RBAC |
+**Phase to address:** Phase 38 (AR Foundation) - define anchoring constraints clearly
 
 ---
 
-*Pitfalls research for: M006 Enterprise — Adding API access, admin dashboard, team/org management*
-*Researched: 2026-04-02*
+### Pitfall 2: Vision Pro Market Share ~0.1% - Is It Worth It?
+
+**What goes wrong:**
+Building for Apple Vision Pro means targeting a device with tiny user base (<1M active users worldwide). The development cost (buying $3500 hardware, learning new platform, App Store optimization) may exceed expected ROI.
+
+**Why it happens:**
+- Vision Pro launched in 2024, still in early adopter phase
+- Enterprise AR use cases are still emerging
+- Most WoofTalk users are on iOS/Android phones, not headsets
+
+**Prevention:**
+1. **Pilot strategy:** Build AR as a premium showcase, not primary user flow
+2. **Cross-platform AR fallback:** Use ARKit on iPhone/iPad (ARKit on devices without Vision Pro's spatial display)
+3. **Marketing angle:** "Experience WoofTalk in mixed reality" - PR value may justify cost
+4. **Future-proofing:** AR skill in house for when Apple releases cheaper glasses
+
+**Phase to address:** Phase 38 - set clear scope: Vision Pro first, iPhone ARKit as stretch
+
+---
+
+### Pitfall 3: Dog Bark Detection Accuracy
+
+**What goes wrong:**
+Translating dog communication requires first detecting that a dog is barking/whining, then classifying emotion/intent. Off-the-shelf bark detectors have ~80-90% accuracy in quiet environments. Background noise (TV, other dogs, wind) reduces accuracy dramatically. False positives (cat meows, human coughs) will frustrate users.
+
+**Why it happens:**
+- Dog vocalizations are highly variable by breed, size, context
+- Environmental noise is unpredictable
+- On-device ML models need to be small (<10MB) → less accurate than cloud models
+
+**Prevention:**
+1. **User-controlled activation:** Manual "listen" button to reduce false positives
+2. **Confidence threshold:** Only show translation when model confidence >85%
+3. **User feedback loop:** "Was this accurate?" button to collect training data
+4. **Fallback:** Allow manual text entry if voice detection fails
+5. **Gradual rollout:** Beta test with WoofTalk power users first
+
+**Phase to address:** Phase 39 (Audio Processing) - iterate on model training
+
+---
+
+### Pitfall 4: VR Hardware Fragmentation & Performance
+
+**What goes wrong:**
+Meta Quest 2, Quest 3, Quest Pro have different performance characteristics and capabilities. Hand tracking is available on newer models but not Quest 2. Building for "lowest common denominator" yields poor experience on Quest Pro; targeting high-end excludes Quest 2 users.
+
+**Why it happens:**
+- Quest 2: 72 Hz, no hand tracking (controllers only), 3GB RAM for app
+- Quest 3: 90 Hz, hand tracking, color passthrough, more GPU
+- Quest Pro: higher resolution, face/eye tracking
+- Unity project settings need per-device configuration
+
+**Prevention:**
+1. **Target Quest 3 as baseline**, gracefully degrade on Quest 2 (lower texture quality, disable hand tracking)
+2. **Runtime device detection:** Adjust settings based on detected model
+3. **Performance budget:** Keep draw calls <200, polycount <100k for 90 FPS
+4. **User-configurable graphics:** Settings menu for quality presets
+
+**Phase to address:** Phase 40 (VR Implementation) - test on all target devices
+
+---
+
+### Pitfall 5: 3D UI Design Is Harder Than 2D
+
+**What goes wrong:**
+Designing readable text in 3D space is non-trivial. Text placed in world space can be too small, too far, occluded by objects, or rotated awkwardly. Users experience "spatial UI fatigue" if forced to constantly turn head to read.
+
+**Why it happens:**
+- Readable text requires: sufficient size (>1 degree visual angle), perpendicular orientation, good contrast against background
+- In AR, text clipping (entering/exiting walls) is jarring
+- In VR, text at infinity (billboarded) can cause eye strain
+
+**Prevention:**
+1. **Billboarding:** Text always faces user (but readable from any angle)
+2. **Distance clamping:** Translation bubbles never closer than 1m or farther than 10m
+3. **Occlusion culling:** Don't draw text if dog is behind wall (Raycast check)
+4. **Opt-in explicit reading mode:** "Pin translation to HUD" for users who want always-visible overlay
+5. **Test with users early:** Spatial UX needs empirical validation
+
+**Phase to address:** Phase 38 (AR UI) and Phase 40 (VR UI) - iterative user testing
+
+---
+
+### Pitfall 6: Motion Sickness in VR
+
+**What goes wrong:**
+If user's vestibular sense (inner ear) detects motion but eyes see no motion (or vice versa), motion sickness occurs. This is especially problematic when:
+- User is stationary but dog moves around them (can cause sensory conflict)
+- Translating world during head movement (should be head-locked only)
+- Low or unstable framerate
+
+**Why it happens:**
+- WoofTalk VR involves dogs moving around user in a room
+- If translation bubbles are world-locked and user turns head quickly, visual motion without self-motion triggers nausea
+- Frame drops break immersion → discomfort
+
+**Prevention:**
+1. **Head-locked UI:** Translation HUD attached to user's head orientation, not world space
+2. **Smooth 90 FPS minimum:** Profile performance, reduce effects before dropping below 90
+3. **Avoid artificial locomotion:** Let users physically move; don't use thumbstick movement
+4. **Comfort mode toggle:** Simplify visuals, reduce animations for sensitive users
+5. **Session length warnings:** "Take a break" after 20 minutes
+
+**Phase to address:** Phase 40 (VR Implementation) - motion sickness testing mandatory
+
+---
+
+## Additional Risks (Lower Priority)
+
+- **Battery drain:** AR/VR + audio processing drains Vision Pro/Quest battery quickly → limit session duration
+- **Privacy concerns:** Camera passthough records environment → need clear privacy policy
+- **App Store review:** Apple may reject AR apps that record without obvious consent
+- **Seasickness with moving dogs:** If dog runs behind user, following with gaze may cause dizziness
+- **3D model licensing:** If using pre-made dog avatars, ensure commercial license

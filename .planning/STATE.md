@@ -1,57 +1,55 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Core Translation Engine
-status: executing
-stopped_at: v4.0 complete, PR open for merge
-last_updated: "2026-04-02T10:00:00.513Z"
-last_activity: 2026-04-02
+milestone: M007
+milestone_name: AR/VR Mixed Reality
+status: planning
+stopped_at: Research complete, requirements defined, roadmap created - ready for phase planning
+last_updated: "2026-04-03T10:35:00.000Z"
+last_activity: 2026-04-03
 progress:
-  total_phases: 8
-  completed_phases: 3
+  total_phases: 5
+  completed_phases: 0
   total_plans: 5
-  completed_plans: 4
-  percent: 100
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-03)
 
 **Core value:** Enabling natural communication between humans and dogs through bidirectional translation with voice capabilities
-**Current focus:** Phase 33 — v41-security-hardening
+**Current focus:** Planning M007 — AR/VR mixed reality features
 
 ## Current Position
 
-Phase: 33
-Plan: Not started
-Status: Executing Phase 33
-Last activity: 2026-04-02
+Milestone: M007 (AR/VR Mixed Reality)
+Status: Planning — Research complete, requirements and roadmap defined
+Last activity: 2026-04-03
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0% (0/5 phases planned)
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (historical):**
 
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 37 (across v1.0 → v4.1)
+- Average duration: ~2.5 days per phase
+- Total execution time: ~30 days
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
+| Milestone | Phases | Duration |
+|-----------|--------|----------|
+| v1.0 (M001+M002) | 12 | 2025-Q1 |
+| v2.0 (M003) | 6 | 2025-Q2 |
+| v3.0 (M004) | 6 | 2026-03 |
+| v3.1 (M005) | 4 | 2026-03 |
+| v4.0 | 4 | 2026-04-01 |
+| v4.1 | 5 | 2026-04-02 |
+| M007 (planned) | 5 | 2026-Q2 (planned) |
 
 ## Accumulated Context
 
@@ -62,14 +60,30 @@ Progress: [██████████] 100%
 - **v3.0 (M004)**: Platform Expansion — Android app, Supabase backend, cross-platform sync
 - **v3.1 (M005)**: Web + Smartwatch — Next.js web app, Wear OS companion app
 - **v4.0**: Enterprise — REST API gateway, admin dashboard, org/team management
+- **v4.1**: Security & Deployment Hardening — Admin auth, IP allowlisting, regression tests, email invites, deployment docs
+
+### Current Milestone: M007 — AR/VR Mixed Reality
+
+**Goal:** Extend WoofTalk to immersive platforms (Apple Vision Pro AR, Meta Quest VR) with spatial translation overlays, dog bark detection, and virtual dog avatars.
+
+**Phases:**
+- Phase 38: AR Foundation (Vision Pro setup, Core ML bark classifier, basic AR overlay)
+- Phase 39: AR Spatial UX (Gaze-based anchoring, bubble placement, readability, 90 FPS)
+- Phase 40: VR Foundation (Unity project, dog avatar, hand tracking, translation bubbles)
+- Phase 41: VR Environments & Polish (Multiple scenes, customization, performance, motion sickness)
+- Phase 42: Cross-Platform Integration (History sync, store submissions, deployment docs)
+
+**Research artifacts:** `.planning/research/` (SUMMARY.md, ARCHITECTURE.md, FEATURES.md, STACK.md, PITFALLS.md)
+**Requirements:** `.planning/REQUIREMENTS.md` (M007 section, 36 requirements across 5 phases + data model extensions)
+**Roadmap:** `.planning/ROADMAP.md` (M007 milestone with phases 38-42)
 
 ### Key Stack
 
 - **Backend**: Supabase (PostgreSQL, Edge Functions, RLS) + Upstash Redis
-- **API**: Hono (Deno) + zod validation + bcrypt API keys
-- **Web**: Next.js App Router + Tailwind + shadcn/ui
-- **Mobile**: iOS (Swift), Android (Kotlin + Compose)
-- **Watch**: Wear OS (Kotlin + Compose for Wearables)
+- **AR Platform**: ARKit + RealityKit (visionOS), Vision framework for dog bark detection
+- **VR Platform**: Unity 2022 LTS + Meta XR SDK, TextMeshPro, TensorFlow Lite
+- **Audio**: AudioKit (iOS/visionOS), Oculus Spatializer (Quest)
+- **Existing clients**: iOS (Swift), Android (Kotlin), Web (React/Next.js), Watch (Wear OS)
 
 ### Known Tech Debt
 
@@ -79,7 +93,6 @@ Progress: [██████████] 100%
 - Missing retry + circuit breaker for AI translation
 - Multiple NotificationCenter/Timer memory leaks
 
-## Session Continuity
+---
 
-Last session: 2026-04-02
-Stopped at: v4.0 complete, PR open for merge
+*Next steps: Begin Phase 38 planning with `/gsd:plan-phase 38`*

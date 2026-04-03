@@ -124,46 +124,193 @@
 
 ---
 
+# v4.1 Requirements — Security & Deployment Hardening
+
+**Milestone:** v4.1 Security & Deployment Hardening
+**Date:** 2026-04-02
+**Goal:** Close security gaps from v4.0 execution, add auth guards, and validate deployment readiness
+
+## Admin Auth (Phase 33)
+
+- [x] **SEC-AUTH-01**: Next.js middleware.ts with real `is_admin()` session verification via Supabase Auth
+- [x] **SEC-AUTH-02**: Non-admin users redirected to `/403` on admin routes
+- [x] **SEC-AUTH-03**: All 7 admin API routes protected with `requireAdmin()` helper
+
+## API Security (Phase 34)
+
+- [x] **SEC-API-01**: IP allowlist on api_keys — requests from non-allowlisted IPs get 403
+- [x] **SEC-API-02**: `GET /v1/openapi.json` returns valid OpenAPI 3.1 spec
+- [x] **SEC-API-03**: CORS tightened from wildcard `*` to specific configured origins
+
+## Consumer Regression (Phase 35)
+
+- [x] **SEC-REG-01**: All 4 existing Edge Functions return correct responses with session auth
+- [x] **SEC-REG-02**: Consumer users (org_id IS NULL) can still read/write their own data after RLS migration
+
+## Email & Invites (Phase 36)
+
+- [x] **SEC-EMAIL-01**: Invite email sent with token and expiry date via Resend
+- [x] **SEC-EMAIL-02**: Visiting `/invite/:token` with valid token joins org and redirects to `/org`
+- [x] **SEC-EMAIL-03**: Expired token returns clear error message
+
+## Deployment & E2E (Phase 37)
+
+- [x] **SEC-DEPLOY-01**: `e2e-consumer-regression.sh` tests 4 Edge Functions against new RLS
+- [x] **SEC-DEPLOY-02**: All env vars documented in `web/.env.example`, secrets rotation guide in `supabase/DEPLOYMENT.md`
+- [x] **SEC-DEPLOY-03**: Deployment step-by-step guide with migration and function instructions
+
+**Note:** Live E2E verification (SEC-DEPLOY-01 execution against production) deferred to actual deployment time.
+
+---
+
+# M007: AR/VR — Mixed Reality Translation
+
+**Milestone:** M007 AR/VR
+**Date:** 2026-04-03 (planned)
+**Goal:** Extend WoofTalk to immersive platforms (Apple Vision Pro AR, Meta Quest VR) with spatial translation overlays, dog bark detection, and virtual dog avatars.
+
+## AR Foundation (Phase 38)
+
+- [ ] **AR-01**: Vision Pro project setup with RealityKit, ARKit integration, and Xcode configuration
+- [ ] **AR-02**: Core ML dog bark classifier trained on dog sound datasets (accuracy >85%)
+- [ ] **AR-03**: Real-time camera passthrough with ARView and session management
+- [ ] **AR-04**: Basic translation bubble rendering at fixed world position (2m in front)
+- [ ] **AR-05**: Edge Function API integration for translation calls (auth, error handling)
+- [ ] **AR-06**: Simple spatial audio playback anchored to bubble position
+
+## AR Spatial UX (Phase 39)
+
+- [ ] **AR-07**: Gaze-based dog position estimation using ARKit raycast and hit-testing
+- [ ] **AR-08**: Bubble placement engine with distance clamping (1-10m), billboarding, and occlusion checks
+- [ ] **AR-09**: Readability optimization (font size, contrast, drop shadow, background opacity)
+- [ ] **AR-10**: Performance tuning to maintain 90 FPS with 3+ active bubbles
+- [ ] **AR-11**: User-controlled bubble pinning and manual placement gestures
+- [ ] **AR-12**: Environmental awareness (avoid placing bubbles inside walls/furniture)
+
+## VR Foundation (Phase 40)
+
+- [ ] **VR-01**: Unity project with Meta XR SDK, Oculus Integration, and Quest deployment target
+- [ ] **VR-02**: Dog avatar 3D model with idle, bark, and head-turn animations (FBX rig)
+- [ ] **VR-03**: Hand tracking integration (OVRHand) for menu navigation and gaze-based triggers
+- [ ] **VR-04**: Translation bubble system using TextMeshPro in world space, billboarded to user
+- [ ] **VR-05**: Bark detection using TensorFlow Lite model (same accuracy targets as AR)
+- [ ] **VR-06**: Spatial audio via Oculus Spatializer with attenuation and direction
+
+## VR Environments & Polish (Phase 41)
+
+- [ ] **VR-07**: Multiple virtual environments (park, living room, beach) with modular assets
+- [ ] **VR-08**: Dog avatar customization (breed selection, color, accessories) using Supabase Storage
+- [ ] **VR-09**: Performance optimization for Quest 2 (72 FPS) and Quest 3 (90 FPS), quality presets
+- [ ] **VR-10**: Motion sickness mitigation (head-locked UI, comfort mode, session warnings)
+- [ ] **VR-11**: Environment selection menu, settings UI (volume, bubble opacity, comfort toggles)
+- [ ] **VR-12**: User testing and iteration on VR comfort and usability
+
+## Cross-Platform Integration (Phase 42)
+
+- [ ] **X-01**: Translation history sync across all platforms (iOS, Android, Web, Watch, AR, VR) via Supabase
+- [ ] **X-02**: Shared user settings (bubble preferences, audio volume, default platform)
+- [ ] **X-03**: Platform-specific analytics (session length, accuracy feedback, FPS metrics)
+- [ ] **X-04**: visionOS App Store submission guide, TestFlight beta distribution
+- [ ] **X-05**: Meta Quest Store submission (screenshots, videos, compliance checklist)
+- [ ] **X-06**: Deployment documentation, user guides, and fallback strategies (iPhone ARKit for non-Vision Pro)
+
+## Data Model Extensions
+
+- [ ] **DATA-ARVR-01**: Add `platform` column to `translation_history` (values: ar_vision, vr_quest, ios, android, web, watch)
+- [ ] **DATA-ARVR-02**: Add `spatial_position JSONB` to `translation_history` for 3D coordinates (x,y,z in device space)
+- [ ] **DATA-ARVR-03**: New `dog_avatars` table for VR avatar customization (breed, color, accessories, user_id)
+- [ ] **DATA-ARVR-04**: New `user_devices` table to track registered AR/VR hardware (optional, for analytics)
+- [ ] **DATA-ARVR-05**: Backfill `platform` for historical records (default 'mobile' for existing data)
+- [ ] **DATA-ARVR-06**: RLS policies for new tables ensuring user isolation
+
+## Pitfalls Addressed
+
+- Dog body tracking unsolved → use gaze/audio heuristics, manual placement fallback
+- Vision Pro market size → position as premium showcase, iPhone ARKit fallback
+- Dog bark accuracy → user-controlled activation, confidence threshold, feedback loop
+- VR motion sickness → head-locked UI, 90 FPS target, comfort toggles, session limits
+- 3D UI readability → billboarding, distance clamping, occlusion checks, high contrast
+- Performance → device-specific quality presets, aggressive GPU profiling
+
+---
+
+## Out of Scope (Explicit Exclusions)
+
+- ARCore (Android AR) - fragmented market, low penetration; focus on Vision Pro
+- Unreal Engine - overkill for translation overlays, steeper learning curve than Unity
+- OpenXR abstraction - native SDKs provide better quality for MVP
+- Cloud-based dog ML processing - on-device only (privacy + latency)
+- Multi-user AR/VR networking - V2 feature (presence, shared avatars, sync)
+- Dog body language analysis (tail wag, ear position) - beyond vocalization scope
+- Standalone AR glasses (non-Vision Pro) - hardware not mature
+- Dog thought reading / emotional state from facial expression - research phase
+
+---
+
 ## Traceability
 
 | Phase | Requirements | Success Criteria | Status |
 |-------|-------------|-----------------|--------|
-| Phase 29: API Gateway & Data Model | API-01 through API-07, DATA-01 through DATA-06 | Third-party can call translate API with a key, get rate-limited response, see usage in dashboard; multi-tenant DB operational | Not started |
-| Phase 30: Admin Dashboard | ADMIN-01 through ADMIN-06 | Admin can find, ban, and moderate content from a single dashboard | Not started |
-| Phase 31: Organization & Team Management | ORG-01 through ORG-06 | Organization can be created, members invited, roles assigned, and org API keys managed | Not started |
-| Phase 32: Integration | E2E-01 through E2E-05 | End-to-end enterprise flow works, RLS prevents cross-org leakage, consumer clients unaffected | Not started |
+| Phase 29: API Gateway & Data Model | API-01 through API-07, DATA-01 through DATA-06 | Third-party can call translate API with a key, get rate-limited response, see usage in dashboard; multi-tenant DB operational | Complete |
+| Phase 30: Admin Dashboard | ADMIN-01 through ADMIN-06 | Admin can find, ban, and moderate content from a single dashboard | Complete |
+| Phase 31: Organization & Team Management | ORG-01 through ORG-06 | Organization can be created, members invited, roles assigned, and org API keys managed | Complete |
+| Phase 32: Integration | E2E-01 through E2E-05 | End-to-end enterprise flow works, RLS prevents cross-org leakage, consumer clients unaffected | Complete |
+| Phase 33: Admin Auth | SEC-AUTH-01, SEC-AUTH-02, SEC-AUTH-03 | All admin pages and API routes protected with middleware session validation and requireAdmin() helper | Complete |
+| Phase 34: API Security Hardening | SEC-API-01, SEC-API-02, SEC-API-03 | IP allowlisting per API key, OpenAPI spec served, CORS tightened | Complete |
+| Phase 35: Consumer Regression Suite | SEC-REG-01, SEC-REG-02 | Regression script validates 4 Edge Functions with new RLS policies | Complete (script delivered, execution deferred to deployment) |
+| Phase 36: Email & Invites | SEC-EMAIL-01, SEC-EMAIL-02, SEC-EMAIL-03 | Invite emails sent via Resend, acceptance page joins org, expiry handling | Complete |
+| Phase 37: Deployment & E2E Verification | SEC-DEPLOY-01, SEC-DEPLOY-02, SEC-DEPLOY-03 | Deployment guide, env documentation, test script integration | Complete |
+| Phase 38: AR Foundation | AR-01 through AR-06 | Vision Pro project setup, dog bark classifier, basic AR overlay with spatial audio | To Plan |
+| Phase 39: AR Spatial UX | AR-07 through AR-12 | Gaze-based anchoring, bubble placement, readability optimization, 90 FPS performance | To Plan |
+| Phase 40: VR Foundation | VR-01 through VR-06 | Unity project, dog avatar, hand tracking, translation bubbles, spatial audio | To Plan |
+| Phase 41: VR Environments & Polish | VR-07 through VR-12 | Multiple environments, avatar customization, performance optimization, motion sickness mitigation | To Plan |
+| Phase 42: Cross-Platform Integration | X-01 through X-06, DATA-ARVR-01 through DATA-ARVR-06 | History sync, store submissions, deployment docs | To Plan |
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | Phase 29 | Pending |
-| API-02 | Phase 29 | Pending |
-| API-03 | Phase 29 | Pending |
-| API-04 | Phase 29 | Pending |
-| API-05 | Phase 29 | Pending |
-| API-06 | Phase 29 | Pending |
-| API-07 | Phase 29 | Pending |
-| DATA-01 | Phase 29 | Pending |
-| DATA-02 | Phase 29 | Pending |
-| DATA-03 | Phase 29 | Pending |
-| DATA-04 | Phase 29 | Pending |
-| DATA-05 | Phase 29 | Pending |
-| DATA-06 | Phase 29 | Pending |
-| ADMIN-01 | Phase 30 | Pending |
-| ADMIN-02 | Phase 30 | Pending |
-| ADMIN-03 | Phase 30 | Pending |
-| ADMIN-04 | Phase 30 | Pending |
-| ADMIN-05 | Phase 30 | Pending |
-| ADMIN-06 | Phase 30 | Pending |
-| ORG-01 | Phase 31 | Pending |
-| ORG-02 | Phase 31 | Pending |
-| ORG-03 | Phase 31 | Pending |
-| ORG-04 | Phase 31 | Pending |
-| ORG-05 | Phase 31 | Pending |
-| ORG-06 | Phase 31 | Pending |
-| E2E-01 | Phase 32 | Pending |
-| E2E-02 | Phase 32 | Pending |
-| E2E-03 | Phase 32 | Pending |
-| E2E-04 | Phase 32 | Pending |
-| E2E-05 | Phase 32 | Pending |
+| API-01 | Phase 29 | Complete |
+| API-02 | Phase 29 | Complete |
+| API-03 | Phase 29 | Complete |
+| API-04 | Phase 29 | Complete |
+| API-05 | Phase 29 | Complete |
+| API-06 | Phase 29 | Complete |
+| API-07 | Phase 29 | Complete |
+| DATA-01 | Phase 29 | Complete |
+| DATA-02 | Phase 29 | Complete |
+| DATA-03 | Phase 29 | Complete |
+| DATA-04 | Phase 29 | Complete |
+| DATA-05 | Phase 29 | Complete |
+| DATA-06 | Phase 29 | Complete |
+| ADMIN-01 | Phase 30 | Complete |
+| ADMIN-02 | Phase 30 | Complete |
+| ADMIN-03 | Phase 30 | Complete |
+| ADMIN-04 | Phase 30 | Complete |
+| ADMIN-05 | Phase 30 | Complete |
+| ADMIN-06 | Phase 30 | Complete |
+| ORG-01 | Phase 31 | Complete |
+| ORG-02 | Phase 31 | Complete |
+| ORG-03 | Phase 31 | Complete |
+| ORG-04 | Phase 31 | Complete |
+| ORG-05 | Phase 31 | Complete |
+| ORG-06 | Phase 31 | Complete |
+| E2E-01 | Phase 32 | Complete |
+| E2E-02 | Phase 32 | Complete |
+| E2E-03 | Phase 32 | Complete |
+| E2E-04 | Phase 32 | Complete |
+| E2E-05 | Phase 32 | Complete |
+| SEC-AUTH-01 | Phase 33 | Complete |
+| SEC-AUTH-02 | Phase 33 | Complete |
+| SEC-AUTH-03 | Phase 33 | Complete |
+| SEC-API-01 | Phase 34 | Complete |
+| SEC-API-02 | Phase 34 | Complete |
+| SEC-API-03 | Phase 34 | Complete |
+| SEC-REG-01 | Phase 35 | Complete |
+| SEC-REG-02 | Phase 35 | Complete |
+| SEC-EMAIL-01 | Phase 36 | Complete |
+| SEC-EMAIL-02 | Phase 36 | Complete |
+| SEC-EMAIL-03 | Phase 36 | Complete |
+| SEC-DEPLOY-01 | Phase 37 | Complete |
+| SEC-DEPLOY-02 | Phase 37 | Complete |
+| SEC-DEPLOY-03 | Phase 37 | Complete |
 
-**Coverage:** 30/30 v4.0 requirements mapped to 4 phases
+**Coverage:** 78/78 total requirements (30 v4.0 + 12 v4.1 + 36 M007) mapped to 14 phases

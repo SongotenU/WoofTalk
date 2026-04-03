@@ -13,6 +13,12 @@ The core value is enabling natural communication between humans and dogs through
 v3.1 (M005) Complete:
 - Web + Smartwatch — Next.js web app, Wear OS companion app (4 phases, 24 requirements)
 
+v4.0 (Enterprise) Complete:
+- REST API gateway, admin dashboard, org/team management (4 phases, 107 files, 30 requirements)
+
+v4.1 (Security & Deployment) Complete:
+- Admin auth guards, API IP allowlisting, consumer regression suite, email invites, deployment docs (5 phases)
+
 Current codebase includes:
 - **iOS**: SwiftUI translation app with voice, community, AI, analytics
 - **Android**: Kotlin + Jetpack Compose app with full iOS parity
@@ -20,22 +26,34 @@ Current codebase includes:
 - **Cross-platform**: Shared auth, synced history, realtime activity feed
 - **Web**: Next.js app with voice I/O, community, social, PWA, Supabase sync
 - **Watch**: Wear OS companion app with voice input, glanceable results, Supabase sync
+- **API Gateway**: RESTful API with API key auth, rate limiting, usage tracking
+- **Admin Dashboard**: Full CMS for user management, content moderation, analytics
 
-## Current Milestone: v4.0 Enterprise
+## Current Milestone: M007 — AR/VR Mixed Reality (Planning)
 
-**Goal:** Open WoofTalk platform to third-party integrations via REST API, provide admin tools for content moderation, and support organization/team collaboration with RBAC.
+**Status:** Research complete — requirements and roadmap defined, ready for phase planning
+**Planned:** 2026-Q2
 
-**Target features:**
-- **API Gateway** (Supabase Edge Functions) — REST API with API key auth, rate limiting, usage tracking
-- **Admin Dashboard** (Next.js) — User management, content moderation, analytics, bulk actions
-- **Organization & Team Management** — Multi-org hierarchy, role-based access control, org-level API keys
-- **Data Model Expansion** — org-scoped tables, RLS policy migration, schema migration from consumer to multi-tenant
-- **4-phase execution**: API Gateway & Data Model → Admin Dashboard → Organization & Team → Integration
+**Scope:**
+- Phase 38: AR Foundation (Vision Pro, RealityKit, dog bark detection)
+- Phase 39: AR Spatial UX (Gaze-based anchoring, bubble placement, 90 FPS)
+- Phase 40: VR Foundation (Unity, Meta Quest, dog avatar)
+- Phase 41: VR Environments & Polish (Multiple scenes, customization, comfort)
+- Phase 42: Cross-Platform Integration (History sync, store submissions, deployment)
+
+**Research artifacts:** `.planning/research/` (SUMMARY, ARCHITECTURE, FEATURES, STACK, PITFALLS)
+**Requirements:** `.planning/REQUIREMENTS.md` (M007 section)
+**Roadmap:** `.planning/ROADMAP.md` (M007 milestone)
+
+---
 
 ## Next Milestone Goals
 
-**M006: Enterprise**
-- API access, admin features, and enterprise solutions
+**M008: Production Hardening** (if needed)
+- Full deployment to production Supabase + Vercel
+- Live E2E validation with real users
+- Monitoring, alerting, incident response
+- Scale testing and performance optimization
 
 ## Architecture / Key Patterns
 
@@ -95,5 +113,11 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M003: Advanced Features — AI translation, real-time, multi-language, analytics, performance, integration
 - [x] M004: Platform Expansion — Android, Web, and Smartwatch
 - [x] M005: Platform Expansion (continued) — Web, Smartwatch → v3.1
-- [ ] M006: Enterprise — API access, admin features, and enterprise solutions
-- [ ] M007: AR/VR — Augmented reality and virtual reality translation features
+- [x] M006: Enterprise — Complete as v4.0 (API gateway, admin dashboard, org/team management)
+- [ ] M007: AR/VR — Augmented reality and virtual reality translation features (Vision Pro + Quest)
+
+## Notes
+
+- M006 (Enterprise) was implemented as v4.0 milestone (completed 2026-04-02)
+- M007 is the next active milestone, focusing on immersive computing platforms
+- v4.1 (Security & Deployment Hardening) was a security cleanup milestone following v4.0

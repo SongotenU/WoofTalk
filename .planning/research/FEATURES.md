@@ -1,80 +1,57 @@
 # Feature Research
 
-**Domain:** M006 Enterprise — API Access, Admin Dashboard, Team/Org Management
-**Researched:** 2026-04-02
-**Confidence:** HIGH
+**Domain:** M007 AR/VR — Augmented Reality and Virtual Reality Translation Features
+**Researched:** 2026-04-03
+**Confidence:** HIGH (based on current AR/VR ecosystem)
 
 ## Feature Landscape
 
 ### Table Stakes (Must Have)
 
-Users building enterprise products expect these. Missing = non-starter.
+For AR/VR translation to be usable, these fundamentals are required.
 
-#### API Access
+#### Augmented Reality (AR) Features
+
 | Feature | Why Expected | Complexity |
 |---------|--------------|------------|
-| API key generation/revocation | Basic credential management | LOW |
-| Per-key rate limiting | Prevent abuse, fair usage | MEDIUM |
-| Usage dashboard (requests/day) | Visibility into API consumption | MEDIUM |
-| Key scoping (read-only, translate-only) | Principle of least privilege | MEDIUM |
-| Key naming | Identify which integration uses which key | LOW |
+| **AR overlay for dog communication** | Core value prop - visualize "dog speech" in real-world context | VERY HIGH |
+| **Real-time camera pass-through** | See surroundings while translation occurs | MEDIUM |
+| **Voice input via mixed reality headset mic** | Hands-free operation in AR mode | MEDIUM |
+| **Dog bark/whine detection & translation** | Audio capture and translation from dog sounds | HIGH |
+| **Human speech → dog language overlay** | Visual representation of what dog hears/understands | MEDIUM |
+| **3D placement of translation bubbles** | Position UI elements in 3D space relative to dog | HIGH |
+| **Environmental awareness** | Avoid placing UI inside objects, respect physical space | MEDIUM |
 
-#### Admin Dashboard
+#### Virtual Reality (VR) Features
+
 | Feature | Why Expected | Complexity |
 |---------|--------------|------------|
-| User list with search/filter | Basic user management | LOW |
-| Role management (admin/moderator flags) | Content moderation delegation | MEDIUM |
-| Content moderation queue | Review reported phrases/users | MEDIUM |
-| Ban/suspend user | Safety enforcement | LOW |
-| Basic audit log | Who did what, when | MEDIUM |
-| Bulk actions | Efficient moderation | MEDIUM |
-
-#### Organization Management
-| Feature | Why Expected | Complexity |
-|---------|--------------|------------|
-| Create organization | Top-level entity | LOW |
-| Invite members by email | Onboarding workflow | MEDIUM |
-| Role hierarchy (Owner/Admin/Member/Viewer) | Access control granularity | HIGH |
-| Remove/transfer ownership | Lifecycle management | MEDIUM |
-| Shared API key pool (org-level keys) | Team-wide access | MEDIUM |
+| **Immersive virtual environment** | Full VR experience beyond real-world overlay | HIGH |
+| **Dog avatars with speech visualization** | Represent dog communication in VR space | MEDIUM |
+| **Virtual training scenarios** | Simulated environments for training/play | HIGH |
+| **3D spatial audio** | Directional sound cues for dog location/communication | HIGH |
+| **Motion-based gesture commands** | Hand tracking for non-voice interactions | MEDIUM |
+| **Multi-user VR sessions** | Shared experiences with other users and their dogs | VERY HIGH |
 
 ### Differentiators (Nice to Have)
+
 | Feature | Value | Complexity |
 |---------|-------|------------|
-| Per-key usage alerts (email/webhook) | Proactive management | MEDIUM |
-| IP allowlisting per key | Extra security layer | LOW |
-| API playground (interactive docs) | Developer experience | MEDIUM |
-| Automated spam detection for enterprise content | Content quality at scale | HIGH |
-| SSO/SAML integration | Enterprise IT compliance | HIGH |
-| Usage-based billing tiers | Flexible pricing model | HIGH |
-| Team workspaces | Org-level content separation | HIGH |
-| Custom translation packs per org | Domain-specific translations | HIGH |
+| **Dog pose/size detection** | Scale translation bubbles appropriately to dog size | HIGH |
+| **Breed-specific audio profiles** | Better bark detection based on breed characteristics | MEDIUM |
+| **Emotional tone visualization** | Show dog emotional state via color/animations | MEDIUM |
+| **Translation history replay in AR** | Review past interactions in-situ | LOW |
+| **Photo/video capture with overlays** | Share AR-enhanced moments | LOW |
+| **Haptic feedback for dog responses** | Feel vibrations when dog "responds" | LOW |
+| **Context-aware vocabulary** | Adapt translation based on environment (park vs home) | HIGH |
 
-### Anti-Features (Avoid)
-| Anti-feature | Why Bad |
-|--------------|---------|
-| Unlimited API keys without rate limit | Abuse vector, cost unbounded |
-| Hard deletes in admin panel | No audit trail, compliance risk |
-| Billing managed inside admin dashboard | Confuses roles — admin != billing admin |
-| Shared user accounts | Defeats audit logging entirely |
-| Auto-approve all enterprise content | Trust abuse, spam vector |
-| Email invites without expiry | Security risk if email forwarded |
-| Per-user custom RBAC matrixes | Unmaintainable complexity |
+### Deferrals (Out of Scope for M007)
 
-## Dependency Chain
-
-```
-F1 (Role/Access Foundation) → F2 (API Keys) + F3 (Admin Dashboard) in parallel
-F1 (Role/Access Foundation) → F4 (Organizations) → F5 (Billing) → F6 (Org API Keys)
-Paths A and B are parallel after F1
-```
-
-## Complexity Assessment
-
-| Capabilities | Complexity | Driver |
-|-------------|-----------|--------|
-| API Keys + Gateway | MEDIUM | Rate limiting, secure key generation |
-| Admin Dashboard | LOW-MEDIUM | CRUD + tables; existing Next.js helps |
-| RBAC + Orgs | HIGH | Schema migration, RLS policy explosion |
-| SSO/SAML | HIGH | Protocol complexity, IdP variations |
-| Usage Billing | MEDIUM | Integration with Stripe, metered billing |
+| Feature | Reason |
+|---------|--------|
+| Standalone AR/VR hardware | Use existing devices (Vision Pro, Quest, iOS ARKit) |
+| Real-time dog video processing (body language) | Too complex for initial version |
+| Cloud-based dog voice synthesis | Requires extensive audio dataset |
+| Multi-dog simultaneous tracking | Performance and UX complexity |
+| AR眼镜 (mass-market eyewear) | Not yet mature in 2025 market |
+| Dog thought reading (beyond vocalizations) | Sci-fi territory |

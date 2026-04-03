@@ -1,147 +1,174 @@
 # Project Research Summary
 
-**Project:** M006 Enterprise — API Access, Admin Dashboard, Team/Org Management
-**Domain:** Enterprise SaaS features layered onto an existing multi-platform consumer app (Supabase + 4 platform clients)
-**Researched:** 2026-04-02
+**Project:** M007 AR/VR — Mixed Reality Translation Features
+**Domain:** Extending WoofTalk to Augmented Reality (Vision Pro) and Virtual Reality (Meta Quest)
+**Researched:** 2026-04-03
 **Confidence:** HIGH
 
 ## Executive Summary
 
-WoofTalk is a multi-platform translation product built on Supabase with four existing clients (Android, iOS, Web, Wear OS) that all authenticate via Supabase Auth and query PostgREST directly. M006 adds enterprise-grade capabilities: a third-party API with key management and rate limiting, an admin dashboard for moderation and user management, and multi-organization support with RBAC. This is not a greenfield product -- it is a selective extension of an architecture that works well for consumers but is insufficient for enterprise API consumers.
+WoofTalk, a multi-platform dog-human translation app (iOS, Android, Web, Watch), is expanding into immersive computing: AR on Apple Vision Pro and VR on Meta Quest. The goal: enable users to see translations as spatial overlays in the real world (AR) or interact with virtual dogs in immersive environments (VR). This is a client-only extension — no new backend infrastructure needed. The existing Supabase backend, Edge Functions, and translation engine are reused; only new frontend applications are built using native ARKit/RealityKit (visionOS) and Unity/Meta XR SDK (Quest).
 
-The recommended approach is a three-lane build order: (1) foundational data model and RBAC migration, (2) API gateway via Supabase Edge Functions with Upstash Redis rate limiting, (3) admin dashboard and organization management as parallel tracks after foundations are stable. Everything stays within the existing Supabase + Next.js ecosystem -- no new backend services, no GraphQL layer, no external RBAC platform. The existing 6 Edge Functions need org_id awareness injected, and all existing tables need org-scoped RLS policies added.
+The primary technical challenge is **3D UI/UX**: placing readable translation bubbles in world space, estimating dog position without body tracking, and maintaining performance (90 FPS) while processing dog bark audio on-device. Dog body tracking does not exist in ARKit — we must use gaze direction, audio direction, and manual placement heuristics. VR is simpler because the dog is an avatar with known position.
 
-The key risk is the data model migration: adding `org_id` columns to tables with existing user data can cause PostgreSQL lock contention and downtime if done naively. The second risk is RBAC done via string metadata (current state) which doesn't scale to multi-org. Both are mitigated by the phased migration strategy detailed in PITFALLS.md: NULL-default column additions, batched backfills, and proper `organization_members` join tables. Admin scope creep is also a real danger -- the admin UI must be built last, after the data model it manages is stable.
+Key risks: Vision Pro's tiny market share (~0.1%) may not justify development cost, but the PR/innovation value is high. Dog bark detection accuracy (80-90% in quiet environments) must be validated with real users. VR motion sickness is a serious concern requiring extensive comfort testing.
+
+Recommended approach: **5-phase rollout** across 38-42, with AR first (simpler than VR in some ways, as no avatar needed), then VR implementation. Both platforms should be treated as premium showcases rather than primary user flows.
+
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-**Core technologies:**
-- **Supabase Edge Functions (Deno):** API proxy + rate limiting -- already deployed, shares Supabase auth context, no new platform
-- **Upstash Redis:** Distributed rate limiting cache -- serverless, sub-ms latency, token bucket pattern, zero infra
-- **PostgreSQL (existing):** API key storage (bcrypt hashes), org tables, usage tracking -- extends current database
-- **Next.js App Router (existing web):** Admin UI host with `/admin/*` routes -- zero new server, reuse SSR pattern
-- **shadcn/ui + @tanstack/react-table + Recharts:** Admin component stack -- matches existing web patterns exactly
-- **Supabase RLS (existing):** Authorization enforcement extended to org context -- `org_id` on all scoped tables
+**AR (Vision Pro):**
+- ARKit + RealityKit (native Apple frameworks)
+- SwiftUI for UI overlay
+- Vision framework for dog bark detection (custom Core ML model)
+- Spatial Audio API for 3D sound
+- Xcode 16+, Swift 6, visionOS SDK
 
-**What NOT to add:** No separate GraphQL layer, no dedicated admin framework (Refine/AdminBro), no external RBAC service (Permit.io/Oso), no separate backend service. The existing stack is sufficient.
+**VR (Meta Quest):**
+- Unity 2022 LTS + Meta XR SDK
+- Oculus Integration for hand tracking/passthrough
+- TextMeshPro for VR text rendering
+- TensorFlow Lite for on-device bark detection
+- Oculus Spatializer for 3D audio
+
+**Backend:**
+- No changes to existing Supabase + Edge Functions
+- New 3D position storage: `spatial_position JSONB` in `translation_history`
+- Platform tracking: `platform` column (ar_vision, vr_quest)
+
+**What NOT to build:**
+- No cross-platform AR/VR engine (Unity AR Foundation/Unreal) — native is better for this scope
+- No custom dog body tracking computer vision (unsolved)
+- No multi-user AR/VR networking (defer to V2)
+- No cloud-based audio processing (on-device only)
+
+---
+
+### Platform Comparison
+
+| Aspect | Vision Pro (AR) | Meta Quest (VR) |
+|--------|-----------------|-----------------|
+| **Development** | Swift + RealityKit (native) | Unity + Meta SDK (managed) |
+| **Rendering** | 90 FPS, high pixel density | 72/90 FPS, lower resolution |
+| **UI Paradigm** | Spatial - text in world space | Immersive - 2D/3D hybrid |
+| **Dog Representation** | Real dog (via camera) | Virtual avatar (3D model) |
+| **Tracking Challenge** | Dog body position unknown | Known (avatar position) |
+| **Audio Source** | Real dog barks (microphone) | Virtual dog (pre-baked sounds) |
+| **Input** | Hand tracking, eye tracking, voice | Hand tracking or controllers |
+| **Market Size** | Very small (<1M) | Larger (~20M Quest users) |
+| **App Store** | visionOS (separate review) | Quest Store (Meta review) |
+| **Performance Budget** | 90 FPS (<11ms/frame) | 90 FPS (<11ms/frame) |
+
+---
 
 ### Expected Features
 
 **Must have (table stakes):**
-- API key generation, naming, scoping, and revocation -- basic credential management
-- Per-key and per-org rate limiting -- prevent abuse and enforce pricing tiers
-- API usage dashboard -- visibility into consumption
-- Admin user list with search/filter -- basic user management
-- Content moderation queue with ban/suspend -- safety enforcement
-- Role management (Owner/Admin/Member/Viewer) -- org access control
-- Organization creation and email invite with expiry -- org onboarding
-- Basic audit log -- who did what, when
+- AR: Real-time camera passthrough, gaze-based translation bubble placement, dog bark detection, spatial audio
+- VR: Virtual dog avatar, translation bubbles above avatar, hand-tracked navigation, environment selection
+- Both: Sync translation history with cloud, user authentication via existing Supabase
 
 **Should have (competitive differentiators):**
-- Per-key usage alerts (email/webhook) -- proactive management
-- IP allowlisting per key -- extra security layer
-- API playground (interactive docs) -- developer experience
-- Usage-based billing tiers -- flexible pricing
-- Custom translation packs per org -- domain-specific value
+- AR: Dog size estimation (scale bubbles appropriately), environmental occlusion (bubbles don't clip through walls), breed-specific bark profiles
+- AR: Multi-user AR (multiple Vision Pros sharing same space) - very advanced
+- VR: Multiple virtual environments (park, home, beach), dog avatar customization (breed, color, accessories)
+- VR: Hand-tracked gestures for "listen to dog" and "pin translation"
 
-**Defer (v2+):**
-- SSO/SAML integration -- high complexity, not table stakes for initial enterprise
-- Team workspaces -- org-level content separation can wait
-- Automated spam detection for enterprise -- high complexity
-- Custom billing inside admin dashboard -- anti-feature (confuses roles)
-
-### Architecture Approach
-
-Enterprise API consumers require an API gateway layer -- the existing architecture where all clients query PostgREST directly is fine for consumers but leaks schema and provides no versioning or rate limiting. The new architecture introduces Edge Functions as an API proxy with explicit response schemas, Upstash Redis for rate limiting, and org-aware RLS policies throughout.
-
-**Major components:**
-1. **API Gateway (Edge Functions):** Proxies third-party requests, validates API keys, enforces rate limits, tracks usage, returns versioned response schemas
-2. **Data Model Extensions:** New tables (`organizations`, `organization_members`, `api_keys`, `api_usage`) plus `org_id` columns on existing tables
-3. **Admin Dashboard (Next.js routes):** Server-side auth, role-gated middleware, elevated RLS policies for cross-org admin queries
-4. **Org-Aware RLS Layer:** SQL functions (`user_has_role`, `is_admin`) replace string metadata checks, all tables get org-scoped policies
-5. **Edge Function Org Injection:** 4 of 6 existing Edge Functions need `org_id` parameter addition for org-level rate limits and routing
-
-### Critical Pitfalls
-
-1. **Exposing PostgREST directly as public API** -- Never proxy third-party consumers through PostgREST. Always use Edge Functions with explicit, versioned response schemas.
-2. **API key leakage in client bundles** -- All auth keys must stay server-side. Use Edge Functions only for any API key-bearing requests. Implement key expiry and IP allowlisting.
-3. **RBAC via string metadata doesn't scale** -- Current `raw_user_meta_data->>'role'` approach breaks for multi-org. Must migrate to proper `organization_members` join table with role column.
-4. **Schema backfills cause downtime** -- Adding `org_id` to tables with existing data requires NULL-default columns, batched backfills with `pg_sleep()`, and low-traffic timing.
-5. **Admin dashboard scope creep** -- Build API gateway first, admin UI last. MVP to user list, moderation, and role management. Defer charts, bulk ops, exports.
-
-## Implications for Roadmap
-
-Based on combined research, the dependency chain dictates a 3-phase structure after existing v3.1:
-
-### Phase 29: API Gateway
-**Rationale:** This is the revenue-generating capability and the most technically complex piece. It must exist before org-scoped API keys (Phase 30 extension) and before the admin dashboard monitors API usage. Rate limiting infrastructure (Upstash) is needed first.
-**Delivers:** Third-party API via Edge Functions, API key CRUD (generate/scope/revoke), per-org rate limiting with Upstash, usage tracking, versioned response schemas, shared TypeScript response types
-**Addresses features:** API key generation/revocation, per-key rate limiting, usage dashboard, key scoping, key naming
-**Avoids:** PostgREST exposure (Pitfall 1), API key leakage in client bundles (Pitfall 2), per-key instead of per-org rate limiting (Pitfall 6), API response divergence (Pitfall 8)
-
-### Phase 30: Data Model & RBAC
-**Rationale:** Cannot safely build organization management without the role infrastructure. Must migrate from string metadata to proper join tables before any org-scoped data exists. Schema additions require careful batching.
-**Delivers:** `organizations` and `organization_members` tables, `org_id` on all existing tables, RLS policy migration from metadata checks to SQL functions, migration functions for existing user data
-**Addresses features:** Create organization, invite members, role hierarchy (Owner/Admin/Member/Viewer), remove/transfer ownership, email invites with expiry
-**Avoids:** RBAC via string metadata (Pitfall 3), schema backfill downtime (Pitfall 4), consumer data orphan on org join (Pitfall 7), role escalation through org membership (Pitfall 9), RLS policy explosion (Pitfall 10), auth metadata confusion (Pitfall 11)
-
-### Phase 31: Admin Dashboard
-**Rationale:** Built last because it depends on the stable data model from Phase 30 and monitors the API gateway from Phase 29. Building it earlier creates scope creep and work against an unstable schema.
-**Delivers:** Next.js `/admin/*` routes (user list with search/filter, content moderation queue, ban/suspend, role management, basic audit log), elevated RLS policies for admin queries, FCM admin alerts
-**Addresses features:** User list, role management, content moderation, ban/suspend, audit log
-**Avoids:** Admin scope creep (Pitfall 5), billing managed inside admin (anti-feature)
-
-### Phase Ordering Rationale
-
-- Phase 29 before Phase 31 because the admin dashboard monitors API usage data that Phase 29 produces
-- Phase 30 runs in parallel with or immediately after Phase 29 because API keys reference `org_id` but Phase 29 can start with nullable `org_id` for individual-user keys
-- Phase 31 is last because it depends on both stable API usage data (Phase 29) and the org-scoped data model (Phase 30)
-- RLS policy changes (Phase 30) affect ALL existing clients -- must be tested before any Phase 31 admin UI goes live
-
-### Research Flags
-
-Phases likely needing deeper research during planning:
-- **Phase 29 (API Gateway):** Needs detailed research on Upstash token bucket implementation patterns with Deno Edge Functions, and API versioning strategy for the translate/stream endpoints
-- **Phase 30 (Data Model & RBAC):** Needs careful research on batched migration scripts for the specific Supabase PostgreSQL instance, especially for tables with potential 1M+ rows
-
-Phases with standard patterns (skip research-phase):
-- **Phase 31 (Admin Dashboard):** Next.js + shadcn/ui + react-table patterns are well-documented and match the existing web app. Standard CRUD patterns with Supabase SSR are established.
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | All recommendations reuse existing infrastructure (Supabase + Next.js). Upstash is a well-documented serverless Redis option with native Deno support. |
-| Features | HIGH | Table stakes derived from standard enterprise SaaS patterns. Complexity assessments are grounded in existing architecture. |
-| Architecture | HIGH | Edge Function gateway, org-scoped RLS, and Next.js admin routes are proven patterns. Specific Supabase integration points verified against existing project. |
-| Pitfalls | HIGH | All 12 pitfalls are specific to this project's architecture, not generic warnings. Each mapped to a phase with concrete prevention strategy. |
-
-**Overall confidence:** HIGH
-
-### Gaps to Address
-
-- **Edge Function compatibility:** The 4 of 6 existing Edge Functions that need `org_id` injection have not been individually audited for parameter compatibility. This should be validated during Phase 29 planning.
-- **Upstash cost modeling:** Rate limiting tokens for the entire API surface need cost estimation against projected API consumer volume before committing to the service.
-- **Existing table row counts:** The migration safety of `ALTER TABLE` with batched backfills depends on actual data volume. Row counts for `users`, `community_phrases`, and `translations` tables should be checked before Phase 30.
-- **Consumer client impact:** Adding RLS policies with org-scoped OR conditions may affect query performance for the 4 existing clients. Should be load-tested in Phase 30.
-
-## Sources
-
-### Primary (HIGH confidence)
-- Supabase official documentation -- Edge Functions, RLS policies, PostgREST behavior, Auth metadata handling
-- Upstash documentation -- Redis rate limiting with Deno, token bucket patterns
-- PostgreSQL documentation -- ALTER TABLE locking behavior, batched UPDATE performance
-- Next.js App Router documentation -- Server Components, middleware, SSR patterns with Supabase
-
-### Secondary (MEDIUM confidence)
-- Community patterns for multi-tenant Supabase applications -- org-scoped RLS policy design
-- Standard enterprise SaaS API design -- key management, rate limiting, usage tracking patterns
-
-### Tertiary (LOW confidence)
-- Performance impact of OR-heavy RLS policies at scale -- needs validation with actual data volume
+**Defer (V2):**
+- True dog body tracking with custom CV model
+- AR multi-user presence and shared translations
+- Cross-platform AR/VR sessions (iPhone users join Quest VR)
+- Cloud-based dog voice synthesis (bark → speech)
 
 ---
-*Research completed: 2026-04-02*
-*Ready for roadmap: yes*
+
+### Development Phases (5 Phases)
+
+**Phase 38: AR Foundation & Dog Bark Detection**
+- Vision Pro project setup, RealityKit sandbox, Core ML dog bark classifier
+- Translation API integration (Edge Function calls)
+- Deliver: Simple fixed-position AR translation bubble
+
+**Phase 39: AR Spatial UX & Anchoring**
+- Gaze-based dog position estimation, bubble placement engine, spatial audio
+- Occlusion handling, readability optimization, performance tuning (90 FPS)
+- Deliver: Usable AR translation MVP
+
+**Phase 40: VR Foundation & Avatar System**
+- Unity + Meta XR SDK setup, dog avatar with animations, translation bubble system
+- Hand tracking integration, environment basics
+- Deliver: Seated VR experience with virtual dog
+
+**Phase 41: VR Environments & Polish**
+- Multiple virtual scenes, performance optimization, motion sickness mitigation
+- Comfort modes, user settings, bubble UI polish
+- Deliver: Polished VR experience (Quest 2/3 compatible)
+
+**Phase 42: Cross-Platform Sync & Store Deployment**
+- History sync with mobile/web clients, platform analytics, store submissions (visionOS App Store, Quest Store)
+- Documentation, user guides, beta testing
+- Deliver: M007 complete, AR and VR shipped
+
+---
+
+### Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| Dog body tracking unsolved | Certain | High (affects AR UX) | Use gaze/audio heuristics, defer true tracking |
+| Vision Pro market too small | High | Medium (ROI) | Position as premium showcase, use iPhone ARKit fallback |
+| Dog bark detection accuracy <80% | Medium | High | User-controlled activation, confidence threshold, feedback loop |
+| VR motion sickness complaints | High | Medium (retention) | Head-locked UI, 90 FPS target, comfort toggle, session warnings |
+| Performance misses 90 FPS | Medium | Medium | Aggressive GPU profiling, quality presets per device |
+| App Store rejection (privacy) | Low | High | Clear camera usage disclosure, opt-in only |
+
+---
+
+### Success Criteria
+
+**Product:**
+- AR translation bubble appears within 2 seconds of dog bark
+- VR dog avatar responds to barks within 1 second
+- Translation accuracy feedback >70% positive from beta users
+- Users complete at least 3 AR/VR sessions on average
+- No critical bugs (crashes, framerate <60 FPS) in release builds
+
+**Technical:**
+- 90 FPS maintained on Vision Pro with 3+ bubbles active
+- 90 FPS on Quest 3, 72 FPS on Quest 2
+- Dog bark detection F1 score >0.85 in quiet environments
+- End-to-end latency (bark → bubble) <3 seconds
+- Zero cross-organizational data leakage in RLS
+
+---
+
+### Out of Scope (Explicit)
+
+- ARCore (Android AR) - too fragmented, low penetration
+- Unreal Engine - overkill, steeper learning curve than Unity
+- OpenXR abstraction - native SDKs better for MVP
+- Cloud-based dog ML - on-device only for privacy and latency
+- Multi-user AR/VR networking - V2 feature
+- Dog thought reading (emotional state beyond vocalization) - research phase
+- Standalone AR glasses (not Vision Pro/iPad)
+- Dog body language analysis (tail wag, ear position)
+
+---
+
+## Traceability
+
+| Phase | Requirements | Stage |
+|-------|--------------|-------|
+| Phase 38 | AR Foundation, Bark Detection, Basic Overlay | Research Complete |
+| Phase 39 | AR Anchoring, Spatial Audio, UX Polish | To Plan |
+| Phase 40 | VR Avatar, Hand Tracking, Bubble System | To Plan |
+| Phase 41 | VR Environments, Performance, Comfort | To Plan |
+| Phase 42 | Cross-Platform Sync, Deployment | To Plan |
+
+---
+
+**Next steps:** Synthesize this research into `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md`, then seek milestone approval.
