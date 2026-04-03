@@ -198,9 +198,9 @@
 
 ## VR Environments & Polish (Phase 41)
 
-- [ ] **VR-07**: Multiple virtual environments (park, living room, beach) with modular assets
-- [ ] **VR-08**: Dog avatar customization (breed selection, color, accessories) using Supabase Storage
-- [ ] **VR-09**: Performance optimization for Quest 2 (72 FPS) and Quest 3 (90 FPS), quality presets
+- [x] **VR-07**: Multiple virtual environments (park, living room, beach) with modular assets
+- [x] **VR-08**: Dog avatar customization (breed selection, color, accessories) using Supabase Storage
+- [x] **VR-09**: Performance optimization for Quest 2 (72 FPS) and Quest 3 (90 FPS), quality presets
 - [ ] **VR-10**: Motion sickness mitigation (head-locked UI, comfort mode, session warnings)
 - [ ] **VR-11**: Environment selection menu, settings UI (volume, bubble opacity, comfort toggles)
 - [ ] **VR-12**: User testing and iteration on VR comfort and usability
