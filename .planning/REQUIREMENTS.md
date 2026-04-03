@@ -216,12 +216,12 @@
 
 ## Data Model Extensions
 
-- [ ] **DATA-ARVR-01**: Add `platform` column to `translation_history` (values: ar_vision, vr_quest, ios, android, web, watch)
-- [ ] **DATA-ARVR-02**: Add `spatial_position JSONB` to `translation_history` for 3D coordinates (x,y,z in device space)
-- [ ] **DATA-ARVR-03**: New `dog_avatars` table for VR avatar customization (breed, color, accessories, user_id)
-- [ ] **DATA-ARVR-04**: New `user_devices` table to track registered AR/VR hardware (optional, for analytics)
-- [ ] **DATA-ARVR-05**: Backfill `platform` for historical records (default 'mobile' for existing data)
-- [ ] **DATA-ARVR-06**: RLS policies for new tables ensuring user isolation
+- [x] **DATA-ARVR-01**: Add `platform` column to `translation_history` (values: ar_vision, vr_quest, ios, android, web, watch)
+- [x] **DATA-ARVR-02**: Add `spatial_position JSONB` to `translation_history` for 3D coordinates (x,y,z in device space)
+- [x] **DATA-ARVR-03**: New `dog_avatars` table for VR avatar customization (breed, color, accessories, user_id)
+- [x] **DATA-ARVR-04**: New `user_devices` table to track registered AR/VR hardware (optional, for analytics)
+- [x] **DATA-ARVR-05**: Backfill `platform` for historical records (default 'mobile' for existing data)
+- [x] **DATA-ARVR-06**: RLS policies for new tables ensuring user isolation
 
 ## Pitfalls Addressed
 
