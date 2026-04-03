@@ -83,10 +83,94 @@ Archive: `.planning/milestones/v4.1-ROADMAP.md`
 **Goal:** Extend WoofTalk to immersive platforms with Apple Vision Pro (ARKit) and Meta Quest (Unity) for spatial translation overlays, dog bark detection, and virtual dog avatars.
 **Planned:** 2026-Q2
 
-### Phases: 38-42
+---
 
-- Phase 38: AR Foundation — Vision Pro setup, Core ML dog bark classifier, basic AR overlay, spatial audio
-- Phase 39: AR Spatial UX — Gaze-based anchoring, bubble placement engine, readability, 90 FPS performance
-- Phase 40: VR Foundation — Unity project, dog avatar animations, hand tracking, translation bubbles
-- Phase 41: VR Environments & Polish — Multiple scenes, avatar customization, performance optimization, motion sickness mitigation
-- Phase 42: Cross-Platform Integration — History sync, store submissions (visionOS/Quest), deployment docs
+### Phase 38: AR Foundation
+
+**Status:** Planned  
+**Requirements:** AR-01, AR-02, AR-03, AR-04, AR-05, AR-06
+
+**Plans:** 3 plans
+
+**Plan list:**
+- [ ] 38-01-PLAN.md — Project setup & infrastructure (Xcode visionOS project, entitlements, Supabase)
+- [ ] 38-02-PLAN.md — Dog bark detection (Core ML, Vision framework, audio pipeline)
+- [ ] 38-03-PLAN.md — Translation bubble & integration (RealityKit entity, Edge Function, spatial audio)
+
+**Scope:**
+- Vision Pro project setup, RealityKit, ARKit integration, Xcode configuration
+- Core ML dog bark classifier trained on dog sound datasets (accuracy >85%)
+- Real-time camera passthrough with ARView and session management
+- Basic translation bubble rendering at fixed world position (2m in front)
+- Edge Function API integration for translation calls (auth, error handling)
+- Simple spatial audio playback anchored to bubble position
+
+**Success Criteria:**
+1. Xcode project builds and runs on Vision Pro simulator
+2. Dog bark detection triggers with >70% confidence threshold
+3. Translation bubble appears within 2 seconds, positioned 2m away facing user
+4. Text readable (24pt), bubble dismissible via tap
+5. Spatial audio plays from bubble location
+6. No crashes or memory leaks in 10-minute session (90 FPS target)
+
+---
+
+### Phase 39: AR Spatial UX
+
+**Status:** Planned  
+**Requirements:** AR-07, AR-08, AR-09, AR-10, AR-11, AR-12
+
+**Scope:**
+- Gaze-based dog position estimation using ARKit raycast and hit-testing
+- Bubble placement engine with distance clamping (1-10m), billboarding, occlusion checks
+- Readability optimization (font size, contrast, drop shadow, background opacity)
+- Performance tuning to maintain 90 FPS with 3+ active bubbles
+- User-controlled bubble pinning and manual placement gestures
+- Environmental awareness (avoid placing bubbles inside walls/furniture)
+
+---
+
+### Phase 40: VR Foundation
+
+**Status:** Planned  
+**Requirements:** VR-01, VR-02, VR-03, VR-04, VR-05, VR-06
+
+**Scope:**
+- Unity project with Meta XR SDK, Oculus Integration, Quest deployment target
+- Dog avatar 3D model with idle, bark, and head-turn animations (FBX rig)
+- Hand tracking integration (OVRHand) for menu navigation and gaze-based triggers
+- Translation bubble system using TextMeshPro in world space, billboarded to user
+- Bark detection using TensorFlow Lite model (accuracy >85%)
+- Spatial audio via Oculus Spatializer with attenuation and direction
+
+---
+
+### Phase 41: VR Environments & Polish
+
+**Status:** Planned  
+**Requirements:** VR-07, VR-08, VR-09, VR-10, VR-11, VR-12
+
+**Scope:**
+- Multiple virtual environments (park, living room, beach) with modular assets
+- Dog avatar customization (breed selection, color, accessories) using Supabase Storage
+- Performance optimization for Quest 2 (72 FPS) and Quest 3 (90 FPS), quality presets
+- Motion sickness mitigation (head-locked UI, comfort mode, session warnings)
+- Environment selection menu, settings UI (volume, bubble opacity, comfort toggles)
+- User testing and iteration on VR comfort and usability
+
+---
+
+### Phase 42: Cross-Platform Integration
+
+**Status:** Planned  
+**Requirements:** X-01, X-02, X-03, X-04, X-05, X-06, DATA-ARVR-01 through DATA-ARVR-06
+
+**Scope:**
+- Translation history sync across all platforms (iOS, Android, Web, Watch, AR, VR) via Supabase
+- Shared user settings (bubble preferences, audio volume, default platform)
+- Platform-specific analytics (session length, accuracy feedback, FPS metrics)
+- visionOS App Store submission guide, TestFlight beta distribution
+- Meta Quest Store submission (screenshots, videos, compliance checklist)
+- Deployment documentation, user guides, fallback strategies (iPhone ARKit for non-Vision Pro)
+
+---
