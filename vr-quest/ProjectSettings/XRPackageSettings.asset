@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!591346882 &1
+XRPackageSettings:
+  m_Settings:
+  - key: Unity.XR.Oculus
+    value: '{
+      "handTrackingSupport": 1,
+      "handTrackingFrequency": 0,
+      "isInsightPassthroughEnabled": false,
+      "systemSplashScreen": "",
+      "disableBackups": true,
+      "enableNSCConfig": true,
+      "renderScale": 1.0,
+      "optimizeBufferDiscards": true,
+      "targetQuest2": true,
+      "targetQuest3": true,
+      "targetQuestPro": true,
+      "useStickControlThumbsticks": false
+    }'
+  m_FeatureFlags:
+    oculusHandTracking: 1
