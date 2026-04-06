@@ -1,3 +1,4 @@
+import os.log
 // MARK: - ContributionSyncManager
 
 import Foundation
@@ -46,7 +47,7 @@ final class ContributionSyncManager {
         defer { syncQueueLock.unlock() }
         
         syncQueue.append(contribution)
-        print("Queued contribution for sync: \(contribution.humanText ?? \"Unknown\")")
+        os_log("%{public}@", log: OSLog.default, type: .default, "Queued contribution for sync: \(contribution.humanText ?? \"Unknown\")")
     }
     
     /// Attempts to sync queued contributions
@@ -62,9 +63,9 @@ final class ContributionSyncManager {
                 self.submitContribution(contribution) { result in
                     switch result {
                     case .success():
-                        print("Successfully synced contribution: \(contribution.humanText ?? \"Unknown\")")
+                        os_log("%{public}@", log: OSLog.default, type: .default, "Successfully synced contribution: \(contribution.humanText ?? \"Unknown\")")
                     case .failure(let error):
-                        print("Failed to sync contribution: \(contribution.humanText ?? \"Unknown\") - \(error.localizedDescription)")
+                        os_log("%{public}@", log: OSLog.default, type: .default, "Failed to sync contribution: \(contribution.humanText ?? \"Unknown\") - \(error.localizedDescription)")
                         // Re-add to queue for retry
                         self.queueContributionForSync(contribution)
                     }

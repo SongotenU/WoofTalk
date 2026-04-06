@@ -1,3 +1,4 @@
+import os.log
 import Foundation
 
 final class CrashReportingService {
@@ -19,7 +20,7 @@ final class CrashReportingService {
         setupSignalHandlers()
         setupExceptionHandlers()
         
-        print("CrashReportingService: Initialized")
+        os_log("%{public}@", log: OSLog.default, type: .default, "CrashReportingService: Initialized")
     }
     
     private func setupSignalHandlers() {

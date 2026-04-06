@@ -1,3 +1,4 @@
+import os.log
 // MARK: - AudioTranslationBridge
 
 import Foundation
@@ -43,7 +44,7 @@ final class AudioTranslationBridge {
         
         // Log performance metrics
         let averageProcessingTime = bufferCount > 0 ? totalProcessingTime / Double(bufferCount) : 0
-        print("AudioTranslationBridge: Processed \(bufferCount) buffers, avg processing time: \(averageProcessingTime * 1000)ms")
+        os_log("%{public}@", log: OSLog.default, type: .default, "AudioTranslationBridge: Processed \(bufferCount) buffers, avg processing time: \(averageProcessingTime * 1000)ms")
     }
     
     func processAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {

@@ -1,3 +1,4 @@
+import os.log
 // MARK: - LeaderboardManager
 
 import Foundation
@@ -152,7 +153,7 @@ final class LeaderboardManager: ObservableObject {
                 )
             }
         } catch {
-            print("Error fetching leaderboard: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching leaderboard: \(error)")
             return []
         }
     }
@@ -228,7 +229,7 @@ final class LeaderboardManager: ObservableObject {
             "period": selectedPeriod.rawValue
         ]
         
-        print("[Leaderboard] Update event: \(eventData)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "[Leaderboard] Update event: \(eventData)")
     }
 }
 

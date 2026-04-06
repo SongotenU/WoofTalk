@@ -1,3 +1,4 @@
+import os.log
 // MARK: - TranslationModels
 
 import Foundation
@@ -8,13 +9,7 @@ import NaturalLanguage
 final class TranslationModels {
     
     // MARK: - Public Types
-    
-    /// Translation direction
-    enum TranslationDirection {
-        case humanToDog
-        case dogToHuman
-    }
-    
+
     /// Model translation result
     struct ModelTranslationResult {
         let translatedText: String
@@ -117,17 +112,17 @@ final class TranslationModels {
                 do {
                     let model = try TranslateModel()
                     self.model = model
-                    print("Translation model loaded successfully (attempt \(attempt))")
+                    os_log("%{public}@", log: OSLog.default, type: .default, "Translation model loaded successfully (attempt \(attempt))")
                     return
                 } catch {
-                    print("Model load attempt \(attempt) failed: \(error)")
+                    os_log("%{public}@", log: OSLog.default, type: .default, "Model load attempt \(attempt) failed: \(error)")
                     if attempt < self.maxModelLoadAttempts {
                         Thread.sleep(forTimeInterval: 1.0) // Wait 1 second before retry
                     }
                 }
             }
             
-            print("Failed to load translation model after \(self.maxModelLoadAttempts) attempts")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Failed to load translation model after \(self.maxModelLoadAttempts) attempts")
         }
     }
     
@@ -146,7 +141,7 @@ final class TranslationModels {
             + "Time: \(String(format: "%.2f", processingTime))s\n"
             + "Success: \(success)"
         
-        print(logEntry)
+        os_log("%{public}@", log: OSLog.default, type: .info, logEntry)
     }
     
     private func estimateSimpleConfidence(_ text: String) -> Double {
@@ -219,7 +214,7 @@ final class TranslateModel {
     
     func translate(
         _ text: String,
-        direction: TranslationModels.TranslationDirection
+        direction: TranslationDirection
     ) throws -> String {
         guard let model = model else {
             throw TranslationModels.TranslationError.modelUnavailable
@@ -231,14 +226,14 @@ final class TranslateModel {
         let translatedText = performTranslation(text, direction: direction)
         let processingTime = Date().timeIntervalSince(startTime)
         
-        print("Translated '\\(text)' to '\\(translatedText)' in \(String(format: "%.2f", processingTime))s")
+        os_log("%{public}@", log: OSLog.default, type: .default, "Translated '\\(text)' to '\\(translatedText)' in \(String(format: "%.2f", processingTime))s")
         
         return translatedText
     }
     
     func getConfidence(
         _ text: String,
-        direction: TranslationModels.TranslationDirection
+        direction: TranslationDirection
     ) throws -> Double? {
         guard let model = model else {
             throw TranslationModels.TranslationError.modelUnavailable
@@ -272,7 +267,7 @@ final class TranslateModel {
     
     private func performTranslation(
         _ text: String,
-        direction: TranslationModels.TranslationDirection
+        direction: TranslationDirection
     ) -> String {
         // Simple translation logic for demonstration
         // Replace with actual ML model inference

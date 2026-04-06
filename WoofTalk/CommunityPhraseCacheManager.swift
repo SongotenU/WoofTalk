@@ -1,3 +1,4 @@
+import os.log
 // MARK: - CommunityPhraseCacheManager
 
 import Foundation
@@ -81,7 +82,7 @@ final class CommunityPhraseCacheManager {
             
             return results
         } catch {
-            print("Error fetching cached phrases: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching cached phrases: \(error)")
             return []
         }
     }

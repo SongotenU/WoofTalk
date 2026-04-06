@@ -1,3 +1,4 @@
+import os.log
 import Foundation
 
 final class PerformanceOptimizer {
@@ -31,21 +32,21 @@ final class PerformanceOptimizer {
     
     private func setupAlertHandlers() {
         alertManager.registerHandler(for: .memoryWarning) { type, details in
-            print("Performance Alert: \(type.rawValue) - \(details)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
             self.handleMemoryWarning()
         }
         
         alertManager.registerHandler(for: .memoryCritical) { type, details in
-            print("Performance Alert: \(type.rawValue) - \(details)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
             self.handleMemoryCritical()
         }
         
         alertManager.registerHandler(for: .latencyWarning) { type, details in
-            print("Performance Alert: \(type.rawValue) - \(details)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
         }
         
         alertManager.registerHandler(for: .batteryWarning) { type, details in
-            print("Performance Alert: \(type.rawValue) - \(details)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
             self.adjustForLowBattery()
         }
     }

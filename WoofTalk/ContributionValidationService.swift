@@ -1,3 +1,4 @@
+import os.log
 //
 //  ContributionValidationService.swift
 //  WoofTalk
@@ -170,7 +171,7 @@ final class ContributionValidationService {
             }
         } catch {
             // Fall back to mock implementation if ML model fails
-            print("ML confidence scoring failed, using fallback: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "ML confidence scoring failed, using fallback: \(error)")
         }
         
         // Fallback confidence calculation

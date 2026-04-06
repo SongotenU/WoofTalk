@@ -97,7 +97,7 @@ final class OfflineTranslationManager {
     /// Translate text with offline capability
     func translate(
         text: String,
-        direction: TranslationEngine.TranslationDirection
+        direction: TranslationDirection
     ) -> TranslationResult {
         let startTime = Date()
         
@@ -174,7 +174,7 @@ final class OfflineTranslationManager {
     func translateAudioBuffer(
         _ buffer: AVAudioPCMBuffer,
         at time: AVAudioTime,
-        direction: TranslationEngine.TranslationDirection
+        direction: TranslationDirection
     ) -> TranslationResult {
         let startTime = Date()
         
@@ -227,7 +227,7 @@ final class OfflineTranslationManager {
     /// Get translation confidence for a phrase
     func getTranslationConfidence(
         text: String,
-        direction: TranslationEngine.TranslationDirection
+        direction: TranslationDirection
     ) -> Double {
         // Check vocabulary database first
         let vocabularyConfidence = vocabularyDatabase.getTranslationConfidence(text, direction: direction)
@@ -268,7 +268,7 @@ final class OfflineTranslationManager {
         throw OfflineTranslationError.noInternetConnection
     }
     
-    private func translateSimplePhrase(_ phrase: String, _ direction: TranslationEngine.TranslationDirection) -> String {
+    private func translateSimplePhrase(_ phrase: String, _ direction: TranslationDirection) -> String {
         // Simple phrase mapping for basic translation
         let phraseMapping: [String: String] = [
             // Common commands

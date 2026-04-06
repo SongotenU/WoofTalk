@@ -1,3 +1,4 @@
+import os.log
 // MARK: - CommunityPhraseManager
 
 import Foundation
@@ -95,7 +96,7 @@ final class CommunityPhraseManager {
             let results = try coreDataContext.fetch(fetchRequest)
             return results.first
         } catch {
-            print("Error finding existing community phrase: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error finding existing community phrase: \(error)")
             return nil
         }
     }
@@ -109,7 +110,7 @@ final class CommunityPhraseManager {
         do {
             return try coreDataContext.fetch(fetchRequest)
         } catch {
-            print("Error fetching community phrases: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching community phrases: \(error)")
             return []
         }
     }
@@ -125,7 +126,7 @@ final class CommunityPhraseManager {
         do {
             return try coreDataContext.fetch(fetchRequest)
         } catch {
-            print("Error fetching community phrases for direction \(direction): \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching community phrases for direction \(direction): \(error)")
             return []
         }
     }

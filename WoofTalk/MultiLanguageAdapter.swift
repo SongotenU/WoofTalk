@@ -117,18 +117,18 @@ final class DogLanguageAdapter: LanguageAdapterProtocol {
     }
     
     func translate(input: String, direction: MultiLanguageDirection) async throws -> LanguageAdapterResult {
-        let legacyDirection: TranslationDirection
-        
+        let translationDirection: TranslationDirection
+
         switch direction {
         case .humanToAnimal(.dog):
-            legacyDirection = .humanToDog
+            translationDirection = .humanToDog
         case .animalToHuman(.dog):
-            legacyDirection = .dogToHuman
+            translationDirection = .dogToHuman
         default:
             throw MultiLanguageError.invalidDirection
         }
-        
-        let result = try await aiService.translate(input: input, direction: legacyDirection)
+
+        let result = try await aiService.translate(input: input, direction: translationDirection)
         
         return LanguageAdapterResult(
             translation: result.translatedText,

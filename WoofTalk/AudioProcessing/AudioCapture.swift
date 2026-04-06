@@ -1,3 +1,4 @@
+import os.log
 // MARK: - AudioCapture
 
 import AVFoundation
@@ -49,7 +50,7 @@ final class AudioCapture {
         
         // Log performance metrics
         let averageProcessingTime = bufferCount > 0 ? totalProcessingTime / Double(bufferCount) : 0
-        print("AudioCapture: Processed \(bufferCount) buffers, avg processing time: \(averageProcessingTime * 1000)ms")
+        os_log("%{public}@", log: OSLog.default, type: .default, "AudioCapture: Processed \(bufferCount) buffers, avg processing time: \(averageProcessingTime * 1000)ms")
     }
     
     // MARK: Private Methods
@@ -83,7 +84,7 @@ final class AudioCapture {
         
         // Log buffer statistics periodically
         if bufferCount % 100 == 0 {
-            print("AudioCapture: Buffer #\(bufferCount), size: \(buffer.frameLength), processing: \(processingTime * 1000)ms")
+            os_log("%{public}@", log: OSLog.default, type: .default, "AudioCapture: Buffer #\(bufferCount), size: \(buffer.frameLength), processing: \(processingTime * 1000)ms")
         }
     }
     

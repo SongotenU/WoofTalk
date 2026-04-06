@@ -1,3 +1,4 @@
+import os.log
 // MARK: - UserProfileManager
 
 import Foundation
@@ -46,7 +47,7 @@ final class UserProfileManager {
         do {
             return try coreDataContext.fetch(fetchRequest)
         } catch {
-            print("Error fetching moderators: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching moderators: \(error)")
             return []
         }
     }
@@ -63,7 +64,7 @@ final class UserProfileManager {
             let results = try coreDataContext.fetch(fetchRequest)
             return !results.isEmpty
         } catch {
-            print("Error checking moderator status: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error checking moderator status: \(error)")
             return false
         }
     }
@@ -116,7 +117,7 @@ final class UserProfileManager {
             let results = try coreDataContext.fetch(fetchRequest)
             return results.first
         } catch {
-            print("Error fetching user: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching user: \(error)")
             return nil
         }
     }
@@ -130,7 +131,7 @@ final class UserProfileManager {
         do {
             return try coreDataContext.fetch(fetchRequest)
         } catch {
-            print("Error fetching users: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching users: \(error)")
             return []
         }
     }

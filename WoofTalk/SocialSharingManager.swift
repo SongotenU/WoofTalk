@@ -1,3 +1,4 @@
+import os.log
 // MARK: - SocialSharingManager
 
 import Foundation
@@ -150,7 +151,7 @@ final class SocialSharingManager {
         activityViewController.completionWithItemsHandler = { activityType, completed, items, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Share error: \(error.localizedDescription)")
+                    os_log("%{public}@", log: OSLog.default, type: .default, "Share error: \(error.localizedDescription)")
                     completion(.failure(.shareFailed))
                     return
                 }
@@ -185,7 +186,7 @@ final class SocialSharingManager {
             "has_contributor": content.contributorName != nil
         ]
         
-        print("[SocialSharing] Share event: \(eventData)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "[SocialSharing] Share event: \(eventData)")
     }
 }
 
@@ -271,7 +272,7 @@ struct ShareTranslationView: View {
             case .success:
                 dismiss()
             case .failure(let error):
-                print("Share failed: \(error.localizedDescription)")
+                os_log("%{public}@", log: OSLog.default, type: .default, "Share failed: \(error.localizedDescription)")
             }
         }
     }

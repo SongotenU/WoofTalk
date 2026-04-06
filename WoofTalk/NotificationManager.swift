@@ -1,3 +1,4 @@
+import os.log
 // MARK: - NotificationManager
 
 import Foundation
@@ -45,7 +46,7 @@ final class NotificationManager: ObservableObject {
             }
             return granted
         } catch {
-            print("Notification authorization error: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Notification authorization error: \(error)")
             return false
         }
     }
@@ -77,7 +78,7 @@ final class NotificationManager: ObservableObject {
     
     /// Handles failed registration
     func didFailToRegisterForRemoteNotifications(_ error: Error) {
-        print("Failed to register for remote notifications: \(error)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "Failed to register for remote notifications: \(error)")
     }
     
     // MARK: - Send Notifications
@@ -168,13 +169,13 @@ final class NotificationManager: ObservableObject {
         
         center.add(request) { error in
             if let error = error {
-                print("Failed to schedule notification: \(error)")
+                os_log("%{public}@", log: OSLog.default, type: .default, "Failed to schedule notification: \(error)")
             }
         }
     }
     
     private func sendTokenToServer(_ token: String) {
-        print("[NotificationManager] Sending token to server: \(token)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "[NotificationManager] Sending token to server: \(token)")
     }
 }
 

@@ -7,13 +7,7 @@ import AVFoundation
 final class TranslationEngine {
     
     // MARK: - Public Types
-    
-    /// Translation direction
-    enum TranslationDirection {
-        case humanToDog
-        case dogToHuman
-    }
-    
+
     /// Translation error types
     enum TranslationError: Error, LocalizedError {
         case invalidInput
@@ -205,7 +199,7 @@ final class TranslationEngine {
 // MARK: - TranslationEngineDelegate
 
 protocol TranslationEngineDelegate: AnyObject {
-    func translationEngine(_ engine: TranslationEngine, didTranslate text: String, direction: TranslationEngine.TranslationDirection)
+    func translationEngine(_ engine: TranslationEngine, didTranslate text: String, direction: TranslationDirection)
     func translationEngine(_ engine: TranslationEngine, didFailWithError error: Error)
     func translationEngineDidStart(_ engine: TranslationEngine)
     func translationEngineDidStop(_ engine: TranslationEngine)

@@ -1,3 +1,4 @@
+import os.log
 // MARK: - VocabularyDatabase
 
 import Foundation
@@ -119,7 +120,7 @@ final class VocabularyDatabase {
         let fileURL = getDatabaseFileURL()
         
         if sqlite3_open(fileURL.path, &database) != SQLITE_OK {
-            print("Error opening vocabulary database")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error opening vocabulary database")
             database = nil
         }
     }

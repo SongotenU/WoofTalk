@@ -1,3 +1,4 @@
+import os.log
 // MARK: - ModerationDetailView
 
 import SwiftUI
@@ -345,7 +346,7 @@ class ModerationDetailViewModel: ObservableObject {
             try communityPhraseManager.createCommunityPhrase(from: contribution)
             completion(true)
         } catch {
-            print("Error approving contribution: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error approving contribution: \(error)")
             completion(false)
         }
         
@@ -363,7 +364,7 @@ class ModerationDetailViewModel: ObservableObject {
             try contribution.managedObjectContext?.save()
             completion(true)
         } catch {
-            print("Error rejecting contribution: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error rejecting contribution: \(error)")
             completion(false)
         }
         
@@ -372,7 +373,7 @@ class ModerationDetailViewModel: ObservableObject {
     
     func showAlert(title: String, message: String) {
         // TODO: Implement alert presentation
-        print("Alert: \(title) - \(message)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "Alert: \(title) - \(message)")
     }
     
     // MARK: - Private Methods

@@ -1,3 +1,4 @@
+import os.log
 import Foundation
 import CoreData
 
@@ -68,7 +69,7 @@ final class PerformanceOptimizer {
         
         if result == KERN_SUCCESS {
             let usedMB = Double(info.resident_size) / 1024 / 1024
-            print("Memory usage: \(String(format: "%.1f", usedMB)) MB")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Memory usage: \(String(format: "%.1f", usedMB)) MB")
         }
     }
     

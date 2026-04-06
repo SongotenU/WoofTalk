@@ -1,3 +1,4 @@
+import os.log
 // MARK: - AITranslationService
 
 import Foundation
@@ -5,7 +6,7 @@ import CoreML
 import CoreData
 
 /// Translation direction enum
-enum TranslationDirection {
+enum TranslationDirection: String, Codable {
     case humanToDog
     case dogToHuman
 }
@@ -182,7 +183,7 @@ final class AITranslationService: AITranslationServiceProtocol {
                     timestamp: Date()
                 )
             } catch {
-                print("Failed to save translation metadata: \(error)")
+                os_log("%{public}@", log: OSLog.default, type: .default, "Failed to save translation metadata: \(error)")
             }
         }
         

@@ -1,3 +1,4 @@
+import os.log
 // MARK: - TranslationCache
 
 import Foundation
@@ -35,11 +36,6 @@ final class TranslationCache {
         let confidence: Double
         let timestamp: Date
         let direction: TranslationDirection
-        
-        enum TranslationDirection: String, Codable {
-            case humanToDog
-            case dogToHuman
-        }
     }
     
     // MARK: - Private Properties
@@ -196,7 +192,7 @@ final class TranslationCache {
                 let fileURL = self.getCacheFileURL()
                 try data.write(to: fileURL, options: .atomic)
             } catch {
-                print("Error saving translation cache: \(error)")
+                os_log("%{public}@", log: OSLog.default, type: .default, "Error saving translation cache: \(error)")
             }
         }
     }
@@ -216,7 +212,7 @@ final class TranslationCache {
                 self.cache = try decoder.decode([String: CachedTranslation].self, from: data)
                 self.updateMemoryUsage()
             } catch {
-                print("Error loading translation cache: \(error)")
+                os_log("%{public}@", log: OSLog.default, type: .default, "Error loading translation cache: \(error)")
             }
         }
     }

@@ -1,3 +1,4 @@
+import os.log
 // MARK: - CommunityPhrase
 
 import Foundation
@@ -69,7 +70,7 @@ public class CommunityPhrase: NSManagedObject {
         do {
             return try context.fetch(fetchRequest)
         } catch {
-            print("Error fetching community phrases: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching community phrases: \(error)")
             return []
         }
     }
@@ -87,7 +88,7 @@ public class CommunityPhrase: NSManagedObject {
         do {
             return try context.fetch(fetchRequest)
         } catch {
-            print("Error fetching community phrases for direction \(direction): \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error fetching community phrases for direction \(direction): \(error)")
             return []
         }
     }
@@ -107,7 +108,7 @@ public class CommunityPhrase: NSManagedObject {
             let results = try context.fetch(fetchRequest)
             return results.first
         } catch {
-            print("Error finding community phrase: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error finding community phrase: \(error)")
             return nil
         }
     }

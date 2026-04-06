@@ -1,3 +1,4 @@
+import os.log
 import SwiftUI
 import CoreData
 
@@ -367,7 +368,7 @@ class ModerationAnalyticsViewModel: ObservableObject {
                 maxQuality = qualities.max() ?? 0
             }
         } catch {
-            print("Error loading contribution stats: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error loading contribution stats: \(error)")
         }
     }
     
@@ -388,7 +389,7 @@ class ModerationAnalyticsViewModel: ObservableObject {
             escalatedReports = stats.escalated
             reportsByType = stats.byType
         } catch {
-            print("Error loading report stats: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error loading report stats: \(error)")
         }
     }
     

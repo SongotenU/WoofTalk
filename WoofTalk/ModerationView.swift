@@ -1,3 +1,4 @@
+import os.log
 // MARK: - ModerationView
 
 import SwiftUI
@@ -222,7 +223,7 @@ class ModerationViewModel: ObservableObject {
         do {
             contributions = try PersistenceController.shared.container.viewContext.fetch(fetchRequest)
         } catch {
-            print("Error loading contributions: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error loading contributions: \(error)")
         }
         
         isLoading = false

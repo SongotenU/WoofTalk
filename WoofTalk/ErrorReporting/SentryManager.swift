@@ -1,3 +1,4 @@
+import os.log
 import Foundation
 
 final class SentryManager {
@@ -18,9 +19,9 @@ final class SentryManager {
         self.isEnabled = !dsn.isEmpty
         
         if isEnabled {
-            print("SentryManager: Initialized with DSN")
+            os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Initialized with DSN")
         } else {
-            print("SentryManager: Running in development mode (no DSN)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Running in development mode (no DSN)")
         }
     }
     
@@ -82,7 +83,7 @@ final class SentryManager {
     }
     
     private func sendToSentry(_ event: SentryEvent) {
-        print("SentryManager: Capturing event \(event.eventId)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Capturing event \(event.eventId)")
     }
     
     func getEventCount() -> Int {

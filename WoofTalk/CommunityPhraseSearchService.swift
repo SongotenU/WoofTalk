@@ -1,3 +1,4 @@
+import os.log
 // MARK: - CommunityPhraseSearchService
 
 import Foundation
@@ -88,7 +89,7 @@ final class CommunityPhraseSearchService {
             
             return results
         } catch {
-            print("Error searching phrases: \(error)")
+            os_log("%{public}@", log: OSLog.default, type: .default, "Error searching phrases: \(error)")
             return []
         }
     }

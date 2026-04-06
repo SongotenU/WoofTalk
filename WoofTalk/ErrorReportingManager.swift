@@ -1,3 +1,4 @@
+import os.log
 import Foundation
 
 final class ErrorReportingManager {
@@ -55,7 +56,7 @@ final class ErrorReportingManager {
         }
         
         #if DEBUG
-        print("ERROR [\(domain.rawValue)] (\(code)): \(message)")
+        os_log("%{public}@", log: OSLog.default, type: .default, "ERROR [\(domain.rawValue)] (\(code)): \(message)")
         #endif
     }
     
