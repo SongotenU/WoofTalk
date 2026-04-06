@@ -1,9 +1,9 @@
-import os.log
 // MARK: - AITranslationService
 
 import Foundation
 import CoreML
 import CoreData
+import os.log
 
 /// Translation direction enum
 enum TranslationDirection: String, Codable {
@@ -26,7 +26,7 @@ struct AITranslationResult {
     let qualityScore: TranslationQualityScore
     let inferenceTime: TimeInterval
     let modelVersion: String
-    
+
     /// Whether the AI translation is confident enough to use
     var isConfident: Bool {
         return qualityScore.confidence >= 0.5
@@ -37,10 +37,10 @@ struct AITranslationResult {
 struct TranslationQualityScore {
     /// Confidence level from 0.0 to 1.0
     let confidence: Double
-    
+
     /// Estimated accuracy based on model metrics
     let estimatedAccuracy: Double
-    
+
     /// Quality tier based on confidence
     var qualityTier: QualityTier {
         if confidence >= 0.8 {
@@ -53,13 +53,13 @@ struct TranslationQualityScore {
             return .veryLow
         }
     }
-    
+
     enum QualityTier: String {
         case high = "High"
         case medium = "Medium"
         case low = "Low"
         case veryLow = "Very Low"
-        
+
         var color: String {
             switch self {
             case .high: return "green"
@@ -79,7 +79,9 @@ enum AITranslationError: Error, LocalizedError {
     case invalidInput
     case inferenceTimeout
     case modelUnavailable
-    
+    case retryExhausted(lastError: Error)
+    case circuitOpen
+
     var errorDescription: String? {
         switch self {
         case .modelNotLoaded:
@@ -94,127 +96,214 @@ enum AITranslationError: Error, LocalizedError {
             return "AI translation timed out"
         case .modelUnavailable:
             return "AI model is not available"
+        case .retryExhausted(let lastError):
+            return "AI translation failed after retries: \(lastError.localizedDescription)"
+        case .circuitOpen:
+            return "AI translation circuit breaker is open"
         }
     }
 }
 
+/// Configuration for retry behavior
+private struct RetryPolicy {
+    let maxAttempts: Int
+    let baseDelay: TimeInterval // milliseconds
+
+    func delayForAttempt(_ attempt: Int) -> UInt64 {
+        let ms = baseDelay * pow(2.0, Double(attempt))
+        return UInt64(ms * 1_000_000) // convert to nanoseconds
+    }
+}
+
+/// Timeout for individual translation calls (seconds)
+private let translationTimeout: TimeInterval = 5
+
 /// On-device AI translation service implementation
 final class AITranslationService: AITranslationServiceProtocol {
-    
+
     // MARK: - Singleton
-    
+
     static let shared = AITranslationService()
-    
+
     // MARK: - Properties
-    
+
     private(set) var isModelLoaded: Bool = false
     private let modelLock = NSLock()
-    
+
     /// Model version for tracking
     let modelVersion = "1.0.0"
-    
+
     /// Simulated model availability (in production, check CoreML model)
     private var _modelAvailable: Bool = true
-    
+
     var isModelAvailable: Bool {
         return isModelLoaded && _modelAvailable
     }
-    
+
+    // Resilience infrastructure
+    private let circuitBreaker = CircuitBreaker(failureThreshold: 5, resetTimeout: 30)
+    private let retryPolicy = RetryPolicy(maxAttempts: 3, baseDelay: 250)
+    private let errorHandler = AITranslationErrorHandler()
+
     // MARK: - Initialization
-    
+
     private init() {}
-    
+
     // MARK: - Public Methods
-    
+
     /// Load the AI translation model
     func loadModel() async throws {
         modelLock.lock()
         defer { modelLock.unlock() }
-        
+
         guard !isModelLoaded else { return }
-        
+
         // In production: Load CoreML model here
         // For now, simulate model loading
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5s simulation
-        
+
         isModelLoaded = true
     }
-    
-    /// Translate input using AI model
+
+    /// Translate input using AI model with resilience (circuit breaker + retry + timeout)
     func translate(input: String, direction: TranslationDirection) async throws -> AITranslationResult {
         guard isModelLoaded else {
             throw AITranslationError.modelNotLoaded
         }
-        
+
         guard !input.isEmpty else {
             throw AITranslationError.invalidInput
         }
-        
-        let startTime = Date()
-        
-        // In production: Run actual ML inference
-        // For now, use enhanced translation with quality scoring
-        let result = try await performAITranslation(input: input, direction: direction)
-        
-        let inferenceTime = Date().timeIntervalSince(startTime)
-        
-        let aiResult = AITranslationResult(
-            translatedText: result.translation,
-            qualityScore: result.qualityScore,
-            inferenceTime: inferenceTime,
-            modelVersion: modelVersion
-        )
-        
-        // Persist AI translation metadata to Core Data
-        let modeString = (direction == .humanToDog) ? "humanToDog" : "dogToHuman"
-        let quality = result.qualityScore.confidence
-        let modelVer = modelVersion
-        
-        // Save on main thread
-        await MainActor.run {
+
+        let context = TranslationContext(input: input, direction: direction, mode: .async)
+
+        // Check circuit breaker
+        guard circuitBreaker.currentState != .open else {
+            let action = errorHandler.handleError(
+                AITranslationError.circuitOpen, context: context)
+            if case .fallbackToRuleBased = action {
+                let fallback = fallbackTranslation(input: input, direction: direction)
+                return AITranslationResult(
+                    translatedText: fallback,
+                    qualityScore: TranslationQualityScore(confidence: 0.3, estimatedAccuracy: 0.2),
+                    inferenceTime: 0,
+                    modelVersion: modelVersion)
+            }
+            throw AITranslationError.circuitOpen
+        }
+
+        // Retry with exponential backoff
+        var lastError: Error?
+        for attempt in 0..<retryPolicy.maxAttempts {
             do {
-                try PersistenceController.shared.saveTranslation(
-                    original: input,
-                    translated: result.translation,
-                    mode: "ai",
-                    qualityScore: quality,
-                    modelVersion: modelVer,
-                    inferenceTime: inferenceTime,
-                    timestamp: Date()
-                )
+                let result = try await executeWithTimeout(input: input, direction: direction)
+                circuitBreaker.onSuccess()
+                return result
             } catch {
-                os_log("%{public}@", log: OSLog.default, type: .default, "Failed to save translation metadata: \(error)")
+                lastError = error
+                let action = errorHandler.handleError(error, context: context)
+
+                switch action {
+                case .fallbackToRuleBased, .retryWithRuleBased:
+                    break // retry or will fallback below
+                case .showErrorToUser:
+                    circuitBreaker.onFailure()
+                    throw error
+                case .retry:
+                    break
+                }
+
+                if attempt < retryPolicy.maxAttempts - 1 {
+                    let delay = retryPolicy.delayForAttempt(attempt)
+                    try await Task.sleep(nanoseconds: delay)
+                }
             }
         }
-        
-        return aiResult
+
+        // All retries exhausted — fallback
+        circuitBreaker.onFailure()
+        if let fallbackError = lastError {
+            os_log("Retry exhausted, using fallback: %{public}@",
+                   log: OSLog.default, type: .info,
+                   fallbackError.localizedDescription)
+        }
+        let fallback = fallbackTranslation(input: input, direction: direction)
+        return AITranslationResult(
+            translatedText: fallback,
+            qualityScore: TranslationQualityScore(confidence: 0.3, estimatedAccuracy: 0.2),
+            inferenceTime: 0,
+            modelVersion: modelVersion)
     }
-    
+
+    /// Execute translation with async timeout
+    private func executeWithTimeout(input: String, direction: TranslationDirection) async throws -> AITranslationResult {
+        try await withThrowingTaskGroup(of: AITranslationResult.self) { group in
+            group.addTask {
+                let startTime = Date()
+                let result = try await self.performAITranslation(input: input, direction: direction)
+                let inferenceTime = Date().timeIntervalSince(startTime)
+
+                // Persist AI translation metadata to Core Data
+                await MainActor.run {
+                    do {
+                        try PersistenceController.shared.saveTranslation(
+                            original: input,
+                            translated: result.translation,
+                            mode: "ai",
+                            qualityScore: result.qualityScore.confidence,
+                            modelVersion: self.modelVersion,
+                            inferenceTime: inferenceTime,
+                            timestamp: Date()
+                        )
+                    } catch {
+                        os_log("%{public}@", log: OSLog.default, type: .default,
+                               "Failed to save translation metadata: \(error)")
+                    }
+                }
+
+                return AITranslationResult(
+                    translatedText: result.translation,
+                    qualityScore: result.qualityScore,
+                    inferenceTime: inferenceTime,
+                    modelVersion: self.modelVersion)
+            }
+
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(translationTimeout * 1_000_000_000))
+                throw AITranslationError.inferenceTimeout
+            }
+
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
+    }
+
     /// Unload model to free resources
     func unloadModel() {
         modelLock.lock()
         defer { modelLock.unlock() }
-        
+
         isModelLoaded = false
     }
-    
+
     // MARK: - Private Methods
-    
+
     /// Perform AI translation (simulated for demo)
     private func performAITranslation(input: String, direction: TranslationDirection) async throws -> (translation: String, qualityScore: TranslationQualityScore) {
-        
+
         // Simulate inference delay
         try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-        
+
         // Enhanced translations with contextual understanding
         let enhancedTranslations = getEnhancedTranslations()
-        
+
         let normalizedInput = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // Try to find enhanced translation
         let translation: String
         let confidence: Double
-        
+
         if let found = enhancedTranslations[direction]?[normalizedInput] {
             translation = found.text
             confidence = found.confidence
@@ -223,15 +312,15 @@ final class AITranslationService: AITranslationServiceProtocol {
             translation = fallbackTranslation(input: input, direction: direction)
             confidence = 0.55
         }
-        
+
         let qualityScore = TranslationQualityScore(
             confidence: confidence,
             estimatedAccuracy: confidence * 0.95
         )
-        
+
         return (translation, qualityScore)
     }
-    
+
     /// Get enhanced translations dictionary
     private func getEnhancedTranslations() -> [TranslationDirection: [String: (text: String, confidence: Double)]] {
         return [
@@ -265,12 +354,12 @@ final class AITranslationService: AITranslationServiceProtocol {
             ]
         ]
     }
-    
+
     /// Fallback translation using rule-based engine
     private func fallbackTranslation(input: String, direction: TranslationDirection) -> String {
         // Use existing TranslationEngine as fallback
         let engine = TranslationEngine()
-        
+
         do {
             if direction == .humanToDog {
                 return try engine.translateHumanToDog(speechText: input)
@@ -281,7 +370,7 @@ final class AITranslationService: AITranslationServiceProtocol {
             return "Translation not available"
         }
     }
-    
+
     /// Synchronous fallback translation for rule-based mode
     func fallbackTranslate(input: String, direction: TranslationDirection) -> String {
         let engine = TranslationEngine()
