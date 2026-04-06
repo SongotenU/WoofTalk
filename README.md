@@ -148,6 +148,27 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 
 Configure Supabase URL and anon key in the app's configuration.
 
+## CI/CD
+
+### Supabase (Migrations + Edge Functions)
+
+Triggered on push to `supabase/**`:
+- Database migrations deploy
+- Edge functions deploy
+
+### Web (Next.js)
+
+Triggered on push to `web/**` on main:
+- Lint + TypeScript check
+- RLS audit gate (blocks overly permissive policies)
+- Deploy to Vercel
+
+### Monitoring
+
+- **Uptime checks** — GitHub Actions runs every 5 minutes, checks Supabase and web app health
+- **Error tracking** — Sentry-ready (`ErrorReporter.swift` on iOS)
+- **Load testing** — k6 scripts in `scripts/load-tests/` with RLS concurrent verification
+
 ## Deployment
 
 ### Web
@@ -209,7 +230,9 @@ npx tsc --noEmit             # Type checking
 | M003 | v2.0 | ✅ | Advanced Features — AI, real-time, analytics |
 | M004 | v3.0 | ✅ | Platform Expansion — Android + cross-platform sync |
 | M005 | v3.1 | ✅ | Web + Smartwatch |
-| M006 | v4.0 | 🚧 | Enterprise — API access, admin features |
+| M006 | v4.0 | ✅ | Enterprise — API access, admin features |
+| M007 | v4.1 | ✅ | AR/VR Mixed Reality |
+| M008 | — | ✅ | Production Hardening — CI/CD, observability, resilience |
 
 ## Tech Stack
 
@@ -219,6 +242,8 @@ npx tsc --noEmit             # Type checking
 - **Watch**: Kotlin, Compose for Wearables
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Edge Functions)
 - **Voice**: AVFoundation (iOS), SpeechRecognizer + TextToSpeech (Android), Web Speech API (Web)
+- **CI/CD**: GitHub Actions (Supabase + Vercel pipelines, RLS audit)
+- **Monitoring**: Sentry-ready error tracking, GitHub Actions uptime monitor, k6 load testing
 - **Deployment**: Vercel (Web), Google Play Store (Android + Wear OS), App Store (iOS)
 
 ## License
