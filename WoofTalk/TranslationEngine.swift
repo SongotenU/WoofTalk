@@ -39,25 +39,28 @@ final class TranslationEngine {
     private let audioEngine: AudioEngine
     private let speechRecognizer: SpeechRecognition
     private let audioPlayback: AudioPlayback
-    
+    private let cache: TranslationCache
+
     private var translationRequests: Int = 0
     private var successfulTranslations: Int = 0
     private var failedTranslations: Int = 0
     private var lastTranslationError: TranslationError?
-    
+
     // MARK: - Initialization
-    
+
     init(
         vocabularyDatabase: VocabularyDatabase = VocabularyDatabase.shared,
         translationModels: TranslationModels = TranslationModels.shared,
-        audioEngine: AudioEngine = AudioEngine()
+        audioEngine: AudioEngine = AudioEngine(),
+        cache: TranslationCache = TranslationCache.shared
     ) {
         self.vocabularyDatabase = vocabularyDatabase
         self.translationModels = translationModels
         self.audioEngine = audioEngine
         self.speechRecognizer = audioEngine.speechRecognizer
         self.audioPlayback = audioEngine.audioPlayback
-        
+        self.cache = cache
+
         setupAudioEngine()
     }
     
@@ -66,72 +69,90 @@ final class TranslationEngine {
     /// Translate human speech to dog vocalizations
     func translateHumanToDog(speechText: String) throws -> String {
         translationRequests += 1
-        
+
         guard !speechText.isEmpty else {
             throw TranslationError.invalidInput
         }
-        
+
+        // Check cache first
+        if let cached = cache.getCachedTranslation(text: speechText, direction: .humanToDog) {
+            successfulTranslations += 1
+            return cached.translatedText
+        }
+
         do {
             // Try ML model translation first
             if let mlTranslation = try translationModels.translateHumanToDog(speechText) {
+                cache.cacheTranslation(text: speechText, translatedText: mlTranslation, direction: .humanToDog, confidence: 1.0)
                 successfulTranslations += 1
                 return mlTranslation
             }
-            
+
             // Fallback to vocabulary lookup
             let vocabularyTranslation = vocabularyDatabase.lookupHumanToDog(speechText)
             if !vocabularyTranslation.isEmpty {
+                cache.cacheTranslation(text: speechText, translatedText: vocabularyTranslation, direction: .humanToDog, confidence: 0.8)
                 successfulTranslations += 1
                 return vocabularyTranslation
             }
-            
+
             // If all else fails, use simple phrase mapping
             let simpleTranslation = translateSimplePhrase(speechText, direction: .humanToDog)
             if !simpleTranslation.isEmpty {
+                cache.cacheTranslation(text: speechText, translatedText: simpleTranslation, direction: .humanToDog, confidence: 0.5)
                 successfulTranslations += 1
                 return simpleTranslation
             }
-            
+
             throw TranslationError.translationFailed
-            
+
         } catch {
             failedTranslations += 1
             lastTranslationError = error as? TranslationError ?? .translationFailed
             throw error
         }
     }
-    
+
     /// Translate dog vocalizations to human speech
     func translateDogToHuman(dogVocalization: String) throws -> String {
         translationRequests += 1
-        
+
         guard !dogVocalization.isEmpty else {
             throw TranslationError.invalidInput
         }
-        
+
+        // Check cache first
+        if let cached = cache.getCachedTranslation(text: dogVocalization, direction: .dogToHuman) {
+            successfulTranslations += 1
+            return cached.translatedText
+        }
+
         do {
             // Try ML model translation first
             if let mlTranslation = try translationModels.translateDogToHuman(dogVocalization) {
+                cache.cacheTranslation(text: dogVocalization, translatedText: mlTranslation, direction: .dogToHuman, confidence: 1.0)
                 successfulTranslations += 1
                 return mlTranslation
             }
-            
+
             // Fallback to vocabulary lookup
             let vocabularyTranslation = vocabularyDatabase.lookupDogToHuman(dogVocalization)
             if !vocabularyTranslation.isEmpty {
+                cache.cacheTranslation(text: dogVocalization, translatedText: vocabularyTranslation, direction: .dogToHuman, confidence: 0.8)
                 successfulTranslations += 1
                 return vocabularyTranslation
             }
-            
+
             // If all else fails, use simple phrase mapping
             let simpleTranslation = translateSimplePhrase(dogVocalization, direction: .dogToHuman)
             if !simpleTranslation.isEmpty {
+                cache.cacheTranslation(text: dogVocalization, translatedText: simpleTranslation, direction: .dogToHuman, confidence: 0.5)
                 successfulTranslations += 1
                 return simpleTranslation
             }
-            
+
             throw TranslationError.translationFailed
-            
+
         } catch {
             failedTranslations += 1
             lastTranslationError = error as? TranslationError ?? .translationFailed
@@ -166,33 +187,59 @@ final class TranslationEngine {
         audioEngine.delegate = self
     }
     
+    private static let humanToDogPhrases: [String: String] = [
+        "hello": "woof woof",
+        "sit": "woof woof woof",
+        "stay": "woof woof woof woof",
+        "come": "woof woof woof woof woof",
+        "good boy": "woof woof woof woof woof woof",
+        "good girl": "woof woof woof woof woof woof woof",
+        "no": "woof woof woof woof woof woof woof woof",
+        "yes": "woof woof woof woof woof woof woof woof woof",
+        "walk": "woof woof woof woof woof woof woof woof woof woof",
+        "food": "woof woof woof woof woof woof woof woof woof woof woof",
+        "play": "woof woof woof woof woof woof woof woof woof woof woof woof",
+        "ball": "woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "treat": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "outside": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "inside": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "bed": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "toy": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "water": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "bath": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "vet": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+        "park": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
+    ]
+
+    private static let dogToHumanPhrases: [String: String] = [
+        "hello": "hello",
+        "sit": "sit",
+        "stay": "stay",
+        "come": "come",
+        "good boy": "good boy",
+        "good girl": "good girl",
+        "no": "no",
+        "yes": "yes",
+        "walk": "walk",
+        "food": "food",
+        "play": "play",
+        "ball": "ball",
+        "treat": "treat",
+        "outside": "outside",
+        "inside": "inside",
+        "bed": "bed",
+        "toy": "toy",
+        "water": "water",
+        "bath": "bath",
+        "vet": "vet",
+        "park": "park",
+    ]
+
     private func translateSimplePhrase(_ phrase: String, direction: TranslationDirection) -> String {
-        // Simple phrase mapping for basic translation
-        let phraseMapping: [String: String] = [
-            "hello": direction == .humanToDog ? "woof woof" : "hello",
-            "sit": direction == .humanToDog ? "woof woof woof" : "sit",
-            "stay": direction == .humanToDog ? "woof woof woof woof" : "stay",
-            "come": direction == .humanToDog ? "woof woof woof woof woof" : "come",
-            "good boy": direction == .humanToDog ? "woof woof woof woof woof woof" : "good boy",
-            "good girl": direction == .humanToDog ? "woof woof woof woof woof woof woof" : "good girl",
-            "no": direction == .humanToDog ? "woof woof woof woof woof woof woof woof" : "no",
-            "yes": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof" : "yes",
-            "walk": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof" : "walk",
-            "food": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof" : "food",
-            "play": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof" : "play",
-            "ball": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof" : "ball",
-            "treat": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "treat",
-            "outside": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "outside",
-            "inside": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "inside",
-            "bed": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "bed",
-            "toy": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "toy",
-            "water": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "water",
-            "bath": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "bath",
-            "vet": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "vet",
-            "park": direction == .humanToDog ? "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof" : "park"
-        ]
-        
-        return phraseMapping[phrase.lowercased()] ?? ""
+        let mapping = direction == .humanToDog
+            ? Self.humanToDogPhrases
+            : Self.dogToHumanPhrases
+        return mapping[phrase.lowercased()] ?? ""
     }
 }
 

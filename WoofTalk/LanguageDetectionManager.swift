@@ -10,6 +10,9 @@ final class LanguageDetectionManager {
     private var audioAnalyzer: AudioAnalyzer?
     private let detectionQueue = DispatchQueue(label: "com.wooftalk.languagedetection")
     private var detectionCallbacks: [(AnimalLanguage, Double) -> Void] = []
+
+    /// Pre-computed mapping of frequency bins to languages that cover them
+    private var binLanguageMap: [(frequency: Double, languages: [AnimalLanguage])] = []
     
     var delegate: LanguageDetectionDelegate?
     
@@ -19,6 +22,20 @@ final class LanguageDetectionManager {
     
     private func setupAudioAnalyzer() {
         audioAnalyzer = AudioAnalyzer()
+        precomputeFrequencyBins()
+    }
+
+    /// Pre-compute which languages cover each frequency bin (avoids O(n*L) inner loop)
+    private func precomputeFrequencyBins(bins: Int = 100, sampleRate: Double = 44100) {
+        let frameLength = bins * 2
+        let binSize = sampleRate / Double(frameLength)
+        var mapping: [(frequency: Double, languages: [AnimalLanguage])] = []
+        for bin in 0..<bins {
+            let frequency = Double(bin) * binSize
+            let matchingLanguages = AnimalLanguage.allCases.filter { $0.frequencyRange.contains(frequency) }
+            mapping.append((frequency: frequency, languages: matchingLanguages))
+        }
+        binLanguageMap = mapping
     }
     
     func startDetection() {
@@ -89,26 +106,19 @@ final class LanguageDetectionManager {
         guard let channelData = buffer.floatChannelData else {
             return [:]
         }
-        
+
         let frameLength = Int(buffer.frameLength)
         let channelDataValue = channelData.pointee
-        let sampleRate = buffer.format.sampleRate
-        
+
         var frequencies: [Double: Double] = [:]
-        
-        let binSize = sampleRate / Double(frameLength)
-        
-        for bin in 0..<min(frameLength / 2, 100) {
-            let frequency = Double(bin) * binSize
-            
-            for language in AnimalLanguage.allCases {
-                if language.frequencyRange.contains(frequency) {
-                    let magnitude = abs(Double(channelDataValue[bin]))
-                    frequencies[frequency, default: 0] += magnitude
-                }
-            }
+
+        for binEntry in binLanguageMap {
+            let binIndex = Int(binEntry.frequency / (buffer.format.sampleRate / Double(frameLength * 2)))
+            guard binIndex < min(frameLength / 2, channelDataValue.count) else { continue }
+            let magnitude = abs(Double(channelDataValue[binIndex]))
+            frequencies[binEntry.frequency, default: 0] += magnitude
         }
-        
+
         return frequencies
     }
     

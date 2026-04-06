@@ -159,20 +159,19 @@ final class TranslationCache {
     }
     
     private func updateStatistics(hit: Bool, success: Bool) {
-        statistics.totalTranslations += 1
-        
         if hit {
             statistics.hitCount += 1
         } else {
             statistics.missCount += 1
         }
-        
+
         if success {
             statistics.successfulTranslations += 1
         } else {
             statistics.failedTranslations += 1
         }
-        
+
+        statistics.totalTranslations = cache.count
         statistics.lastTranslationTime = Date()
     }
     
