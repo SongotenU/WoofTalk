@@ -29,9 +29,9 @@ Current codebase includes:
 - **API Gateway**: RESTful API with API key auth, rate limiting, usage tracking
 - **Admin Dashboard**: Full CMS for user management, content moderation, analytics
 
-## Current Milestone: M007 — AR/VR Mixed Reality (Planning)
+## Current Milestone: M007 — AR/VR Mixed Reality (Complete)
 
-**Status:** Research complete — requirements and roadmap defined, ready for phase planning
+**Status:** Complete ✅ — Research, requirements, roadmap, and all 5 phases (38–42) defined
 **Planned:** 2026-Q2
 
 **Scope:**
@@ -49,9 +49,9 @@ Current codebase includes:
 
 ## Next Milestone Goals
 
-**M008: Production Hardening** (if needed)
-- Full deployment to production Supabase + Vercel
-- Live E2E validation with real users
+**M008: Production Hardening**
+- Tech debt cleanup (duplicate audio_processing directory, TranslationCache not connected, LanguageDetectionManager O(n²) loop, missing retry/circuit breaker, memory leaks)
+- Supabase + Vercel production deployment with live E2E validation
 - Monitoring, alerting, incident response
 - Scale testing and performance optimization
 
@@ -114,10 +114,13 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M004: Platform Expansion — Android, Web, and Smartwatch
 - [x] M005: Platform Expansion (continued) — Web, Smartwatch → v3.1
 - [x] M006: Enterprise — Complete as v4.0 (API gateway, admin dashboard, org/team management)
-- [ ] M007: AR/VR — Augmented reality and virtual reality translation features (Vision Pro + Quest)
+- [x] M007: AR/VR — Augmented reality and virtual reality translation features (Vision Pro + Quest)
+- [ ] M008: Production Hardening — Current Milestone
 
 ## Notes
 
 - M006 (Enterprise) was implemented as v4.0 milestone (completed 2026-04-02)
-- M007 is the next active milestone, focusing on immersive computing platforms
+- M007 (AR/VR Mixed Reality) completed 2026-04-04 — research, requirements, and all 5 phases defined
+- M008 is the next active milestone, focusing on production hardening and deployment
 - v4.1 (Security & Deployment Hardening) was a security cleanup milestone following v4.0
+- Last updated: 2026-04-04 after v0.1.0 milestone

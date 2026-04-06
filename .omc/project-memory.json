@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775198690509,
+  "lastScanned": 1775439392368,
   "projectRoot": "/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk",
   "techStack": {
     "languages": [
@@ -48,7 +48,7 @@
       "path": "AppStoreScreenshots",
       "purpose": null,
       "fileCount": 10,
-      "lastAccessed": 1775198690490,
+      "lastAccessed": 1775439392346,
       "keyFiles": [
         "1_iPhone_6.7inch_1.png",
         "2_iPhone_6.7inch_2.png",
@@ -60,18 +60,29 @@
     "Tests": {
       "path": "Tests",
       "purpose": "Test files",
-      "fileCount": 2,
-      "lastAccessed": 1775198690492,
+      "fileCount": 4,
+      "lastAccessed": 1775439392346,
       "keyFiles": [
+        "ARPlacementEngineTests.swift",
+        "BarkDetectorTests.swift",
         "CoreDataMigrationTests.swift",
         "OfflineModeTests.swift"
+      ]
+    },
+    "Training": {
+      "path": "Training",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1775439392348,
+      "keyFiles": [
+        "train_bark_classifier.py"
       ]
     },
     "WoofTalk": {
       "path": "WoofTalk",
       "purpose": null,
       "fileCount": 87,
-      "lastAccessed": 1775198690493,
+      "lastAccessed": 1775439392349,
       "keyFiles": [
         "AITranslationErrorHandler.swift",
         "AITranslationMetadata.swift",
@@ -84,17 +95,38 @@
       "path": "WoofTalk.xcodeproj",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775198690493,
+      "lastAccessed": 1775439392349,
       "keyFiles": [
         "project.pbxproj",
         "project.pbxproj.bak"
+      ]
+    },
+    "WoofTalkAR": {
+      "path": "WoofTalkAR",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1775439392349,
+      "keyFiles": [
+        "ARCoordinator.swift",
+        "App.swift",
+        "ContentView.swift",
+        "Info.plist"
+      ]
+    },
+    "WoofTalkAR.xcodeproj": {
+      "path": "WoofTalkAR.xcodeproj",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1775439392349,
+      "keyFiles": [
+        "project.pbxproj"
       ]
     },
     "WoofTalkTests": {
       "path": "WoofTalkTests",
       "purpose": null,
       "fileCount": 24,
-      "lastAccessed": 1775198690494,
+      "lastAccessed": 1775439392350,
       "keyFiles": [
         "AITranslationTests.swift",
         "AbuseReportingTests.swift",
@@ -107,7 +139,7 @@
       "path": "WoofTalkUITests",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775198690494,
+      "lastAccessed": 1775439392350,
       "keyFiles": [
         "WoofTalkUITests.swift",
         "WoofTalkUITestsLaunchTests.swift"
@@ -117,21 +149,21 @@
       "path": "android",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775198690494,
+      "lastAccessed": 1775439392351,
       "keyFiles": []
     },
     "build": {
       "path": "build",
       "purpose": "Build output",
       "fileCount": 0,
-      "lastAccessed": 1775198690494,
+      "lastAccessed": 1775439392351,
       "keyFiles": []
     },
     "offline_manager": {
       "path": "offline_manager",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392351,
       "keyFiles": [
         "connectivity_manager.ts",
         "offline_manager.ts"
@@ -141,7 +173,7 @@
       "path": "offline_storage",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392351,
       "keyFiles": [
         "offline_database.ts",
         "sqlite_manager.ts"
@@ -151,7 +183,7 @@
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 2,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392351,
       "keyFiles": [
         "verify-app-store.sh",
         "verify-offline.sh"
@@ -161,7 +193,7 @@
       "path": "supabase",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392352,
       "keyFiles": [
         "DEPLOYMENT.md"
       ]
@@ -170,23 +202,30 @@
       "path": "test",
       "purpose": "Test files",
       "fileCount": 0,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392352,
       "keyFiles": []
     },
     "ui": {
       "path": "ui",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775198690495,
+      "lastAccessed": 1775439392352,
       "keyFiles": [
         "offline_mode_view_controller.swift"
       ]
+    },
+    "vr-quest": {
+      "path": "vr-quest",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1775439392352,
+      "keyFiles": []
     },
     "web": {
       "path": "web",
       "purpose": null,
       "fileCount": 9,
-      "lastAccessed": 1775198690496,
+      "lastAccessed": 1775439392352,
       "keyFiles": [
         "next-env.d.ts",
         "next.config.ts",
@@ -195,29 +234,74 @@
         "tailwind.config.ts"
       ]
     },
+    "WoofTalkAR/Config": {
+      "path": "WoofTalkAR/Config",
+      "purpose": "Configuration files",
+      "fileCount": 1,
+      "lastAccessed": 1775439392353,
+      "keyFiles": [
+        "Secrets.xcconfig"
+      ]
+    },
+    "WoofTalkAR/Models": {
+      "path": "WoofTalkAR/Models",
+      "purpose": "Data models",
+      "fileCount": 1,
+      "lastAccessed": 1775439392353,
+      "keyFiles": [
+        "BarkClassification.swift"
+      ]
+    },
+    "WoofTalkAR/Services": {
+      "path": "WoofTalkAR/Services",
+      "purpose": "Business logic services",
+      "fileCount": 6,
+      "lastAccessed": 1775439392353,
+      "keyFiles": [
+        "ARPlacementEngine.swift",
+        "AudioRecorder.swift",
+        "BarkDetector.swift"
+      ]
+    },
+    "WoofTalkAR/Views": {
+      "path": "WoofTalkAR/Views",
+      "purpose": "View templates",
+      "fileCount": 1,
+      "lastAccessed": 1775439392353,
+      "keyFiles": [
+        "TranslationBubble.swift"
+      ]
+    },
     "supabase/migrations": {
       "path": "supabase/migrations",
       "purpose": "Database migrations",
-      "fileCount": 10,
-      "lastAccessed": 1775198690497,
+      "fileCount": 12,
+      "lastAccessed": 1775439392353,
       "keyFiles": [
         "0001_organizations.sql",
         "0002_api_keys.sql",
         "0003_api_key_function.sql"
       ]
     },
+    "vr-quest/Assets": {
+      "path": "vr-quest/Assets",
+      "purpose": "Static assets",
+      "fileCount": 0,
+      "lastAccessed": 1775439392354,
+      "keyFiles": []
+    },
     "web/node_modules": {
       "path": "web/node_modules",
       "purpose": "Dependencies",
       "fileCount": 1,
-      "lastAccessed": 1775198690499,
+      "lastAccessed": 1775439392355,
       "keyFiles": []
     },
     "web/public": {
       "path": "web/public",
       "purpose": "Public files",
       "fileCount": 3,
-      "lastAccessed": 1775198690499,
+      "lastAccessed": 1775439392355,
       "keyFiles": [
         "manifest.json",
         "sw.js",
@@ -228,7 +312,7 @@
       "path": "web/src",
       "purpose": "Source code",
       "fileCount": 1,
-      "lastAccessed": 1775198690500,
+      "lastAccessed": 1775439392355,
       "keyFiles": [
         "middleware.ts"
       ]
@@ -236,303 +320,249 @@
   },
   "hotPaths": [
     {
-      "path": ".planning/ROADMAP.md",
-      "accessCount": 54,
-      "lastAccessed": 1775207932523,
+      "path": "WoofTalk/TranslationEngine.swift",
+      "accessCount": 12,
+      "lastAccessed": 1775440964590,
+      "type": "file"
+    },
+    {
+      "path": "WoofTalk/TranslationModels.swift",
+      "accessCount": 8,
+      "lastAccessed": 1775439706211,
+      "type": "file"
+    },
+    {
+      "path": "WoofTalk/TranslationCache.swift",
+      "accessCount": 7,
+      "lastAccessed": 1775441146569,
+      "type": "file"
+    },
+    {
+      "path": "WoofTalk/LanguageDetectionManager.swift",
+      "accessCount": 4,
+      "lastAccessed": 1775441105527,
+      "type": "file"
+    },
+    {
+      "path": "WoofTalk/AITranslationService.swift",
+      "accessCount": 4,
+      "lastAccessed": 1775441299216,
       "type": "file"
     },
     {
       "path": ".planning/STATE.md",
-      "accessCount": 36,
-      "lastAccessed": 1775207963577,
+      "accessCount": 4,
+      "lastAccessed": 1775441804302,
       "type": "file"
     },
     {
-      "path": ".planning/REQUIREMENTS.md",
-      "accessCount": 33,
-      "lastAccessed": 1775205245678,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/users/list/route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775123740626,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/users/role/route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775123753854,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/analytics/route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775123753906,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/audit/route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775123753958,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/moderation/phrases/route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775123772355,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/moderation/update/route.ts",
+      "path": "WoofTalk/MultiLanguageAdapter.swift",
       "accessCount": 3,
-      "lastAccessed": 1775123772303,
+      "lastAccessed": 1775439598493,
       "type": "file"
     },
     {
-      "path": "web/src/app/admin/page.tsx",
+      "path": ".planning/phases/46-resilience-infrastructure/46-CONTEXT.md",
       "accessCount": 2,
-      "lastAccessed": 1775103671938,
+      "lastAccessed": 1775441196072,
       "type": "file"
     },
     {
-      "path": "web/src/lib/supabase/server-admin.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775103686630,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/api/admin/moderation/bulk/route.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775113611619,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/admin/analytics/page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775123806486,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/admin/moderation/page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775123806540,
-      "type": "file"
-    },
-    {
-      "path": "supabase/functions/translate/index.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775188732189,
-      "type": "file"
-    },
-    {
-      "path": ".planning/phases/29-api-gateway-data-model/29-CONTEXT.md",
+      "path": "WoofTalk/ModerationView.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102502855,
+      "lastAccessed": 1775439649739,
       "type": "file"
     },
     {
-      "path": ".planning/phases/29-api-gateway-data-model/29-RESEARCH.md",
+      "path": "WoofTalk/PerformanceOptimizer.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102502907,
+      "lastAccessed": 1775439649793,
       "type": "file"
     },
     {
-      "path": "supabase/functions/_shared/middleware.ts",
+      "path": "WoofTalk/CommunityPhraseSearchService.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102523174,
+      "lastAccessed": 1775439649895,
       "type": "file"
     },
     {
-      "path": ".planning/phases/29-api-gateway-data-model/29-PLAN.md",
+      "path": "WoofTalk/AudioProcessing/AudioCapture.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102590793,
+      "lastAccessed": 1775439649952,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0001_organizations.sql",
+      "path": ".planning/phases/44-structural-cleanup/44-01-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775102631802,
+      "lastAccessed": 1775439720746,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0002_api_keys.sql",
+      "path": ".planning/phases/44-structural-cleanup/44-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775102632000,
+      "lastAccessed": 1775439720945,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0003_api_key_function.sql",
+      "path": ".planning/PROJECT.md",
       "accessCount": 1,
-      "lastAccessed": 1775102632195,
+      "lastAccessed": 1775440008085,
       "type": "file"
     },
     {
-      "path": "supabase/functions/phrases-search/index.ts",
+      "path": ".planning/phases/45-performance-hot-paths/45-CONTEXT.md",
       "accessCount": 1,
-      "lastAccessed": 1775102636319,
+      "lastAccessed": 1775440859940,
       "type": "file"
     },
     {
-      "path": "supabase/functions/leaderboard/index.ts",
+      "path": ".planning/phases/45-performance-hot-paths/45-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775102636371,
+      "lastAccessed": 1775440866527,
       "type": "file"
     },
     {
-      "path": "supabase/functions/activity-batch/index.ts",
+      "path": ".planning/phases/45-performance-hot-paths/45-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775102636426,
+      "lastAccessed": 1775441139103,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0004_add_org_id_columns.sql",
+      "path": "WoofTalk/AITranslationErrorHandler.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102679603,
+      "lastAccessed": 1775441164485,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0005_migrate_rls_policies.sql",
+      "path": ".planning/phases/46-resilience-infrastructure/46-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775102679794,
+      "lastAccessed": 1775441213057,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0006_migrate_role_functions.sql",
+      "path": "WoofTalk/CircuitBreaker.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102679977,
+      "lastAccessed": 1775441224482,
       "type": "file"
     },
     {
-      "path": "supabase/functions/api-gateway/deno.json",
+      "path": ".planning/phases/46-resilience-infrastructure/46-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775102710930,
+      "lastAccessed": 1775441328474,
       "type": "file"
     },
     {
-      "path": "supabase/functions/_shared/api-key.ts",
+      "path": ".planning/phases/47-cicd-production-deployment/47-CONTEXT.md",
       "accessCount": 1,
-      "lastAccessed": 1775102711126,
+      "lastAccessed": 1775441436136,
       "type": "file"
     },
     {
-      "path": "supabase/functions/_shared/rate-limit.ts",
+      "path": ".planning/phases/47-cicd-production-deployment/47-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775102711330,
+      "lastAccessed": 1775441441953,
       "type": "file"
     },
     {
-      "path": "supabase/functions/_shared/response.ts",
+      "path": ".env.example",
       "accessCount": 1,
-      "lastAccessed": 1775102711526,
+      "lastAccessed": 1775441448115,
       "type": "file"
     },
     {
-      "path": "supabase/functions/api-key-manage/deno.json",
+      "path": ".planning/phases/47-cicd-production-deployment/47-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775102749042,
+      "lastAccessed": 1775441465339,
       "type": "file"
     },
     {
-      "path": "supabase/functions/api-gateway/index.ts",
+      "path": ".planning/phases/48-observability-monitoring/48-CONTEXT.md",
       "accessCount": 1,
-      "lastAccessed": 1775102749236,
+      "lastAccessed": 1775441499831,
       "type": "file"
     },
     {
-      "path": "supabase/functions/api-key-manage/index.ts",
+      "path": "WoofTalk/ErrorReporter.swift",
       "accessCount": 1,
-      "lastAccessed": 1775102791045,
+      "lastAccessed": 1775441521185,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0007_seed_data.sql",
+      "path": ".planning/phases/48-observability-monitoring/48-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775102824769,
+      "lastAccessed": 1775441627231,
       "type": "file"
     },
     {
-      "path": "supabase/functions/api-gateway/ENV.md",
+      "path": ".planning/phases/48-observability-monitoring/48-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775102824963,
+      "lastAccessed": 1775441633454,
       "type": "file"
     },
     {
-      "path": ".planning/phases/29-api-gateway-data-model/29-01-SUMMARY.md",
+      "path": "scripts/load-tests/k6-edge-functions.js",
       "accessCount": 1,
-      "lastAccessed": 1775102857497,
+      "lastAccessed": 1775441666862,
       "type": "file"
     },
     {
-      "path": ".planning/phases/29-api-gateway-data-model/VERIFICATION.md",
+      "path": "scripts/load-tests/verify-rls-concurrent.sh",
       "accessCount": 1,
-      "lastAccessed": 1775102868120,
+      "lastAccessed": 1775441695164,
       "type": "file"
     },
     {
-      "path": ".planning/phases/30-admin-dashboard/30-CONTEXT.md",
+      "path": ".planning/phases/49-scale-testing/49-CONTEXT.md",
       "accessCount": 1,
-      "lastAccessed": 1775103215087,
+      "lastAccessed": 1775441730185,
       "type": "file"
     },
     {
-      "path": ".planning/phases/30-admin-dashboard/30-PLAN.md",
+      "path": ".planning/phases/49-scale-testing/49-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775103228668,
+      "lastAccessed": 1775441736999,
       "type": "file"
     },
     {
-      "path": "supabase/migrations/0008_admin_audit_log.sql",
+      "path": ".planning/phases/49-scale-testing/49-VERIFICATION.md",
       "accessCount": 1,
-      "lastAccessed": 1775103228860,
+      "lastAccessed": 1775441753228,
       "type": "file"
     },
     {
-      "path": "web/src/app/layout.tsx",
+      "path": ".planning/phases/45-performance-hot-paths/45-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775103240808,
+      "lastAccessed": 1775446691669,
       "type": "file"
     },
     {
-      "path": "web/src/app/globals.css",
+      "path": ".planning/phases/46-resilience-infrastructure/46-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775103243780,
+      "lastAccessed": 1775446696873,
       "type": "file"
     },
     {
-      "path": "web/src/app/admin/layout.tsx",
+      "path": ".planning/phases/47-cicd-production-deployment/47-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775103317615,
+      "lastAccessed": 1775446702691,
       "type": "file"
     },
     {
-      "path": "web/src/app/admin/users/page.tsx",
+      "path": ".planning/phases/48-observability-monitoring/48-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775103318053,
+      "lastAccessed": 1775446707954,
       "type": "file"
     },
     {
-      "path": "web/src/app/admin/audit/page.tsx",
+      "path": ".planning/phases/49-scale-testing/49-SUMMARY.md",
       "accessCount": 1,
-      "lastAccessed": 1775103393301,
+      "lastAccessed": 1775446744381,
       "type": "file"
     },
     {
-      "path": "web/src/app/translate/page.tsx",
+      "path": ".planning/phases/44-structural-cleanup/44-PLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1775103481669,
-      "type": "file"
-    },
-    {
-      "path": "web/src/lib/supabase.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775103481720,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/org/layout.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775103496937,
+      "lastAccessed": 1775447196688,
       "type": "file"
     }
   ],
