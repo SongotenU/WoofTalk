@@ -31,6 +31,11 @@ final class BatteryOptimizer {
     private init() {
         setupBatteryMonitoring()
     }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        audioBatchTimer?.invalidate()
+    }
     
     private func setupBatteryMonitoring() {
         updateBatteryState()

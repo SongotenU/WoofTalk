@@ -27,6 +27,10 @@ final class NetworkOptimizer {
     private init() {
         setupNetworkMonitoring()
     }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
     // MARK: - Network Monitoring
     private func setupNetworkMonitoring() {

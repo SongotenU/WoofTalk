@@ -13,6 +13,12 @@ final class PerformanceOptimizer {
     private var isInitialized = false
     
     private init() {}
+
+    private var performanceTimer: Timer?
+
+    deinit {
+        performanceTimer?.invalidate()
+    }
     
     func initialize() {
         guard !isInitialized else { return }
@@ -45,7 +51,7 @@ final class PerformanceOptimizer {
     }
     
     private func startPerformanceMonitoring() {
-        Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+        performanceTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             self?.recordPerformanceMetrics()
         }
         

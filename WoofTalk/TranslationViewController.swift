@@ -493,10 +493,14 @@ extension TranslationViewController {
     
     private func monitorBatteryUsage() {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(batteryLevelChanged), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
     }
-    
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     @objc private func batteryLevelChanged() {
         let batteryLevel = UIDevice.current.batteryLevel
         if batteryLevel < 0.2 {
