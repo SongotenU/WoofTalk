@@ -1,0 +1,32 @@
+name: Uptime Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-endpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Supabase Health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.SUPABASE_URL }}/rest/v1/" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          if [ "$STATUS" -ge 500 ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-type: application/json' \
+              --data '{"text":"ALERT: Supabase returning '"'"'$STATUS'"'"' — WoofTalk backend may be down"}'
+            exit 1
+          fi
+          echo "Supabase healthy ($STATUS)"
+
+      - name: Check Web App
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.WEB_APP_URL }}")
+          if [ "$STATUS" -ne 200 ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-type: application/json' \
+              --data '{"text":"ALERT: Web app returning '"'"'$STATUS'"'"'"}'
+            exit 1
+          fi
+          echo "Web app healthy ($STATUS)"
