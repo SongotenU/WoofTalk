@@ -1,61 +1,26 @@
 # Project Roadmap
 
-## Milestone v1.0: Core Translation Engine (M001) COMPLETE
-**Completed:** All phases shipped
+## Milestone M008: Production Hardening
 
----
+**Goal:** Ship WoofTalk to production with reliable infrastructure, observability, and zero known tech debt.
 
-## Milestone v1.0: Community Features (M002) COMPLETE
+### Phase 43: Memory Leak Elimination
+Fix all NotificationCenter and Timer leaks, add proper deinit observers, verify memory stability under Instruments
 
----
+### Phase 44: Structural Cleanup
+Remove duplicate audio_processing directory, consolidate duplicate enums, replace print() with os_log, fix legacy references
 
-## Milestone v2.0: Advanced Features (M003) COMPLETE
+### Phase 45: Performance Hot Paths
+Connect TranslationCache, fix O(n^2) LanguageDetectionManager, optimize string ops, implement queue execution, async cache
 
----
+### Phase 46: Resilience Infrastructure
+Circuit breaker pattern, retry with exponential backoff, activate retry error handler, timeout on AI calls, failure threshold
 
-## Milestone v3.0: Platform Expansion (M004) COMPLETE
+### Phase 47: CI/CD + Production Deployment
+GitHub Actions for Supabase, Edge Functions pipeline, Vercel deployment, RLS audit, environment management, live push
 
----
+### Phase 48: Observability + Monitoring
+Edge Function error tracking, client-side error capture across 6 platforms, uptime monitoring, alert routing, distributed tracing
 
-## Milestone v3.1: Web + Smartwatch (M005) COMPLETE
-
----
-
-## Milestone v4.0: Enterprise ✅ COMPLETE
-
----
-
-## Milestone v4.1: Security & Deployment Hardening ✅ COMPLETE
-
----
-
-## Milestone M007: AR/VR Mixed Reality ✅ COMPLETE
-
-**Delivered:** 2026-04-03
-
-### Phase 38: AR Foundation ✅
-Vision Pro project setup, Core ML bark classifier, basic AR overlay with spatial audio
-### Phase 39: AR Spatial UX ✅
-Gaze-based anchoring, bubble placement engine, readability optimization, 90 FPS
-### Phase 40: VR Foundation ✅
-Unity project with Meta XR SDK, DogAvatar prefab, hand tracking, translation bubbles, TFLite bark detection, Oculus Spatializer
-### Phase 41: VR Environments & Polish ✅
-3 virtual environments, avatar customization, performance presets (Quest 2/3), motion sickness mitigation, settings UI, testing framework
-### Phase 42: Cross-Platform Integration ✅
-Supabase sync, VR analytics, AR/VR database migrations (platform, spatial_position, dog_avatars, user_devices), RLS policies, store submission guides, deployment documentation
-
-**Total Requirements:** 36/36 delivered (AR-01 through AR-12, VR-01 through VR-12, X-01 through X-06, DATA-ARVR-01 through DATA-ARVR-06)
-**Total Files:** 60+ new files across 5 phases
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| AR-01 through AR-06 | Phase 38 | Complete |
-| AR-07 through AR-12 | Phase 39 | Complete |
-| VR-01 through VR-06 | Phase 40 | Complete |
-| VR-07 through VR-12 | Phase 41 | Complete |
-| X-01 through X-06 | Phase 42 | Complete |
-| DATA-ARVR-01 through DATA-ARVR-06 | Phase 42 | Complete |
-
-**Coverage:** 36/36 M007 requirements mapped to 5 phases
+### Phase 49: Scale Testing
+Load test Edge Functions with k6, concurrent RLS verification, memory stability test, rate limit validation, cache hit rate test

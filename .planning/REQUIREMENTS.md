@@ -2,248 +2,94 @@
 
 ---
 
-# v3.1 Requirements — Web + Smartwatch ARCHIVED
+# M008: Production Hardening
 
-**Milestone:** v3.1 Web + Smartwatch
-**Date:** 2026-03-31
-**Status:** Complete — see `.planning/milestones/v3.1-ROADMAP.md`
+**Milestone:** M008 Production Hardening
+**Date:** 2026-04-06
+**Goal:** Ship WoofTalk to production with reliable infrastructure, observability, and zero known tech debt.
 
-## Web Core (Phase 25)
+## Memory Leak Elimination (Phase 43)
 
-- [x] **WEB-01**: Next.js app with React, TypeScript, Tailwind CSS, and shadcn/ui components
-- [x] **WEB-02**: Supabase client integration for auth, database, and realtime subscriptions
-- [x] **WEB-03**: Translation engine port to TypeScript with same vocabulary and output as iOS/Android
-- [x] **WEB-04**: Translation UI with text input, language selector, result display, and history
-- [x] **WEB-05**: PWA support with service worker, offline caching, and install prompt
-- [x] **WEB-06**: Responsive design for mobile, tablet, and desktop viewports
+- [ ] **LEAK-01**: Fix `NotificationCenter` observer leaks in TranslationViewController, BatteryOptimizer, NetworkOptimizer
+- [ ] **LEAK-02**: Fix Timer leaks — store references, invalidate on completion, add `@MainActor` isolation
+- [ ] **LEAK-03**: Fix core data cache growth — add eviction policies, fetchBatchSize
+- [ ] **LEAK-04**: Verify memory stability under extended use via Instruments
 
-## Web Voice & Community (Phase 26)
+## Structural Cleanup (Phase 44)
 
-- [x] **WEB-VOICE-01**: Web Speech API (SpeechRecognition) for voice input
-- [x] **WEB-VOICE-02**: Web Speech API (SpeechSynthesis) for voice output with configurable speed/pitch
-- [x] **WEB-COMMUNITY-01**: Community phrase browser with search, filter, and pagination
-- [x] **WEB-COMMUNITY-02**: Phrase contribution with submission, validation, and spam detection
-- [x] **WEB-SOCIAL-01**: Social features: follow/unfollow, leaderboards, activity feed
-- [x] **WEB-SHARE-01**: Share translations via Web Share API and copy-to-clipboard
-- [x] **WEB-SYNC-01**: Cross-platform sync with iOS and Android (shared auth, history, social graph)
+- [ ] **STRUCT-01**: Remove duplicate `audio_processing/` directory (1,166 lines duplicated with `AudioProcessing/`)
+- [ ] **STRUCT-02**: Consolidate duplicate `TranslationDirection` enum between TranslationEngine and AITranslationService
+- [ ] **STRUCT-03**: Remove legacy direction reference in `MultiLanguageAdapter.swift`
+- [ ] **STRUCT-04**: Replace `print()` with `os_log` structured logging across all iOS files
 
-## Watch Core (Phase 27)
+## Performance Hot Paths (Phase 45)
 
-- [x] **WATCH-01**: Wear OS app with Kotlin and Compose for Wearables
-- [x] **WATCH-02**: Voice input using SpeechRecognizer optimized for watch form factor
-- [x] **WATCH-03**: Quick translation UI with glanceable result display
-- [x] **WATCH-04**: Translation history accessible from watch
-- [x] **WATCH-05**: Supabase integration for sync with phone app and cloud
-- [x] **WATCH-06**: Complication for quick translation launch from watch face
+- [ ] **PERF-01**: Connect TranslationCache to TranslationEngine (add cache check before compute, store after)
+- [ ] **PERF-02**: Fix LanguageDetectionManager O(n²) nested loop → O(n) pre-computed dictionary
+- [ ] **PERF-03**: Replace O(n²) string concatenation in `AudioTranslationBridge.swift` with `.joined(separator:)`
+- [ ] **PERF-04**: Replace `.sorted()` percentile calculation in `LatencyMonitor.swift` with quickselect
+- [ ] **PERF-05**: Convert `SpamDetectionService.swift` linear scan to Set/regex lookup
+- [ ] **PERF-06**: Convert `Settings.swift` to lazy, debounced UserDefaults reads
+- [ ] **PERF-07**: Implement `PerformanceOptimizer.swift` `NetworkRequestBatcher.executeQueuedRequest()` (currently placeholder)
+- [ ] **PERF-08**: Replace sequential `for request in batch` with `TaskGroup` parallel execution in NetworkRequestBatcher
+- [ ] **PERF-09**: Fix `TranslationCache.swift` synchronous `Data(contentsOf:)` to async, add TTL-based expiry
+- [ ] **PERF-10**: Replace silent `catch { }` in `OfflineTranslationManager.swift` with error logging + retry queue
 
-## Integration (Phase 28)
+## Resilience Infrastructure (Phase 46)
 
-- [x] **INTEGRATION-WEB-01**: End-to-end web flow: voice → translate → share → sync to mobile
-- [x] **INTEGRATION-WATCH-01**: End-to-end watch flow: voice → translate → sync to phone
-- [x] **INTEGRATION-CROSS-01**: Cross-platform sync validation across iOS, Android, Web, Watch
-- [x] **INTEGRATION-PERF-01**: Web performance: LCP <2.5s, FID <100ms, CLS <0.1
-- [x] **INTEGRATION-DEPLOY-01**: Web deployment configured (Vercel/Netlify), Watch app ready for Play Store
+- [ ] **RESIL-01**: Implement CircuitBreaker class (closed/open/half-open) for AI translation calls
+- [ ] **RESIL-02**: Implement RetryWithBackoff helper (max 3 attempts, exponential backoff 1s→2s→4s)
+- [ ] **RESIL-03**: Activate `.retry` case in `AITranslationErrorHandler.ErrorAction` for transient errors
+- [ ] **RESIL-04**: Add 30s timeout to AI translation calls in `RealTranslationController.swift`
+- [ ] **RESIL-05**: Add circuit breaker integration to `RealTranslationController` with failure threshold (5) and cooldown (30s)
 
----
+## CI/CD + Production Deployment (Phase 47)
 
-# v4.0 Requirements — Enterprise
+- [ ] **DEPLOY-01**: GitHub Actions workflow for Supabase (db push --dry-run on PR, deploy on merge)
+- [ ] **DEPLOY-02**: Supabase Edge Functions deployment pipeline (all 6 functions)
+- [ ] **DEPLOY-03**: Vercel deployment configured for Next.js web app with production environment
+- [ ] **DEPLOY-04**: RLS policy audit — verify no permissive policies, 30+ policies reviewed
+- [ ] **DEPLOY-05**: Environment management — Supabase secrets + Vercel env vars for dev/staging/prod
+- [ ] **DEPLOY-06**: Production migration — live Supabase push, Edge Functions deploy, Vercel promote
 
-**Milestone:** v4.0 Enterprise
-**Date:** 2026-04-02
-**Goal:** Open WoofTalk platform to third-party integrations via REST API, provide admin tools for content moderation and user management, and support team/organization collaboration with role-based access control.
+## Observability + Monitoring (Phase 48)
 
-## API Gateway (Phase 29)
+- [ ] **MON-01**: Edge Function error tracking via Supabase Log Drains → Sentry
+- [ ] **MON-02**: Client-side error capture (Sentry SDK) — iOS, Android, Web, Watch, AR, VR
+- [ ] **MON-03**: Uptime monitoring — external health checks for translate endpoint and Supabase API
+- [ ] **MON-04**: Slack/Discord alert routing for deploy failures, error rate spikes, downtime
+- [ ] **MON-05**: Distributed tracing — trace ID propagation from client through Edge Function to database
+- [ ] **MON-06**: RLS policy denial logging via Postgres logs (Supabase Log Drains, requires Pro plan)
 
-- [ ] **API-01**: REST API endpoints exposed via Supabase Edge Functions (translation, phrases, analytics)
-- [ ] **API-02**: API key generation, naming, and revocation
-- [ ] **API-03**: Per-key rate limiting with configurable limits
-- [ ] **API-04**: API key scoping (read-only, translate-only, analytics-only)
-- [ ] **API-05**: Usage tracking and per-key usage dashboard
-- [ ] **API-06**: API response versioning (v1, v2) with deprecation headers
-- [ ] **API-07**: Request/response schema validation (zod) at API boundary
+## Scale Testing (Phase 49)
 
-## Admin Dashboard (Phase 30)
+- [ ] **SCALE-01**: Load test Edge Functions via k6 — 100+ concurrent translations, validate latency
+- [ ] **SCALE-02**: Concurrent RLS verification — 50 users with different org_id, zero cross-org data leakage
+- [ ] **SCALE-03**: Memory stability test — 1-hour continuous translation session under Instruments, <200MB RSS
+- [ ] **SCALE-04**: Rate limit validation — Upstash fixed window (100 req/60s) under concurrent load
+- [ ] **SCALE-05**: Cache hit rate verification — >60% on warm session after TranslationCache connection
 
-- [ ] **ADMIN-01**: User list with search, filter, and pagination
-- [ ] **ADMIN-02**: User role management (promote/demote, ban/suspend)
-- [ ] **ADMIN-03**: Content moderation queue (report review, approve/reject, takedown)
-- [ ] **ADMIN-04**: Audit log (who did what, when — queryable and filterable)
-- [ ] **ADMIN-05**: Usage analytics dashboard (translations/day, active users, API usage)
-- [ ] **ADMIN-06**: Bulk moderation actions (ban multiple, delete multiple phrases)
+## Pitfalls Addressed
 
-## Organization & Team Management (Phase 31)
-
-- [ ] **ORG-01**: Create and configure organization (name, slug, plan type)
-- [ ] **ORG-02**: Invite members by email (with expiry and status tracking)
-- [ ] **ORG-03**: Role hierarchy: Owner, Admin, Member, Viewer with distinct permissions
-- [ ] **ORG-04**: Remove member and transfer ownership
-- [ ] **ORG-05**: Organization-level API key pool (shared keys across team members)
-- [ ] **ORG-06**: Team subdivision within organizations (optional group structure)
-
-## Data Model & Security (Infrastructure — Phase 29)
-
-- [ ] **DATA-01**: New database tables: `organizations`, `organization_members`, `teams`, `team_members`, `api_keys`, `api_key_usage`
-- [ ] **DATA-02**: `org_id` column added to all existing org-scoped tables (with batched migration)
-- [ ] **DATA-03**: RLS policy migration: extend 30+ existing policies with org-scoped variants
-- [ ] **DATA-04**: Migrate existing `raw_user_meta_data->>'role'` checks to `organization_members.role` join table
-- [ ] **DATA-05**: API key validation via SQL function (bcrypt hash comparison for RLS policies)
-- [ ] **DATA-06**: Rate limit enforcement via Upstash Redis (token bucket algorithm)
-
-## Integration (Phase 32)
-
-- [ ] **E2E-01**: End-to-end enterprise flow (org → invite → API key → external call → dashboard usage)
-- [ ] **E2E-02**: Admin moderation of API-created content with immediate revocation effect
-- [ ] **E2E-03**: Cross-org data leakage prevention (RLS isolation validation)
-- [ ] **E2E-04**: Consumer client regression testing (iOS, Android, Web, Watch unaffected)
-- [ ] **E2E-05**: Verification of all 25 v4.0 requirements, zero critical bugs
+- Memory leaks in production → cause gradual crash over hours (must fix before scale testing)
+- O(n²) on audio hot path → audio jank under real-world load (must fix before deployment)
+- Missing retry → ~30% of transient AI failures become permanent user failures (circuit breaker required)
+- Duplicate code → maintenance nightmare, binary bloat (structural cleanup required)
+- Edge Function cold starts → first request after idle is slow (circuit breaker + retry on client mitigates)
+- RLS misconfiguration → silent data exposure (audit required before production push)
 
 ---
-
-## Future Requirements (Deferred)
-
-| Requirement | Description | Rationale for Deferral |
-|-------------|-------------|------------------------|
-| **SSO-01** | SSO/SAML integration for enterprise orgs | Requires Supabase Pro plan ($25/mo), validate budget before committing |
-| **BILLING-01** | Usage-based billing tiers per org | Complex; defer until org usage patterns are understood |
-| **API-08** | API playground (interactive documentation) | Developer experience, not revenue-critical |
-| **API-09** | Per-key IP allowlisting | Security hardening, can be added after launch |
-| **API-10** | SDK for API consumers (TypeScript, Python) | Post-launch developer ecosystem play |
-| **ORG-07** | Team-level workspaces with separate content | Complex content isolation; start with org-level only |
-| **ADMIN-07** | Automated spam detection with trust scores | ML complexity; manual moderation is table stakes |
 
 ## Out of Scope (Explicit Exclusions)
 
 | Feature | Reason |
 |---------|--------|
-| Web push notifications | Still deferred — not an enterprise driver |
-| Apple Watch app | No change from v3.1 decision |
-| Dedicated backend server | Supabase Edge Functions are sufficient; no separate infra needed |
-| Full Salesforce-style admin panel | Scope creep risk — scope to moderation and user management only |
-| GraphQL API | REST is sufficient for WoofTalk's API surface; revisit at >10K API consumers |
-| Self-hosted RBAC service (Permit.io, Oso) | Supabase RLS is sufficient and database-level |
-
----
-
-# v4.1 Requirements — Security & Deployment Hardening
-
-**Milestone:** v4.1 Security & Deployment Hardening
-**Date:** 2026-04-02
-**Goal:** Close security gaps from v4.0 execution, add auth guards, and validate deployment readiness
-
-## Admin Auth (Phase 33)
-
-- [x] **SEC-AUTH-01**: Next.js middleware.ts with real `is_admin()` session verification via Supabase Auth
-- [x] **SEC-AUTH-02**: Non-admin users redirected to `/403` on admin routes
-- [x] **SEC-AUTH-03**: All 7 admin API routes protected with `requireAdmin()` helper
-
-## API Security (Phase 34)
-
-- [x] **SEC-API-01**: IP allowlist on api_keys — requests from non-allowlisted IPs get 403
-- [x] **SEC-API-02**: `GET /v1/openapi.json` returns valid OpenAPI 3.1 spec
-- [x] **SEC-API-03**: CORS tightened from wildcard `*` to specific configured origins
-
-## Consumer Regression (Phase 35)
-
-- [x] **SEC-REG-01**: All 4 existing Edge Functions return correct responses with session auth
-- [x] **SEC-REG-02**: Consumer users (org_id IS NULL) can still read/write their own data after RLS migration
-
-## Email & Invites (Phase 36)
-
-- [x] **SEC-EMAIL-01**: Invite email sent with token and expiry date via Resend
-- [x] **SEC-EMAIL-02**: Visiting `/invite/:token` with valid token joins org and redirects to `/org`
-- [x] **SEC-EMAIL-03**: Expired token returns clear error message
-
-## Deployment & E2E (Phase 37)
-
-- [x] **SEC-DEPLOY-01**: `e2e-consumer-regression.sh` tests 4 Edge Functions against new RLS
-- [x] **SEC-DEPLOY-02**: All env vars documented in `web/.env.example`, secrets rotation guide in `supabase/DEPLOYMENT.md`
-- [x] **SEC-DEPLOY-03**: Deployment step-by-step guide with migration and function instructions
-
-**Note:** Live E2E verification (SEC-DEPLOY-01 execution against production) deferred to actual deployment time.
-
----
-
-# M007: AR/VR — Mixed Reality Translation
-
-**Milestone:** M007 AR/VR
-**Date:** 2026-04-03 (planned)
-**Goal:** Extend WoofTalk to immersive platforms (Apple Vision Pro AR, Meta Quest VR) with spatial translation overlays, dog bark detection, and virtual dog avatars.
-
-## AR Foundation (Phase 38)
-
-- [x] **AR-01**: Vision Pro project setup with RealityKit, ARKit integration, and Xcode configuration
-- [x] **AR-02**: Core ML dog bark classifier trained on dog sound datasets (accuracy >85%)
-- [x] **AR-03**: Real-time camera passthrough with ARView and session management
-- [x] **AR-04**: Basic translation bubble rendering at fixed world position (2m in front)
-- [x] **AR-05**: Edge Function API integration for translation calls (auth, error handling)
-- [x] **AR-06**: Simple spatial audio playback anchored to bubble position
-
-## AR Spatial UX (Phase 39)
-
-- [ ] **AR-07**: Gaze-based dog position estimation using ARKit raycast and hit-testing
-- [ ] **AR-08**: Bubble placement engine with distance clamping (1-10m), billboarding, and occlusion checks
-- [ ] **AR-09**: Readability optimization (font size, contrast, drop shadow, background opacity)
-- [ ] **AR-10**: Performance tuning to maintain 90 FPS with 3+ active bubbles
-- [ ] **AR-11**: User-controlled bubble pinning and manual placement gestures
-- [ ] **AR-12**: Environmental awareness (avoid placing bubbles inside walls/furniture)
-
-## VR Foundation (Phase 40)
-
-- [ ] **VR-01**: Unity project with Meta XR SDK, Oculus Integration, and Quest deployment target
-- [ ] **VR-02**: Dog avatar 3D model with idle, bark, and head-turn animations (FBX rig)
-- [x] **VR-03**: Hand tracking integration (OVRHand) for menu navigation and gaze-based triggers
-- [x] **VR-04**: Translation bubble system using TextMeshPro in world space, billboarded to user
-- [ ] **VR-05**: Bark detection using TensorFlow Lite model (same accuracy targets as AR)
-- [ ] **VR-06**: Spatial audio via Oculus Spatializer with attenuation and direction
-
-## VR Environments & Polish (Phase 41)
-
-- [x] **VR-07**: Multiple virtual environments (park, living room, beach) with modular assets
-- [x] **VR-08**: Dog avatar customization (breed selection, color, accessories) using Supabase Storage
-- [x] **VR-09**: Performance optimization for Quest 2 (72 FPS) and Quest 3 (90 FPS), quality presets
-- [ ] **VR-10**: Motion sickness mitigation (head-locked UI, comfort mode, session warnings)
-- [ ] **VR-11**: Environment selection menu, settings UI (volume, bubble opacity, comfort toggles)
-- [ ] **VR-12**: User testing and iteration on VR comfort and usability
-
-## Cross-Platform Integration (Phase 42)
-
-- [ ] **X-01**: Translation history sync across all platforms (iOS, Android, Web, Watch, AR, VR) via Supabase
-- [ ] **X-02**: Shared user settings (bubble preferences, audio volume, default platform)
-- [ ] **X-03**: Platform-specific analytics (session length, accuracy feedback, FPS metrics)
-- [ ] **X-04**: visionOS App Store submission guide, TestFlight beta distribution
-- [ ] **X-05**: Meta Quest Store submission (screenshots, videos, compliance checklist)
-- [ ] **X-06**: Deployment documentation, user guides, and fallback strategies (iPhone ARKit for non-Vision Pro)
-
-## Data Model Extensions
-
-- [x] **DATA-ARVR-01**: Add `platform` column to `translation_history` (values: ar_vision, vr_quest, ios, android, web, watch)
-- [x] **DATA-ARVR-02**: Add `spatial_position JSONB` to `translation_history` for 3D coordinates (x,y,z in device space)
-- [x] **DATA-ARVR-03**: New `dog_avatars` table for VR avatar customization (breed, color, accessories, user_id)
-- [x] **DATA-ARVR-04**: New `user_devices` table to track registered AR/VR hardware (optional, for analytics)
-- [x] **DATA-ARVR-05**: Backfill `platform` for historical records (default 'mobile' for existing data)
-- [x] **DATA-ARVR-06**: RLS policies for new tables ensuring user isolation
-
-## Pitfalls Addressed
-
-- Dog body tracking unsolved → use gaze/audio heuristics, manual placement fallback
-- Vision Pro market size → position as premium showcase, iPhone ARKit fallback
-- Dog bark accuracy → user-controlled activation, confidence threshold, feedback loop
-- VR motion sickness → head-locked UI, 90 FPS target, comfort toggles, session limits
-- 3D UI readability → billboarding, distance clamping, occlusion checks, high contrast
-- Performance → device-specific quality presets, aggressive GPU profiling
-
----
-
-## Out of Scope (Explicit Exclusions)
-
-- ARCore (Android AR) - fragmented market, low penetration; focus on Vision Pro
-- Unreal Engine - overkill for translation overlays, steeper learning curve than Unity
-- OpenXR abstraction - native SDKs provide better quality for MVP
-- Cloud-based dog ML processing - on-device only (privacy + latency)
-- Multi-user AR/VR networking - V2 feature (presence, shared avatars, sync)
-- Dog body language analysis (tail wag, ear position) - beyond vocalization scope
-- Standalone AR glasses (non-Vision Pro) - hardware not mature
-- Dog thought reading / emotional state from facial expression - research phase
+| Self-hosted monitoring stack (Grafana + Prometheus) | Side project — managed services handle this at lower cost |
+| PagerDuty or complex on-call rotation | Solo developer — Slack alerts are sufficient |
+| APM with always-on profiling (Datadog, New Relic) | Overkill for 6 Edge Functions + serverless |
+| Android Kotlin translation layer audit | All tech debt is iOS-only; Android audit is separate milestone |
+| AR/VR platform monitoring (session replay, GPU metrics) | Sentry cannot capture RealityKit/Unity GPU frame times meaningfully |
+| Multi-user AR/VR networking | V2 feature (presence, shared avatars, sync) |
 
 ---
 
@@ -251,66 +97,55 @@
 
 | Phase | Requirements | Success Criteria | Status |
 |-------|-------------|-----------------|--------|
-| Phase 29: API Gateway & Data Model | API-01 through API-07, DATA-01 through DATA-06 | Third-party can call translate API with a key, get rate-limited response, see usage in dashboard; multi-tenant DB operational | Complete |
-| Phase 30: Admin Dashboard | ADMIN-01 through ADMIN-06 | Admin can find, ban, and moderate content from a single dashboard | Complete |
-| Phase 31: Organization & Team Management | ORG-01 through ORG-06 | Organization can be created, members invited, roles assigned, and org API keys managed | Complete |
-| Phase 32: Integration | E2E-01 through E2E-05 | End-to-end enterprise flow works, RLS prevents cross-org leakage, consumer clients unaffected | Complete |
-| Phase 33: Admin Auth | SEC-AUTH-01, SEC-AUTH-02, SEC-AUTH-03 | All admin pages and API routes protected with middleware session validation and requireAdmin() helper | Complete |
-| Phase 34: API Security Hardening | SEC-API-01, SEC-API-02, SEC-API-03 | IP allowlisting per API key, OpenAPI spec served, CORS tightened | Complete |
-| Phase 35: Consumer Regression Suite | SEC-REG-01, SEC-REG-02 | Regression script validates 4 Edge Functions with new RLS policies | Complete (script delivered, execution deferred to deployment) |
-| Phase 36: Email & Invites | SEC-EMAIL-01, SEC-EMAIL-02, SEC-EMAIL-03 | Invite emails sent via Resend, acceptance page joins org, expiry handling | Complete |
-| Phase 37: Deployment & E2E Verification | SEC-DEPLOY-01, SEC-DEPLOY-02, SEC-DEPLOY-03 | Deployment guide, env documentation, test script integration | Complete |
-| Phase 38: AR Foundation | AR-01 through AR-06 | Vision Pro project setup, dog bark classifier, basic AR overlay with spatial audio | To Plan |
-| Phase 39: AR Spatial UX | AR-07 through AR-12 | Gaze-based anchoring, bubble placement, readability optimization, 90 FPS performance | To Plan |
-| Phase 40: VR Foundation | VR-01 through VR-06 | Unity project, dog avatar, hand tracking, translation bubbles, spatial audio | To Plan |
-| Phase 41: VR Environments & Polish | VR-07 through VR-12 | Multiple environments, avatar customization, performance optimization, motion sickness mitigation | To Plan |
-| Phase 42: Cross-Platform Integration | X-01 through X-06, DATA-ARVR-01 through DATA-ARVR-06 | History sync, store submissions, deployment docs | To Plan |
+| Phase 43: Memory Leak Elimination | LEAK-01 through LEAK-04 | Instruments verification: stable <200MB RSS under extended use | To Plan |
+| Phase 44: Structural Cleanup | STRUCT-01 through STRUCT-04 | Duplicate directory deleted, os_log replaces print() across 19 files | To Plan |
+| Phase 45: Performance Hot Paths | PERF-01 through PERF-10 | TranslationEngine cache hit rate >60%, O(n²) eliminated to O(n) | To Plan |
+| Phase 46: Resilience Infrastructure | RESIL-01 through RESIL-05 | Circuit breaker opens after 5 failures, retry recovers ~30% of transient errors | To Plan |
+| Phase 47: CI/CD + Production Deployment | DEPLOY-01 through DEPLOY-06 | Live production deployment with working Edge Functions, database, and RLS isolation | To Plan |
+| Phase 48: Observability + Monitoring | MON-01 through MON-06 | Error tracking, uptime monitoring, alert routing, distributed tracing operational | To Plan |
+| Phase 49: Scale Testing | SCALE-01 through SCALE-05 | 100+ concurrent translations pass, zero data leakage, cache hit rate >60% | To Plan |
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | Phase 29 | Complete |
-| API-02 | Phase 29 | Complete |
-| API-03 | Phase 29 | Complete |
-| API-04 | Phase 29 | Complete |
-| API-05 | Phase 29 | Complete |
-| API-06 | Phase 29 | Complete |
-| API-07 | Phase 29 | Complete |
-| DATA-01 | Phase 29 | Complete |
-| DATA-02 | Phase 29 | Complete |
-| DATA-03 | Phase 29 | Complete |
-| DATA-04 | Phase 29 | Complete |
-| DATA-05 | Phase 29 | Complete |
-| DATA-06 | Phase 29 | Complete |
-| ADMIN-01 | Phase 30 | Complete |
-| ADMIN-02 | Phase 30 | Complete |
-| ADMIN-03 | Phase 30 | Complete |
-| ADMIN-04 | Phase 30 | Complete |
-| ADMIN-05 | Phase 30 | Complete |
-| ADMIN-06 | Phase 30 | Complete |
-| ORG-01 | Phase 31 | Complete |
-| ORG-02 | Phase 31 | Complete |
-| ORG-03 | Phase 31 | Complete |
-| ORG-04 | Phase 31 | Complete |
-| ORG-05 | Phase 31 | Complete |
-| ORG-06 | Phase 31 | Complete |
-| E2E-01 | Phase 32 | Complete |
-| E2E-02 | Phase 32 | Complete |
-| E2E-03 | Phase 32 | Complete |
-| E2E-04 | Phase 32 | Complete |
-| E2E-05 | Phase 32 | Complete |
-| SEC-AUTH-01 | Phase 33 | Complete |
-| SEC-AUTH-02 | Phase 33 | Complete |
-| SEC-AUTH-03 | Phase 33 | Complete |
-| SEC-API-01 | Phase 34 | Complete |
-| SEC-API-02 | Phase 34 | Complete |
-| SEC-API-03 | Phase 34 | Complete |
-| SEC-REG-01 | Phase 35 | Complete |
-| SEC-REG-02 | Phase 35 | Complete |
-| SEC-EMAIL-01 | Phase 36 | Complete |
-| SEC-EMAIL-02 | Phase 36 | Complete |
-| SEC-EMAIL-03 | Phase 36 | Complete |
-| SEC-DEPLOY-01 | Phase 37 | Complete |
-| SEC-DEPLOY-02 | Phase 37 | Complete |
-| SEC-DEPLOY-03 | Phase 37 | Complete |
+| LEAK-01 | Phase 43 | To Plan |
+| LEAK-02 | Phase 43 | To Plan |
+| LEAK-03 | Phase 43 | To Plan |
+| LEAK-04 | Phase 43 | To Plan |
+| STRUCT-01 | Phase 44 | To Plan |
+| STRUCT-02 | Phase 44 | To Plan |
+| STRUCT-03 | Phase 44 | To Plan |
+| STRUCT-04 | Phase 44 | To Plan |
+| PERF-01 | Phase 45 | To Plan |
+| PERF-02 | Phase 45 | To Plan |
+| PERF-03 | Phase 45 | To Plan |
+| PERF-04 | Phase 45 | To Plan |
+| PERF-05 | Phase 45 | To Plan |
+| PERF-06 | Phase 45 | To Plan |
+| PERF-07 | Phase 45 | To Plan |
+| PERF-08 | Phase 45 | To Plan |
+| PERF-09 | Phase 45 | To Plan |
+| PERF-10 | Phase 45 | To Plan |
+| RESIL-01 | Phase 46 | To Plan |
+| RESIL-02 | Phase 46 | To Plan |
+| RESIL-03 | Phase 46 | To Plan |
+| RESIL-04 | Phase 46 | To Plan |
+| RESIL-05 | Phase 46 | To Plan |
+| DEPLOY-01 | Phase 47 | To Plan |
+| DEPLOY-02 | Phase 47 | To Plan |
+| DEPLOY-03 | Phase 47 | To Plan |
+| DEPLOY-04 | Phase 47 | To Plan |
+| DEPLOY-05 | Phase 47 | To Plan |
+| DEPLOY-06 | Phase 47 | To Plan |
+| MON-01 | Phase 48 | To Plan |
+| MON-02 | Phase 48 | To Plan |
+| MON-03 | Phase 48 | To Plan |
+| MON-04 | Phase 48 | To Plan |
+| MON-05 | Phase 48 | To Plan |
+| MON-06 | Phase 48 | To Plan |
+| SCALE-01 | Phase 49 | To Plan |
+| SCALE-02 | Phase 49 | To Plan |
+| SCALE-03 | Phase 49 | To Plan |
+| SCALE-04 | Phase 49 | To Plan |
+| SCALE-05 | Phase 49 | To Plan |
 
-**Coverage:** 78/78 total requirements (30 v4.0 + 12 v4.1 + 36 M007) mapped to 14 phases
+**Coverage:** 41 requirements mapped to 7 phases (43-49)
