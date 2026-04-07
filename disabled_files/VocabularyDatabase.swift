@@ -1,0 +1,291 @@
+// MARK: - VocabularyDatabase
+
+import Foundation
+import SQLite3
+import AVFoundation
+import os.log
+
+/// SQLite database for storing translation vocabulary
+final class VocabularyDatabase {
+
+    // MARK: - Public Types
+
+    /// Vocabulary lookup result
+    struct VocabularyLookupResult {
+        let translatedText: String
+        let confidence: Double
+        let source: Source
+
+        enum Source {
+            case mlModel
+            case database
+            case simpleMapping
+        }
+    }
+
+    /// Vocabulary coverage statistics
+    struct VocabularyCoverage: CustomStringConvertible {
+        let humanToDogPhrases: Int
+        let dogToHumanPhrases: Int
+        let totalPhrases: Int
+        let coveragePercentage: Double
+
+        var description: String {
+            return String(
+                format: "VocabularyCoverage(humanToDog: %d, dogToHuman: %d, total: %d, coverage: %.1f%%)",
+                humanToDogPhrases, dogToHumanPhrases, totalPhrases, coveragePercentage * 100)
+        }
+    }
+
+    // MARK: - Private Properties
+
+    static let shared = VocabularyDatabase()
+    private let databaseFileName = "wooftalk_vocabulary.sqlite"
+    private var database: OpaquePointer? = nil
+    private let databaseQueue = DispatchQueue(label: "com.wooftalk.vocabulary.database")
+
+    // MARK: - Initialization
+
+    private init() {
+        openDatabase()
+        createTables()
+        populateDatabase()
+    }
+
+    deinit {
+        closeDatabase()
+    }
+
+    // MARK: - Public Methods
+
+    /// Lookup human speech to dog translation
+    func lookupHumanToDog(_ text: String) -> String {
+        guard !text.isEmpty else { return "" }
+        let normalizedText = normalizeText(text)
+        var result = ""
+        databaseQueue.sync {
+            result = lookupHumanToDogInternal(normalizedText)
+        }
+        return result
+    }
+
+    /// Lookup dog vocalization to human translation
+    func lookupDogToHuman(_ text: String) -> String {
+        guard !text.isEmpty else { return "" }
+        let normalizedText = normalizeText(text)
+        var result = ""
+        databaseQueue.sync {
+            result = lookupDogToHumanInternal(normalizedText)
+        }
+        return result
+    }
+
+    /// Get vocabulary coverage statistics
+    func getCoverageStatistics() -> VocabularyCoverage {
+        var coverage = VocabularyCoverage(
+            humanToDogPhrases: 0,
+            dogToHumanPhrases: 0,
+            totalPhrases: 0,
+            coveragePercentage: 0.0)
+        databaseQueue.sync {
+            coverage = getCoverageStatisticsInternal()
+        }
+        return coverage
+    }
+
+    /// Get translation confidence for a phrase
+    func getTranslationConfidence(_ text: String, direction: TranslationDirection) -> Double {
+        guard !text.isEmpty else { return 0.0 }
+        let normalizedText = normalizeText(text)
+        var confidence = 0.0
+        databaseQueue.sync {
+            confidence = getTranslationConfidenceInternal(
+                normalizedText, direction: direction)
+        }
+        return confidence
+    }
+
+    // MARK: - Private Methods
+
+    private func openDatabase() {
+        let fileURL = getDatabaseFileURL()
+        if sqlite3_open(fileURL.path, &database) != SQLITE_OK {
+            os_log("%{public}@", log: OSLog.default, type: .error, "Error opening vocabulary database")
+            database = nil
+        }
+    }
+
+    private func closeDatabase() {
+        if database != nil {
+            sqlite3_close(database)
+            database = nil
+        }
+    }
+
+    private func createTables() {
+        let createTableQuery = ""
+            + "CREATE TABLE IF NOT EXISTS vocabulary ("
+            + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + "human_text TEXT NOT NULL,"
+            + "dog_text TEXT NOT NULL,"
+            + "context TEXT,"
+            + "frequency INTEGER DEFAULT 1,"
+            + "confidence REAL DEFAULT 0.8,"
+            + "category TEXT,"
+            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+            + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            + ");"
+        executeQuery(createTableQuery)
+        executeQuery(
+            "CREATE INDEX IF NOT EXISTS idx_human_text ON vocabulary (human_text);")
+        executeQuery(
+            "CREATE INDEX IF NOT EXISTS idx_dog_text ON vocabulary (dog_text);")
+    }
+
+    private func populateDatabase() {
+        let countQuery = "SELECT COUNT(*) FROM vocabulary;"
+        var statement: OpaquePointer? = nil
+        if sqlite3_prepare_v2(database, countQuery, -1, &statement, nil) == SQLITE_OK {
+            if sqlite3_step(statement) == SQLITE_ROW {
+                let count = sqlite3_column_int(statement, 0)
+                sqlite3_finalize(statement)
+                if count == 0 {
+                    populateInitialVocabulary()
+                }
+            }
+        }
+    }
+
+    private func populateInitialVocabulary() {
+        let initialVocabulary: [[String]] = [
+            ["sit", "woof woof woof"],
+            ["stay", "woof woof woof woof"],
+            ["come", "woof woof woof woof woof"],
+            ["no", "woof woof woof woof woof woof woof woof"],
+            ["yes", "woof woof woof woof woof woof woof woof woof"],
+            ["good boy", "woof woof woof woof woof woof"],
+            ["good girl", "woof woof woof woof woof woof woof"],
+            ["walk", "woof woof woof woof"],
+            ["food", "woof woof woof woof woof"],
+            ["play", "woof woof woof"],
+            ["hello", "woof woof"],
+            ["treat", "woof woof woof woof woof woof woof"],
+            ["water", "woof woof woof woof woof woof woof woof"],
+            ["ball", "woof woof woof woof woof woof woof"],
+            ["fetch", "woof woof woof woof woof"],
+            ["bed", "woof woof woof woof woof woof"],
+            ["toy", "woof woof woof woof woof woof woof"],
+            ["sleep", "woof woof woof woof woof woof woof woof"],
+            ["love you", "woof woof woof woof woof woof woof woof woof"]
+        ]
+
+        for entry in initialVocabulary {
+            guard entry.count == 2 else { continue }
+            let insertQuery = "INSERT OR REPLACE INTO vocabulary (human_text, dog_text, category, confidence) VALUES (?, ?, ?, ?);"
+            var statement: OpaquePointer? = nil
+            let category: String = ["walk", "food", "treat", "water"].contains(entry[0]) ? "needs" : "command"
+            if sqlite3_prepare_v2(database, insertQuery, -1, &statement, nil) == SQLITE_OK, statement != nil {
+                sqlite3_bind_text(statement, 1, entry[0], -1, nil)
+                sqlite3_bind_text(statement, 2, entry[1], -1, nil)
+                sqlite3_bind_text(statement, 3, category, -1, nil)
+                sqlite3_bind_double(statement, 4, 0.8)
+                if sqlite3_step(statement) != SQLITE_DONE {
+                    os_log("%{public}@", log: OSLog.default, type: .error, "Error inserting: \(entry[0])")
+                }
+                sqlite3_finalize(statement)
+            }
+        }
+        os_log("Vocabulary database populated with %d entries", log: OSLog.default, type: .info, initialVocabulary.count)
+    }
+
+    private func lookupHumanToDogInternal(_ text: String) -> String {
+        let query = "SELECT dog_text FROM vocabulary WHERE human_text = ? LIMIT 1;"
+        var result = ""
+        var statement: OpaquePointer? = nil
+        if sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK, statement != nil {
+            sqlite3_bind_text(statement, 1, text, -1, nil)
+            if sqlite3_step(statement) == SQLITE_ROW {
+                if let text = sqlite3_column_text(statement, 0) {
+                    result = String(cString: text)
+                }
+            }
+            sqlite3_finalize(statement)
+        }
+        return result
+    }
+
+    private func lookupDogToHumanInternal(_ text: String) -> String {
+        let query = "SELECT human_text FROM vocabulary WHERE dog_text = ? LIMIT 1;"
+        var result = ""
+        var statement: OpaquePointer? = nil
+        if sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK, statement != nil {
+            sqlite3_bind_text(statement, 1, text, -1, nil)
+            if sqlite3_step(statement) == SQLITE_ROW {
+                if let text = sqlite3_column_text(statement, 0) {
+                    result = String(cString: text)
+                }
+            }
+            sqlite3_finalize(statement)
+        }
+        return result
+    }
+
+    private func getCoverageStatisticsInternal() -> VocabularyCoverage {
+        var humanCount = 0
+        var dogCount = 0
+        var totalCount = 0
+        var statement: OpaquePointer? = nil
+
+        if sqlite3_prepare_v2(database, "SELECT COUNT(*) FROM vocabulary WHERE LENGTH(dog_text) > LENGTH(human_text)", -1, &statement, nil) == SQLITE_OK, statement != nil {
+            if sqlite3_step(statement) == SQLITE_ROW { humanCount = Int(sqlite3_column_int(statement, 0)) }
+            sqlite3_finalize(statement)
+        }
+        if sqlite3_prepare_v2(database, "SELECT COUNT(*) FROM vocabulary WHERE LENGTH(human_text) > LENGTH(dog_text)", -1, &statement, nil) == SQLITE_OK, statement != nil {
+            if sqlite3_step(statement) == SQLITE_ROW { dogCount = Int(sqlite3_column_int(statement, 0)) }
+            sqlite3_finalize(statement)
+        }
+        if sqlite3_prepare_v2(database, "SELECT COUNT(*) FROM vocabulary", -1, &statement, nil) == SQLITE_OK, statement != nil {
+            if sqlite3_step(statement) == SQLITE_ROW { totalCount = Int(sqlite3_column_int(statement, 0)) }
+            sqlite3_finalize(statement)
+        }
+
+        return VocabularyCoverage(
+            humanToDogPhrases: humanCount, dogToHumanPhrases: dogCount,
+            totalPhrases: totalCount, coveragePercentage: min(1.0, Double(totalCount) / 1000.0))
+    }
+
+    private func getTranslationConfidenceInternal(_ text: String, direction: TranslationDirection) -> Double {
+        let query = "SELECT confidence FROM vocabulary WHERE human_text = ? OR dog_text = ? LIMIT 1"
+        var confidence = 0.0
+        var statement: OpaquePointer? = nil
+        if sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK, statement != nil {
+            sqlite3_bind_text(statement, 1, text, -1, nil)
+            sqlite3_bind_text(statement, 2, text, -1, nil)
+            if sqlite3_step(statement) == SQLITE_ROW {
+                confidence = Double(sqlite3_column_double(statement, 0))
+            }
+            sqlite3_finalize(statement)
+        }
+        return confidence
+    }
+
+    private func executeQuery(_ query: String) {
+        var errorMessage: UnsafeMutablePointer<CChar>? = nil
+        if sqlite3_exec(database, query, nil, nil, &errorMessage) != SQLITE_OK {
+            if let errorPtr = errorMessage {
+                os_log("%{public}@", log: OSLog.default, type: .error, "SQLite Error: \(String(cString: errorPtr))")
+                sqlite3_free(errorPtr)
+            }
+        }
+    }
+
+    private func normalizeText(_ text: String) -> String {
+        text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func getDatabaseFileURL() -> URL {
+        let fileManager = FileManager.default
+        let cachesURL = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        return cachesURL.appendingPathComponent(databaseFileName)
+    }
+}

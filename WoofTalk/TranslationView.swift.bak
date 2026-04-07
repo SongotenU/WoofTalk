@@ -56,28 +56,11 @@ struct TranslationView: View {
                 .cornerRadius(12)
             }
 
-            // Large visual bark output display (for demo since sim has no audio)
+            // Large bark output display for visual demo
             if !entries.isEmpty {
-                let latest = entries.first!
-                VStack(spacing: 6) {
-                    HStack(spacing: 12) {
-                        Image(systemName: latest.direction == .barkToHuman ? "message.left" : "message.right")
-                            .font(.title2)
-                            .foregroundColor(latest.direction == .barkToHuman ? .orange : .blue)
-                        Text(latest.translated)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                    }
-                    Text(latest.original)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(latest.direction == .barkToHuman ? Color.orange.opacity(0.08) : Color.blue.opacity(0.08))
-                .cornerRadius(14)
-            }
+                let lastEntry = entries.first!
+                VStack(spacing: 4) {
+                    HStack(spacing: 8)
 
             // Recording indicator
             if audioRecorder.isRecording {
@@ -104,6 +87,7 @@ struct TranslationView: View {
                         .foregroundColor(.primary)
                         .fontWeight(.bold)
 
+                    // Audio level bar
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 4)
@@ -123,7 +107,7 @@ struct TranslationView: View {
                     .frame(height: 8)
                 }
                 .padding(.top, 10)
-            } else if entries.isEmpty {
+            } else {
                 VStack(spacing: 8) {
                     Image(systemName: "speaker.wave.3")
                         .font(.system(size: 50))
@@ -151,12 +135,13 @@ struct TranslationView: View {
             .padding(.horizontal)
             .padding(.bottom, 4)
 
-            // Demo bark buttons
+            // Demo bark buttons (simulator has no mic input, these let you demo the feature)
             if audioRecorder.isRecording {
                 VStack(spacing: 6) {
                     Text("Simulate a bark:")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(demoBarks) { bark in
@@ -184,19 +169,18 @@ struct TranslationView: View {
                 .padding(.bottom, 8)
             }
 
-            // Human -> Bark inline input
-            HStack(spacing: 8) {
-                TextField("Type to translate to bark...", text: $humanInput)
-                    .textFieldStyle(.roundedBorder)
-                    .submitLabel(.send)
-                    .onSubmit { submitHumanText() }
-
-                Button(action: { submitHumanText() }) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-                .disabled(humanInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            // Human -> Bark button
+            Button(action: {
+                humanInput = ""
+                showHumanInputSheet = true
+            }) {
+                Label(" Translate your message to Bark", systemImage: "arrow.left.arrow.right")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(10)
             }
             .padding(.horizontal)
             .padding(.bottom, 8)
@@ -217,38 +201,42 @@ struct TranslationView: View {
                 }
                 .padding(.bottom, 8)
 
-                if entries.count <= 1 {
-                    Text("Tap bark buttons above or 'Translate your message' below")
+                if entries.isEmpty {
+                    Text("No translations yet")
                         .foregroundColor(.secondary)
-                        .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 6) {
-                            ForEach(Array(entries.dropFirst())) { entry in
+                        LazyVStack(spacing: 8) {
+                            ForEach(entries) { entry in
                                 HStack {
-                                    Image(systemName: entry.direction == .barkToHuman ? "dog" : "person")
-                                        .font(.caption)
-                                        .foregroundColor(entry.direction == .barkToHuman ? .orange : .blue)
-                                    Text(entry.original)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: entry.direction == .barkToHuman ? "dog" : "person")
+                                                .font(.caption)
+                                                .foregroundColor(entry.direction == .barkToHuman ? .orange : .blue)
+                                            Text(entry.original)
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Text(entry.translated)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .lineLimit(3)
+                                    }
                                     Spacer()
-                                    Text(entry.translated)
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                        .lineLimit(2)
-                                        .multilineTextAlignment(.trailing)
+                                    Image(systemName: entry.direction == .barkToHuman ? "arrow.right" : "arrow.left")
+                                        .foregroundColor(.secondary)
                                 }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal)
+                                .padding()
                                 .background(Color(.systemGray6))
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                         }
                         .padding(.horizontal)
                     }
-                    .frame(maxHeight: 150)
+                    .frame(maxHeight: 200)
                 }
             }
         }
@@ -267,6 +255,7 @@ struct TranslationView: View {
                         at: 0
                     )
                 }
+                // Play bark sound
                 barkSynth.playBark(bark)
             })
         }
@@ -321,20 +310,22 @@ struct TranslationView: View {
         }
     }
 
+    // Demo: simulate bark events for showcase (simulator has no real mic input)
     private struct DemoBark: Identifiable {
         let id = UUID()
         let duration: TimeInterval
         let level: Float
         let label: String
         let icon: String
+        let humanMeaning: String
     }
 
     private let demoBarks: [DemoBark] = [
-        DemoBark(duration: 0.15, level: 0.7, label: "Short Bark", icon: "🐕"),
-        DemoBark(duration: 0.4, level: 0.5, label: "Double Bark", icon: "🐶"),
-        DemoBark(duration: 1.5, level: 0.3, label: "Whine", icon: "🥺"),
-        DemoBark(duration: 1.8, level: 0.8, label: "Growl", icon: "😤"),
-        DemoBark(duration: 3.0, level: 0.7, label: "Howl", icon: "🐺"),
+        DemoBark(duration: 0.15, level: 0.7, label: "Short Bark", icon: "🐕", humanMeaning: "Hey!"),
+        DemoBark(duration: 0.4, level: 0.5, label: "Double Bark", icon: "🐶", humanMeaning: "Play with me!"),
+        DemoBark(duration: 1.5, level: 0.3, label: "Whine", icon: "🥺", humanMeaning: "I'm worried..."),
+        DemoBark(duration: 1.8, level: 0.8, label: "Growl", icon: "😤", humanMeaning: "Back off!"),
+        DemoBark(duration: 3.0, level: 0.7, label: "Howl", icon: "🐺", humanMeaning: "Where are you?"),
     ]
 
     private func simulateBark(_ bark: DemoBark) {
@@ -356,31 +347,15 @@ struct TranslationView: View {
                     at: 0
                 )
             }
+            // Speak the human translation aloud
             barkSynth.speakTranslation(translation)
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation { audioRecorder.audioLevel = 0.0 }
+            withAnimation {
+                audioRecorder.audioLevel = 0.0
+            }
         }
-    }
-
-    private func submitHumanText() {
-        let text = humanInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        let bark = engine.humanToBark(text)
-        withAnimation {
-            entries.insert(
-                TranslationEntry(
-                    timestamp: Date(),
-                    direction: .humanToBark,
-                    original: text,
-                    translated: bark
-                ),
-                at: 0
-            )
-        }
-        humanInput = ""
-        barkSynth.playBark(bark)
     }
 
     private func getCurrentBarkTranslation() -> String {
@@ -400,7 +375,6 @@ struct HumanInputSheet: View {
     @Binding var humanInput: String
     @Environment(\.dismiss) var dismiss
     let onSend: (String) -> Void
-    @State private var internalText = ""
 
     var body: some View {
         NavigationView {
@@ -436,6 +410,7 @@ struct HumanInputSheet: View {
                     .fontWeight(.bold)
                 }
             }
+            .confirmationDialog("", isPresented: .constant(false), titleVisibility: .hidden, actions: {})
         }
     }
 }

@@ -2,6 +2,7 @@
 
 import SwiftUI
 import CoreData
+import Combine
 
 struct CommunityPhraseBrowserView: View {
     @Environment(\.managedObjectContext) private var viewContext

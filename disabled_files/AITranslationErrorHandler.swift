@@ -2,11 +2,11 @@ import Foundation
 
 final class AITranslationErrorHandler {
     static let shared = AITranslationErrorHandler()
-    
+
     private var errorLog: [TranslationErrorLog] = []
     private let maxLogSize = 100
-    
-    private init() {}
+
+    init() {}
     
     func handleError(_ error: Error, context: TranslationContext) -> ErrorAction {
         let logEntry = TranslationErrorLog(
@@ -69,7 +69,6 @@ enum ErrorAction {
 struct TranslationContext {
     let input: String
     let direction: TranslationDirection
-    let mode: TranslationMode
 }
 
 struct TranslationErrorLog {

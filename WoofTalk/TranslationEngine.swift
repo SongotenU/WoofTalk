@@ -1,306 +1,126 @@
-// MARK: - TranslationEngine
-
 import Foundation
-import AVFoundation
 
-/// Core translation engine for real-time translation between human speech and dog vocalizations
-final class TranslationEngine {
-    
-    // MARK: - Public Types
+/// Bidirectional translation engine: bark -> human text and human text -> bark.
+class TranslationEngine {
 
-    /// Translation error types
-    enum TranslationError: Error, LocalizedError {
-        case invalidInput
-        case modelUnavailable
-        case translationFailed
-        case vocabularyLookupFailed
-        case audioProcessingFailed
-        
-        var errorDescription: String? {
-            switch self {
-            case .invalidInput:
-                return "Invalid input for translation"
-            case .modelUnavailable:
-                return "Translation model is unavailable"
-            case .translationFailed:
-                return "Translation failed"
-            case .vocabularyLookupFailed:
-                return "Failed to lookup vocabulary"
-            case .audioProcessingFailed:
-                return "Audio processing failed"
+    // MARK: - Bark to Human
+
+    struct BarkPattern {
+        static let patterns: [String: String] = [
+            "single_short_bark": "I'm here! / Hey!",
+            "double_bark": "I want attention! / Play with me!",
+            "repeated_excited": "I'm so happy to see you! 😊",
+            "deep_slow_bark": "Someone's nearby! / Watch out!",
+            "whine": "I'm scared or want something...",
+            "growl": "Back off! I'm uncomfortable.",
+            "howl": "I'm lonely! / Where are you?",
+            "yap_yap_yap": "I'm anxious or excited about something!",
+            "pant_whine": "I'm tired and want to rest",
+            "play_bow_bark": "Let's play! I'm friendly!"
+        ]
+
+        /// Analyze audio characteristics to detect bark pattern
+        static func detectPattern(audioLevel: Float, duration: TimeInterval, barkCount: Int) -> String? {
+            // Simple detection based on duration and intensity heuristics
+            let intensity = audioLevel
+
+            if intensity < 0.15 {
+                return nil // ambient noise, not a bark
+            }
+
+            if duration < 0.2 {
+                return patterns["single_short_bark"]
+            } else if duration < 0.5 {
+                return patterns["single_short_bark"]
+            } else if duration < 1.0 && intensity < 0.5 {
+                return patterns["whine"]
+            } else if duration < 1.0 && intensity >= 0.5 {
+                return patterns["single_short_bark"]
+            } else if duration < 2.0 && intensity < 0.4 {
+                return patterns["growl"]
+            } else if duration < 2.0 && intensity >= 0.4 {
+                return barkCount <= 2 ? patterns["double_bark"] : patterns["repeated_excited"]
+            } else if duration < 4.0 {
+                return intensity > 0.6 ? patterns["howl"] : patterns["pant_whine"]
+            } else {
+                return intensity > 0.5 ? patterns["howl"] : patterns["pant_whine"]
             }
         }
     }
-    
-    // MARK: - Private Properties
-    
-    private let vocabularyDatabase: VocabularyDatabase
-    private let translationModels: TranslationModels
-    private let audioEngine: AudioEngine
-    private let speechRecognizer: SpeechRecognition
-    private let audioPlayback: AudioPlayback
-    private let cache: TranslationCache
 
-    private var translationRequests: Int = 0
-    private var successfulTranslations: Int = 0
-    private var failedTranslations: Int = 0
-    private var lastTranslationError: TranslationError?
+    // MARK: - Human to Bark
 
-    // MARK: - Initialization
+    struct HumanToBark {
+        static let translations: [String: String] = [
+            "hello": "Woof!",
+            "good boy": "Arf arf! *wag wag*",
+            "sit": "Woof? *tilts head*",
+            "stay": "Bark! *waits patiently*",
+            "come here": "Woof woof! *runs over excitedly*",
+            "good dog": "*happy panting* Arf!",
+            "walk": "WOOF WOOF WOOF! *spins in circles*",
+            "food": "*drooling* Bark! Bark!",
+            "love you": "*gentle whine* *snuggles closer*",
+            "bedtime": "*yawn* *curls up* soft woof",
+            "treat": "WOOF! *does tricks* Bark!",
+            "outside": "Arf arf! *scratches door*",
+            "no": "*ears down* whimper",
+            "who's a good boy": "*tail goes crazy* WOOF! WOOF!"
+        ]
 
-    init(
-        vocabularyDatabase: VocabularyDatabase = VocabularyDatabase.shared,
-        translationModels: TranslationModels = TranslationModels.shared,
-        audioEngine: AudioEngine = AudioEngine(),
-        cache: TranslationCache = TranslationCache.shared
-    ) {
-        self.vocabularyDatabase = vocabularyDatabase
-        self.translationModels = translationModels
-        self.audioEngine = audioEngine
-        self.speechRecognizer = audioEngine.speechRecognizer
-        self.audioPlayback = audioEngine.audioPlayback
-        self.cache = cache
+        static func translate(_ text: String) -> String {
+            let lowercased = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
-        setupAudioEngine()
-    }
-    
-    // MARK: - Public Methods
-    
-    /// Translate human speech to dog vocalizations
-    func translateHumanToDog(speechText: String) throws -> String {
-        translationRequests += 1
-
-        guard !speechText.isEmpty else {
-            throw TranslationError.invalidInput
-        }
-
-        // Check cache first
-        if let cached = cache.getCachedTranslation(text: speechText, direction: .humanToDog) {
-            successfulTranslations += 1
-            return cached.translatedText
-        }
-
-        do {
-            // Try ML model translation first
-            if let mlTranslation = try translationModels.translateHumanToDog(speechText) {
-                cache.cacheTranslation(text: speechText, translatedText: mlTranslation, direction: .humanToDog, confidence: 1.0)
-                successfulTranslations += 1
-                return mlTranslation
+            if let translation = translations[lowercased] {
+                return translation
             }
 
-            // Fallback to vocabulary lookup
-            let vocabularyTranslation = vocabularyDatabase.lookupHumanToDog(speechText)
-            if !vocabularyTranslation.isEmpty {
-                cache.cacheTranslation(text: speechText, translatedText: vocabularyTranslation, direction: .humanToDog, confidence: 0.8)
-                successfulTranslations += 1
-                return vocabularyTranslation
+            // Check partial matches
+            for (key, value) in translations {
+                if lowercased.contains(key) || key.contains(lowercased) {
+                    return value
+                }
             }
 
-            // If all else fails, use simple phrase mapping
-            let simpleTranslation = translateSimplePhrase(speechText, direction: .humanToDog)
-            if !simpleTranslation.isEmpty {
-                cache.cacheTranslation(text: speechText, translatedText: simpleTranslation, direction: .humanToDog, confidence: 0.5)
-                successfulTranslations += 1
-                return simpleTranslation
-            }
-
-            throw TranslationError.translationFailed
-
-        } catch {
-            failedTranslations += 1
-            lastTranslationError = error as? TranslationError ?? .translationFailed
-            throw error
+            // Default: generate a generic happy response
+            let count = Int.random(in: 1...3)
+            let woofs = Array(repeating: "Woof", count: count).joined(separator: " ")
+            return "\(woofs)! *happy dog sounds*"
         }
     }
 
-    /// Translate dog vocalizations to human speech
-    func translateDogToHuman(dogVocalization: String) throws -> String {
-        translationRequests += 1
+    // MARK: - State
 
-        guard !dogVocalization.isEmpty else {
-            throw TranslationError.invalidInput
+    private var barkSessionStart: Date?
+    private var detectedBarkCount = 0
+    var lastBarkTranslation: String?
+
+    /// Called when audio level indicates a bark event.
+    /// Returns the translated text if a bark was detected.
+    func processBark(audioLevel: Float, duration: TimeInterval) -> String? {
+        if audioLevel < 0.15 {
+            return nil
         }
 
-        // Check cache first
-        if let cached = cache.getCachedTranslation(text: dogVocalization, direction: .dogToHuman) {
-            successfulTranslations += 1
-            return cached.translatedText
-        }
-
-        do {
-            // Try ML model translation first
-            if let mlTranslation = try translationModels.translateDogToHuman(dogVocalization) {
-                cache.cacheTranslation(text: dogVocalization, translatedText: mlTranslation, direction: .dogToHuman, confidence: 1.0)
-                successfulTranslations += 1
-                return mlTranslation
-            }
-
-            // Fallback to vocabulary lookup
-            let vocabularyTranslation = vocabularyDatabase.lookupDogToHuman(dogVocalization)
-            if !vocabularyTranslation.isEmpty {
-                cache.cacheTranslation(text: dogVocalization, translatedText: vocabularyTranslation, direction: .dogToHuman, confidence: 0.8)
-                successfulTranslations += 1
-                return vocabularyTranslation
-            }
-
-            // If all else fails, use simple phrase mapping
-            let simpleTranslation = translateSimplePhrase(dogVocalization, direction: .dogToHuman)
-            if !simpleTranslation.isEmpty {
-                cache.cacheTranslation(text: dogVocalization, translatedText: simpleTranslation, direction: .dogToHuman, confidence: 0.5)
-                successfulTranslations += 1
-                return simpleTranslation
-            }
-
-            throw TranslationError.translationFailed
-
-        } catch {
-            failedTranslations += 1
-            lastTranslationError = error as? TranslationError ?? .translationFailed
-            throw error
-        }
-    }
-    
-    /// Translate audio buffer containing human speech to dog vocalizations
-    func translateAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) throws -> String {
-        do {
-            let speechText = try speechRecognizer.recognizeSpeech(from: buffer, at: time)
-            return try translateHumanToDog(speechText: speechText)
-        } catch {
-            throw TranslationError.audioProcessingFailed
-        }
-    }
-    
-    /// Get translation engine status
-    func getStatus() -> TranslationEngineStatus {
-        return TranslationEngineStatus(
-            requests: translationRequests,
-            successfulTranslations: successfulTranslations,
-            failedTranslations: failedTranslations,
-            lastError: lastTranslationError,
-            vocabularyCoverage: vocabularyDatabase.getCoverageStatistics()
+        detectedBarkCount += 1
+        let translation = BarkPattern.detectPattern(
+            audioLevel: audioLevel,
+            duration: duration,
+            barkCount: detectedBarkCount
         )
+        lastBarkTranslation = translation
+        return translation
     }
-    
-    // MARK: - Private Methods
-    
-    private func setupAudioEngine() {
-        audioEngine.delegate = self
+
+    /// Translate human text to bark response.
+    func humanToBark(_ text: String) -> String {
+        detectedBarkCount = 0
+        return HumanToBark.translate(text)
     }
-    
-    private static let humanToDogPhrases: [String: String] = [
-        "hello": "woof woof",
-        "sit": "woof woof woof",
-        "stay": "woof woof woof woof",
-        "come": "woof woof woof woof woof",
-        "good boy": "woof woof woof woof woof woof",
-        "good girl": "woof woof woof woof woof woof woof",
-        "no": "woof woof woof woof woof woof woof woof",
-        "yes": "woof woof woof woof woof woof woof woof woof",
-        "walk": "woof woof woof woof woof woof woof woof woof woof",
-        "food": "woof woof woof woof woof woof woof woof woof woof woof",
-        "play": "woof woof woof woof woof woof woof woof woof woof woof woof",
-        "ball": "woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "treat": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "outside": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "inside": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "bed": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "toy": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "water": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "bath": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "vet": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-        "park": "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof",
-    ]
 
-    private static let dogToHumanPhrases: [String: String] = [
-        "hello": "hello",
-        "sit": "sit",
-        "stay": "stay",
-        "come": "come",
-        "good boy": "good boy",
-        "good girl": "good girl",
-        "no": "no",
-        "yes": "yes",
-        "walk": "walk",
-        "food": "food",
-        "play": "play",
-        "ball": "ball",
-        "treat": "treat",
-        "outside": "outside",
-        "inside": "inside",
-        "bed": "bed",
-        "toy": "toy",
-        "water": "water",
-        "bath": "bath",
-        "vet": "vet",
-        "park": "park",
-    ]
-
-    private func translateSimplePhrase(_ phrase: String, direction: TranslationDirection) -> String {
-        let mapping = direction == .humanToDog
-            ? Self.humanToDogPhrases
-            : Self.dogToHumanPhrases
-        return mapping[phrase.lowercased()] ?? ""
-    }
-}
-
-// MARK: - TranslationEngineDelegate
-
-protocol TranslationEngineDelegate: AnyObject {
-    func translationEngine(_ engine: TranslationEngine, didTranslate text: String, direction: TranslationDirection)
-    func translationEngine(_ engine: TranslationEngine, didFailWithError error: Error)
-    func translationEngineDidStart(_ engine: TranslationEngine)
-    func translationEngineDidStop(_ engine: TranslationEngine)
-}
-
-// MARK: - TranslationEngineStatus
-
-struct TranslationEngineStatus: CustomStringConvertible {
-    let requests: Int
-    let successfulTranslations: Int
-    let failedTranslations: Int
-    let lastError: TranslationEngine.TranslationError?
-    let vocabularyCoverage: VocabularyCoverage
-    
-    var description: String {
-        return "TranslationEngineStatus(requests: \(requests), success: \(successfulTranslations), failed: \(failedTranslations), coverage: \(vocabularyCoverage))"
-    }
-}
-
-// MARK: - VocabularyCoverage
-
-struct VocabularyCoverage: CustomStringConvertible {
-    let humanToDogPhrases: Int
-    let dogToHumanPhrases: Int
-    let totalPhrases: Int
-    let coveragePercentage: Double
-    
-    var description: String {
-        return "VocabularyCoverage(humanToDog: \(humanToDogPhrases), dogToHuman: \(dogToHumanPhrases), total: \(totalPhrases), coverage: \(String(format: "%.1f", coveragePercentage))%)")
-    }
-}
-
-// MARK: - AudioEngineDelegate Extension
-
-extension TranslationEngine: AudioEngineDelegate {
-    func audioEngine(_ engine: AudioEngine, didRecognizeSpeech text: String) {
-        // Forward speech recognition results to translation engine
-        do {
-            let translation = try translateHumanToDog(speechText: text)
-            // Notify delegate if needed
-        } catch {
-            // Handle translation failure
-        }
-    }
-    
-    func audioEngine(_ engine: AudioEngine, didFailWithError error: Error) {
-        // Forward audio engine errors
-    }
-    
-    func audioEngineDidStart(_ engine: AudioEngine) {
-        // Engine started
-    }
-    
-    func audioEngineDidStop(_ engine: AudioEngine) {
-        // Engine stopped
+    func reset() {
+        detectedBarkCount = 0
+        barkSessionStart = nil
+        lastBarkTranslation = nil
     }
 }

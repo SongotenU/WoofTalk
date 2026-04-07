@@ -1,15 +1,12 @@
 // MARK: - DogVocalizationSynthesizer
 
 import AVFoundation
-import SynthesisModels
 
 /// Handles realistic dog vocalization synthesis using audio effects and pitch shifting
 final class DogVocalizationSynthesizer {
     
     // MARK: Properties
     private let audioEngine = AVAudioEngine()
-    private let audioFormat = AudioFormats.pcmFormat
-    private let effectsProcessor = AudioEffectsProcessor()
     private let synthesisQueue = DispatchQueue(label: "com.wooftalk.dogvocalization", qos: .userInitiated)
     
     // Dog vocalization parameters
@@ -228,52 +225,5 @@ final class DogVocalizationSynthesizer {
     
     func isSynthesisAvailable() -> Bool {
         return true // Synthesis is always available
-    }
-}
-
-// MARK: - Dog Emotion Types
-
-enum DogEmotion: String, CaseIterable {
-    case neutral = "Neutral"
-    case happy = "Happy"
-    case excited = "Excited"
-    case territorial = "Territorial"
-    case scared = "Scared"
-    case playful = "Playful"
-    case tired = "Tired"
-    case aggressive = "Aggressive"
-}
-
-// MARK: - Dog Vocalization Parameters
-
-struct DogVocalizationParameters {
-    let pitchRange: ClosedRange<Double> // Hz
-    let formantShift: Double // Formant shift factor
-    let vibratoDepth: Float // Vibrato depth (0.0 to 1.0)
-    let vibratoRate: Double // Hz
-    let modulationDepth: Float // Amplitude modulation depth
-    let modulationRate: Double // Hz
-    let amplitudeRange: ClosedRange<Float> // dB range
-    let durationRange: ClosedRange<Double> // seconds
-}
-
-// MARK: - Dog Synthesis Metrics
-
-struct DogSynthesisMetrics {
-    let pitchAccuracy: Double // 0.0 to 1.0
-    let formantQuality: Double // 0.0 to 1.0
-    let vibratoAuthenticity: Double // 0.0 to 1.0
-    let overallQuality: Double // 0.0 to 1.0
-    
-    var qualityDescription: String {
-        if overallQuality >= 0.9 {
-            return "Excellent - Highly realistic dog vocalizations"
-        } else if overallQuality >= 0.8 {
-            return "Good - Natural-sounding dog vocalizations"
-        } else if overallQuality >= 0.7 {
-            return "Fair - Recognizable but synthetic dog sounds"
-        } else {
-            return "Poor - Needs improvement in vocalization quality"
-        }
     }
 }

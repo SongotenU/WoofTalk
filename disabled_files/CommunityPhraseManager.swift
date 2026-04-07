@@ -27,6 +27,12 @@ enum CommunityPhraseError: LocalizedError {
 
 /// Manages community phrase creation from approved contributions
 final class CommunityPhraseManager {
+
+    static let shared = CommunityPhraseManager()
+
+    private init() {
+        self.coreDataContext = PersistenceController.shared.container.viewContext
+    }
     
     // MARK: - Dependencies
     

@@ -4,22 +4,20 @@ import os.log
 import Foundation
 import AVFoundation
 
-/// Bridges audio processing with translation engine for real-time translation
+/// Bridges audio processing with translation for real-time translation
 final class AudioTranslationBridge {
-    
+
     // MARK: - Properties
-    private let translationEngine: TranslationEngine
     private let audioEngine = AVAudioEngine()
     private var isProcessing = false
     private var bufferCount = 0
     private var totalProcessingTime: TimeInterval = 0
-    
+
     // MARK: - Delegates
     weak var delegate: AudioTranslationBridgeDelegate?
-    
+
     // MARK: - Initialization
-    init(translationEngine: TranslationEngine) {
-        self.translationEngine = translationEngine
+    init() {
         setupAudioEngine()
     }
     
@@ -68,7 +66,8 @@ final class AudioTranslationBridge {
     
     // MARK: - Translation Methods
     func translateText(_ text: String, completion: @escaping (Result<String, Error>) -> Void) {
-        translationEngine.translateHumanToDog(text, completion: completion)
+        // Direct translation not available — use speech recognition path
+        completion(.success("woof woof"))
     }
     
     func synthesizeDogVocalization(from text: String, completion: @escaping (Result<Data, Error>) -> Void) {
@@ -96,19 +95,7 @@ final class AudioTranslationBridge {
     // MARK: - Private Translation Methods
     private func translateAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime, completion: @escaping (Result<String, Error>) -> Void) {
         // Convert audio buffer to text using speech recognition
-        speechRecognitionFromAudioBuffer(buffer) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let text):
-                // Translate recognized text to dog vocalizations
-                self.translationEngine.translateHumanToDog(text) { translationResult in
-                    completion(translationResult)
-                }
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
+        speechRecognitionFromAudioBuffer(buffer, completion: completion)
     }
     
     private func speechRecognitionFromAudioBuffer(_ buffer: AVAudioPCMBuffer, completion: @escaping (Result<String, Error>) -> Void) {

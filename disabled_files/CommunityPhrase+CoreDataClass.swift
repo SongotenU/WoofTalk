@@ -18,45 +18,45 @@ public class CommunityPhrase: NSManagedObject {
     @NSManaged public var usageCount: Int64
     @NSManaged public var lastUsed: Date?
     
-    // Transient properties
-    @transient public var ageInDays: Int {
+    // Transient computed properties (not Core Data managed)
+    var ageInDays: Int {
         guard let timestamp = timestamp else { return 0 }
         return Calendar.current.dateComponents([.day], from: timestamp, to: Date()).day ?? 0
     }
-    
-    @transient public var ageInHours: Int {
+
+    var ageInHours: Int {
         guard let timestamp = timestamp else { return 0 }
         return Calendar.current.dateComponents([.hour], from: timestamp, to: Date()).hour ?? 0
     }
-    
-    @transient public var ageInMinutes: Int {
+
+    var ageInMinutes: Int {
         guard let timestamp = timestamp else { return 0 }
         return Calendar.current.dateComponents([.minute], from: timestamp, to: Date()).minute ?? 0
     }
-    
-    @transient public var ageDisplay: String {
+
+    var ageDisplay: String {
         let days = ageInDays
         let hours = ageInHours
         let minutes = ageInMinutes
-        
+
         if days > 0 {
-            return "\(days) day\"(s) ago"
+            return "\(days) day(s) ago"
         } else if hours > 0 {
-            return "\(hours) hour\"(s) ago"
+            return "\(hours) hour(s) ago"
         } else {
-            return "\(minutes) minute\"(s) ago"
+            return "\(minutes) minute(s) ago"
         }
     }
-    
-    @transient public var qualityDisplay: String {
+
+    var qualityDisplay: String {
         return "Quality: \(Int(qualityScore * 100))%"
     }
-    
-    @transient public var submitterDisplay: String {
+
+    var submitterDisplay: String {
         return submitter?.username ?? "Unknown"
     }
-    
-    @transient public var directionDisplay: String {
+
+    var directionDisplay: String {
         return direction ?? "Unknown"
     }
     

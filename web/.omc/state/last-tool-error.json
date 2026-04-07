@@ -1,7 +1,7 @@
 {
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git add \\\\\\n  supabase/migrations/0001_organizations.sql \\\\\\n  supabase/migrations/0002_api_keys.sql \\\\\\n  supabase/migrations/0003_api_key_function.sql \\\\\\n  supabase/migrations/0004_add_...",
-  "error": "Exit code 128",
-  "timestamp": "2026-04-02T04:31:51.465Z",
-  "retry_count": 7
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/web/src/app/api\"}",
+  "error": "EISDIR: illegal operation on a directory, read '/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/web/src/app/api'",
+  "timestamp": "2026-04-06T05:36:54.740Z",
+  "retry_count": 1
 }

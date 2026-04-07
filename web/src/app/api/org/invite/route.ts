@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     // Send email invite
     const emailResult = await sendInviteEmail({
       to: email,
-      orgName: userOrg.organizations?.name || 'the organization',
+      orgName: (userOrg.organizations as Array<{ name: string }>)?.[0]?.name || 'the organization',
       inviterName: 'WoofTalk Admin',
       inviteToken,
       expiresAt: expiresAt.toISOString(),

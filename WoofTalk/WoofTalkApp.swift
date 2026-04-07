@@ -14,21 +14,10 @@ struct WoofTalkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TabView {
+            NavigationView {
                 TranslationView()
-                    .tabItem {
-                        Label("Translate", systemImage: "bubble.left.and.bubble.right")
-                    }
-                
-                CommunityPhraseBrowserView()
-                    .tabItem {
-                        Label("Community", systemImage: "person.3.fill")
-                    }
-                
-                OfflineModeView()
-                    .tabItem {
-                        Label("Offline", systemImage: "moon.fill")
-                    }
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarHidden(false)
             }
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }

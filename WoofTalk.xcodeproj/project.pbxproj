@@ -14,6 +14,13 @@
 			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
 			remoteInfo = WoofTalk;
 		};
+		9FB8054A2F836ED5001660B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F2C83AE2F61687F00E4A788 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
+			remoteInfo = WoofTalk;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -26,19 +33,16 @@
 		9F2C83B82F61687F00E4A788 /* WoofTalk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalk;
-			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83CB2F61688100E4A788 /* WoofTalkTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkTests;
-			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83D52F61688100E4A788 /* WoofTalkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkUITests;
-			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -260,7 +264,7 @@
 		9F2C83D42F61688100E4A788 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9F2C83B52F61687F00E4A788 /* WoofTalk */;
-			targetProxy = 9F2C83D32F61688100E4A788 /* PBXContainerItemProxy */;
+			targetProxy = 9FB8054A2F836ED5001660B6 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -395,12 +399,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WoofTalk needs microphone access to listen to your dog's barks";
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -427,12 +427,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

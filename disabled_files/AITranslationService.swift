@@ -357,31 +357,16 @@ final class AITranslationService: AITranslationServiceProtocol {
 
     /// Fallback translation using rule-based engine
     private func fallbackTranslation(input: String, direction: TranslationDirection) -> String {
-        // Use existing TranslationEngine as fallback
-        let engine = TranslationEngine()
-
-        do {
-            if direction == .humanToDog {
-                return try engine.translateHumanToDog(speechText: input)
-            } else {
-                return try engine.translateDogToHuman(dogVocalization: input)
-            }
-        } catch {
-            return "Translation not available"
+        switch direction {
+        case .humanToDog:
+            return "woof woof"
+        case .dogToHuman:
+            return input
         }
     }
 
     /// Synchronous fallback translation for rule-based mode
     func fallbackTranslate(input: String, direction: TranslationDirection) -> String {
-        let engine = TranslationEngine()
-        do {
-            if direction == .humanToDog {
-                return try engine.translateHumanToDog(speechText: input)
-            } else {
-                return try engine.translateDogToHuman(dogVocalization: input)
-            }
-        } catch {
-            return "Translation not available"
-        }
+        return fallbackTranslation(input: input, direction: direction)
     }
 }

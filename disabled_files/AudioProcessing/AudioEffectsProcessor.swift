@@ -265,18 +265,6 @@ enum AudioEffectsError: Error, LocalizedError {
     }
 }
 
-// MARK: - AudioEffect Types
-
-enum AudioEffect {
-    case pitchShift(Double) // Pitch shift in cents
-    case formantShift(Double) // Formant shift factor (0.5 = half speed, 2.0 = double speed)
-    case vibrato(Float, Double) // Depth and rate
-    case gain(Float) // Gain in dB
-    case compression(Float, Float) // Threshold and ratio
-    case distortion(Float) // Distortion amount
-    case dogVocalization // Predefined dog vocalization effects
-}
-
 // MARK: - Utility Functions
 
 extension AudioEffectsProcessor {

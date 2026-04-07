@@ -63,7 +63,7 @@ export default function InviteAcceptPage() {
         }
 
         setStatus("success");
-        setMessage(`Welcome to ${member.organizations?.name || "the organization"}!`);
+        setMessage(`Welcome to ${member.organizations?.[0]?.name || "the organization"}!`);
       } catch {
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
