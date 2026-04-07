@@ -1,5 +1,21 @@
 # Milestones
 
+## v0.2.0 Production Hardening (Shipped: 2026-04-07)
+
+**Phases completed:** 7 phases, 7 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Date:
+- Date:
+- Status:
+- Status:
+- Status:
+- Status:
+- Status:
+
+---
+
 ## v0.1.0 M007 AR/VR Mixed Reality (Shipped: 2026-04-04)
 
 **Phases completed:** 5 phases, 21 plans, 9 tasks

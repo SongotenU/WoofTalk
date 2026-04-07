@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git add .omc/project-memory.json .omc/state/last-tool-error.json .omc/state/mission-state.json && git commit -m \\\"chore: update OMC state after M008 milestone completion\\\" 2>&1\",\"timeout\":...",
+  "tool_input_preview": "{\"command\":\"git add .omc/project-memory.json .omc/state/last-tool-error.json\",\"timeout\":10000,\"description\":\"Stage resolved OMC conflicts\",\"run_in_background\":false,\"dangerouslyDisableSandbox\":false}",
   "error": "Exit code 1",
-  "timestamp": "2026-04-06T03:50:40.260Z",
-  "retry_count": 2
+  "timestamp": "2026-04-07T08:41:12.162Z",
+  "retry_count": 1
 }
