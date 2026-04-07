@@ -14,9 +14,18 @@ progress:
 
 # Project State
 
-## Milestone M008: Production Hardening — COMPLETE ✅
+## Milestone M008: Production Hardening — ARCHIVED ✅
 
-### Phase Summary
+**Status:** Shipped 2026-04-07 | See: `.planning/milestones/v0.2.0-ROADMAP.md`
+
+### Archived Summary
+
+- 7 phases complete (43-49)
+- 7/7 plans delivered
+- 26/26 UAT checks passed
+- Production-ready with CI/CD, observability, resilience
+
+### Phase Commit History
 
 | Phase | Name | Status | Commit |
 |-------|------|--------|--------|
@@ -28,17 +37,12 @@ progress:
 | 48 | Observability + Monitoring | ✅ | 52f53d3 |
 | 49 | Scale Testing | ✅ | a2dde0d |
 
-### Files Changed
+---
 
-- TranslationEngine.swift — Cache integration, static phrase maps
-- TranslationCache.swift — Statistics semantics fix
-- LanguageDetectionManager.swift — O(n²) eliminated, pre-computed bins
-- CircuitBreaker.swift — NEW: state machine for resilience
-- AITranslationService.swift — Retry, timeout, error handler, circuit breaker
-- ErrorReporter.swift — NEW: centralized error reporting
-- .github/workflows/supabase.yml — NEW: migration + edge function pipeline
-- .github/workflows/web-deploy.yml — NEW: Next.js build + RLS audit + Vercel deploy
-- .github/workflows/uptime-monitor.yml — NEW: 5-min health checks with Slack alerts
-- scripts/load-tests/k6-edge-functions.js — NEW: k6 load test
-- scripts/load-tests/verify-rls-concurrent.sh — NEW: concurrent RLS verification
-- .env.example — NEW: environment variable template
+## Current Focus: v1.0 Planning
+
+**Milestone:** v1.0  
+**Status:** Planning phase — ready to define requirements and roadmap  
+**Progress:** 0/0 phases, 0/0 plans
+
+*Last updated: 2026-04-07 after M008 archive*

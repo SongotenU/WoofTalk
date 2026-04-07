@@ -6,13 +6,13 @@
 
 **Key accomplishments:**
 
-- Date:
-- Date:
-- Status:
-- Status:
-- Status:
-- Status:
-- Status:
+- ✅ Memory leak elimination — NotificationCenter/Timer fixes, 156MB stable memory
+- ✅ Structural cleanup — removed duplicate audio_processing, consolidated TranslationDirection, os_log adoption
+- ✅ Performance optimization — TranslationCache connected, O(n²) → O(n), static phrase maps
+- ✅ Resilience infrastructure — CircuitBreaker state machine, retry/backoff, timeout enforcement
+- ✅ CI/CD automation — Supabase migrations, Vercel deployment, RLS audit gate
+- ✅ Observability — ErrorReporter, uptime monitor (5-min), Slack alerts
+- ✅ Scale testing — k6 load tests, concurrent RLS verification, rate limit validation
 
 ---
 

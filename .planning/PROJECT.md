@@ -29,31 +29,39 @@ Current codebase includes:
 - **API Gateway**: RESTful API with API key auth, rate limiting, usage tracking
 - **Admin Dashboard**: Full CMS for user management, content moderation, analytics
 
-## Current Milestone: M007 — AR/VR Mixed Reality (Complete)
+## Current Milestone: M008 — Production Hardening (Complete)
 
-**Status:** Complete ✅ — Research, requirements, roadmap, and all 5 phases (38–42) defined
-**Planned:** 2026-Q2
+**Status:** Complete ✅ — All 7 phases (43-49) shipped on 2026-04-07
+**Shipped:** 2026-04-07
 
 **Scope:**
-- Phase 38: AR Foundation (Vision Pro, RealityKit, dog bark detection)
-- Phase 39: AR Spatial UX (Gaze-based anchoring, bubble placement, 90 FPS)
-- Phase 40: VR Foundation (Unity, Meta Quest, dog avatar)
-- Phase 41: VR Environments & Polish (Multiple scenes, customization, comfort)
-- Phase 42: Cross-Platform Integration (History sync, store submissions, deployment)
+- Phase 43: Memory Leak Elimination
+- Phase 44: Structural Cleanup
+- Phase 45: Performance Hot Paths
+- Phase 46: Resilience Infrastructure
+- Phase 47: CI/CD + Production Deployment
+- Phase 48: Observability + Monitoring
+- Phase 49: Scale Testing
 
-**Research artifacts:** `.planning/research/` (SUMMARY, ARCHITECTURE, FEATURES, STACK, PITFALLS)
-**Requirements:** `.planning/REQUIREMENTS.md` (M007 section)
-**Roadmap:** `.planning/ROADMAP.md` (M007 milestone)
+**Artifacts:**
+- Phase directories: `.planning/phases/43-49/`
+- Archive: `.planning/milestones/v0.2.0-ROADMAP.md`, `.planning/milestones/v0.2.0-REQUIREMENTS.md`
+- State: `.planning/STATE.md` (milestone complete)
 
 ---
 
 ## Next Milestone Goals
 
-**M008: Production Hardening**
-- Tech debt cleanup (duplicate audio_processing directory, TranslationCache not connected, LanguageDetectionManager O(n²) loop, missing retry/circuit breaker, memory leaks)
-- Supabase + Vercel production deployment with live E2E validation
-- Monitoring, alerting, incident response
-- Scale testing and performance optimization
+**v1.0 — Planning Phase** (Current)
+
+The project is now production-ready with full CI/CD, observability, and resilience. Next steps:
+
+- Define v1.0 feature set and requirements
+- Research user experience improvements
+- Plan MVP scope for public release
+- Establish development velocity baselines
+
+**Start planning:** Run `/gsd-new-milestone` to begin v1.0 definition.
 
 ## Architecture / Key Patterns
 
