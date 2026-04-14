@@ -1,143 +1,159 @@
-# Pitfalls Research
+# Pitfalls Research: M009 Subscription & Payments
 
-**Domain:** M007 AR/VR — Mixed Reality Translation Features
-**Researched:** 2026-04-03
+**Domain:** Common mistakes when adding subscription/payments with RevenueCat to multi-platform apps
+**Researched:** 2026-04-14
 **Confidence:** HIGH
 
-## Critical Pitfalls (6)
+---
 
-### Pitfall 1: Dog Body Tracking Is Extremely Hard
+## Critical Pitfalls (7)
+
+### Pitfall 1: App Store Review Guideline 3.1.1 — No External Payment Links
 
 **What goes wrong:**
-AR/VR translation requires detecting where the dog is in 3D space to attach translation bubbles. But dog body tracking (pose estimation, skeletal tracking) is not solved by existing AR platforms. Vision Pro can detect human bodies via ARKit, but NOT dogs. Attempting to build custom dog detection/tracking with computer vision will be a multi-year research project.
+Apple requires ALL digital purchases on iOS to go through StoreKit. Including a link to Stripe/web payment or even mentioning alternative pricing violates Guideline 3.1.1. This is the #1 reason subscription apps get rejected.
 
 **Why it happens:**
-- ARKit/ARKit 支持人类身体追踪，但不支持动物
-- 计算机视觉模型用于动物姿态估计 (如 Animal Pose) 需要大量标注数据集 (mscoco-animals 只有有限数量)
-- 实时 3D 边界框检测 + sphere fitting 对于摇头摆尾的狗狗非常不稳定
-- 训练自己的模型会变成 AI 研究项目，而非产品特性
+- Developers add "cheaper on web" links to bypass Apple's 30% commission
+- Cross-platform apps sometimes show web payment options inside the iOS app
+- Even text like "Subscribe on our website for a discount" triggers rejection
 
 **Prevention:**
-1. **V1 anchoring strategy:** Anchor translation to **user's gaze direction** or **manual placement** (user points at dog)
-2. **Simple proximity detection:** Use distance from user + audio direction (dog bark localization) to guess dog position
-3. **Defer true dog tracking to M007.2 or later** - label as "advanced" feature
-4. **VR approach:** In VR, dog can be represented as **avatar** with known position (simplified)
+1. iOS app uses ONLY StoreKit via RevenueCat SDK — no Stripe, no web payment links
+2. Never show web pricing in the iOS app
+3. iOS paywall shows only Apple-processed prices
+4. Web/app pricing parity: do NOT offer cheaper web pricing visible in the iOS app
 
-**Phase to address:** Phase 38 (AR Foundation) - define anchoring constraints clearly
+**Phase to address:** Phase 52 (Paywall UI) — iOS paywall must be StoreKit-only
 
 ---
 
-### Pitfall 2: Vision Pro Market Share ~0.1% - Is It Worth It?
+### Pitfall 2: Stale Entitlement Cache After Purchase
 
 **What goes wrong:**
-Building for Apple Vision Pro means targeting a device with tiny user base (<1M active users worldwide). The development cost (buying $3500 hardware, learning new platform, App Store optimization) may exceed expected ROI.
+User completes purchase, but `CustomerInfo` still shows free tier because the SDK cache hasn't refreshed. User thinks purchase failed and tries again, causing double-purchase or support tickets.
 
 **Why it happens:**
-- Vision Pro launched in 2024, still in early adopter phase
-- Enterprise AR use cases are still emerging
-- Most WoofTalk users are on iOS/Android phones, not headsets
+- RevenueCat SDK caches `CustomerInfo` and updates on SDK calls (not pushed)
+- If app doesn't call any SDK method after purchase, cache stays stale
+- Network delays on RevenueCat's receipt validation
 
 **Prevention:**
-1. **Pilot strategy:** Build AR as a premium showcase, not primary user flow
-2. **Cross-platform AR fallback:** Use ARKit on iPhone/iPad (ARKit on devices without Vision Pro's spatial display)
-3. **Marketing angle:** "Experience WoofTalk in mixed reality" - PR value may justify cost
-4. **Future-proofing:** AR skill in house for when Apple releases cheaper glasses
+1. After purchase, immediately call `Purchases.shared.getCustomerInfo()` to force refresh
+2. Use `PurchasesDelegate` / listener to react to `CustomerInfo` updates
+3. Show loading state after purchase until entitlement is confirmed
+4. Never rely on local state — always check `CustomerInfo.activeEntitlements`
 
-**Phase to address:** Phase 38 - set clear scope: Vision Pro first, iPhone ARKit as stretch
+**Phase to address:** Phase 50 (SDK Integration) — delegate/listener setup must be correct
 
 ---
 
-### Pitfall 3: Dog Bark Detection Accuracy
+### Pitfall 3: Free Tier Bypass via API Direct Calls
 
 **What goes wrong:**
-Translating dog communication requires first detecting that a dog is barking/whining, then classifying emotion/intent. Off-the-shelf bark detectors have ~80-90% accuracy in quiet environments. Background noise (TV, other dogs, wind) reduces accuracy dramatically. False positives (cat meows, human coughs) will frustrate users.
+Client-side entitlement checks prevent free users from accessing premium features in the app UI, but API calls bypass the client entirely. A technical user can call Edge Functions directly with a valid auth token and get unlimited translations.
 
 **Why it happens:**
-- Dog vocalizations are highly variable by breed, size, context
-- Environmental noise is unpredictable
-- On-device ML models need to be small (<10MB) → less accurate than cloud models
+- RLS policies don't enforce translation limits
+- Edge Functions trust client headers without server-side entitlement verification
+- Rate limiter uses fixed limits regardless of subscription tier
 
 **Prevention:**
-1. **User-controlled activation:** Manual "listen" button to reduce false positives
-2. **Confidence threshold:** Only show translation when model confidence >85%
-3. **User feedback loop:** "Was this accurate?" button to collect training data
-4. **Fallback:** Allow manual text entry if voice detection fails
-5. **Gradual rollout:** Beta test with WoofTalk power users first
+1. RLS policy on `translation_requests`: free users limited to 3 INSERTs per day
+2. Edge Functions check `subscription_status` table before processing
+3. API Gateway rate limits tiered by subscription (free: 3/day, pro: 100/day)
+4. Server-side is the hard gate; client-side is the UX layer
 
-**Phase to address:** Phase 39 (Audio Processing) - iterate on model training
+**Phase to address:** Phase 51 (Subscription Backend) — RLS + Edge Function enforcement
 
 ---
 
-### Pitfall 4: VR Hardware Fragmentation & Performance
+### Pitfall 4: Cross-Platform Entitlement Desync
 
 **What goes wrong:**
-Meta Quest 2, Quest 3, Quest Pro have different performance characteristics and capabilities. Hand tracking is available on newer models but not Quest 2. Building for "lowest common denominator" yields poor experience on Quest Pro; targeting high-end excludes Quest 2 users.
+User subscribes on iOS, but Android app still shows free tier. Or user cancels on web, but iOS app still shows premium. Entitlements don't sync across platforms.
 
 **Why it happens:**
-- Quest 2: 72 Hz, no hand tracking (controllers only), 3GB RAM for app
-- Quest 3: 90 Hz, hand tracking, color passthrough, more GPU
-- Quest Pro: higher resolution, face/eye tracking
-- Unity project settings need per-device configuration
+- RevenueCat uses `appUserID` to identify users across platforms
+- If iOS uses anonymous ID and Android uses different auth ID, they're separate customers
+- Web Stripe purchases create a different RevenueCat customer if not linked
 
 **Prevention:**
-1. **Target Quest 3 as baseline**, gracefully degrade on Quest 2 (lower texture quality, disable hand tracking)
-2. **Runtime device detection:** Adjust settings based on detected model
-3. **Performance budget:** Keep draw calls <200, polycount <100k for 90 FPS
-4. **User-configurable graphics:** Settings menu for quality presets
+1. Use Supabase `auth.uid` as RevenueCat `appUserID` on ALL platforms
+2. Require login before showing paywall — no anonymous purchases
+3. On app launch, call `Purchases.shared.logIn(auth.uid)` to ensure correct identity
+4. Test: subscribe on iOS → verify entitlement on Android and Web within 30 seconds
 
-**Phase to address:** Phase 40 (VR Implementation) - test on all target devices
+**Phase to address:** Phase 50 (SDK Integration) — identity linking must use auth.uid
 
 ---
 
-### Pitfall 5: 3D UI Design Is Harder Than 2D
+### Pitfall 5: Play Console Review — Subscription Pricing Mismatch
 
 **What goes wrong:**
-Designing readable text in 3D space is non-trivial. Text placed in world space can be too small, too far, occluded by objects, or rotated awkwardly. Users experience "spatial UI fatigue" if forced to constantly turn head to read.
+Google Play requires subscription prices to be configured in the Play Console BEFORE RevenueCat can offer them. If you create offerings in RevenueCat but forget to create the corresponding products in Play Console, the purchase flow fails silently or shows errors.
 
 **Why it happens:**
-- Readable text requires: sufficient size (>1 degree visual angle), perpendicular orientation, good contrast against background
-- In AR, text clipping (entering/exiting walls) is jarring
-- In VR, text at infinity (billboarded) can cause eye strain
+- RevenueCat and Play Console are separate systems
+- Product IDs must match exactly between RevenueCat and Play Console
+- Play Console changes can take hours to propagate
 
 **Prevention:**
-1. **Billboarding:** Text always faces user (but readable from any angle)
-2. **Distance clamping:** Translation bubbles never closer than 1m or farther than 10m
-3. **Occlusion culling:** Don't draw text if dog is behind wall (Raycast check)
-4. **Opt-in explicit reading mode:** "Pin translation to HUD" for users who want always-visible overlay
-5. **Test with users early:** Spatial UX needs empirical validation
+1. Create products in App Store Connect AND Play Console FIRST, then configure in RevenueCat
+2. Use identical product IDs across all platforms (e.g., `wooftalk_monthly`, `wooftalk_annual`)
+3. Test with RevenueCat sandbox before submitting to stores
+4. Verify products appear in `getOfferings()` before showing paywall
 
-**Phase to address:** Phase 38 (AR UI) and Phase 40 (VR UI) - iterative user testing
+**Phase to address:** Phase 52 (Paywall UI) — product configuration must be complete
 
 ---
 
-### Pitfall 6: Motion Sickness in VR
+### Pitfall 6: Webhook Idempotency Failures
 
 **What goes wrong:**
-If user's vestibular sense (inner ear) detects motion but eyes see no motion (or vice versa), motion sickness occurs. This is especially problematic when:
-- User is stationary but dog moves around them (can cause sensory conflict)
-- Translating world during head movement (should be head-locked only)
-- Low or unstable framerate
+RevenueCat retries failed webhooks for up to 72 hours. If your Edge Function doesn't handle duplicate events, a single subscription can be recorded multiple times, corrupting `subscription_status`.
 
 **Why it happens:**
-- WoofTalk VR involves dogs moving around user in a room
-- If translation bubbles are world-locked and user turns head quickly, visual motion without self-motion triggers nausea
-- Frame drops break immersion → discomfort
+- Edge Function times out (>400s for Deno)
+- Edge Function returns non-2xx status code
+- RevenueCat retries the same event, creating duplicate rows
 
 **Prevention:**
-1. **Head-locked UI:** Translation HUD attached to user's head orientation, not world space
-2. **Smooth 90 FPS minimum:** Profile performance, reduce effects before dropping below 90
-3. **Avoid artificial locomotion:** Let users physically move; don't use thumbstick movement
-4. **Comfort mode toggle:** Simplify visuals, reduce animations for sensitive users
-5. **Session length warnings:** "Take a break" after 20 minutes
+1. Use `event_id` from RevenueCat webhook as idempotency key
+2. Store processed `event_id`s in a table or check before updating
+3. Always return 200 OK to RevenueCat quickly, process async if needed
+4. Make updates idempotent: `UPDATE ... SET tier = 'pro' WHERE user_id = X` (not INSERT)
 
-**Phase to address:** Phase 40 (VR Implementation) - motion sickness testing mandatory
+**Phase to address:** Phase 51 (Subscription Backend) — webhook handler must be idempotent
+
+---
+
+### Pitfall 7: Trial Abuse via Multiple Accounts
+
+**What goes wrong:**
+Users create multiple accounts to get unlimited free trials. Each new account gets 7 days of premium, so a user can keep creating accounts for perpetual free access.
+
+**Why it happens:**
+- Free trial tied to account, not device
+- No device fingerprinting or anti-abuse measures
+- Side project — limited resources for fraud prevention
+
+**Prevention:**
+1. Accept this as a low-risk issue for a dog translation app (not a high-value target)
+2. RevenueCat's fraud detection catches obvious patterns
+3. If abuse becomes measurable: add device-level trial tracking (iOS: `identifierForVendor`)
+4. Consider requiring email verification before trial starts
+
+**Phase to address:** Phase 53 (Feature Gating) — basic protection, don't over-engineer
 
 ---
 
 ## Additional Risks (Lower Priority)
 
-- **Battery drain:** AR/VR + audio processing drains Vision Pro/Quest battery quickly → limit session duration
-- **Privacy concerns:** Camera passthough records environment → need clear privacy policy
-- **App Store review:** Apple may reject AR apps that record without obvious consent
-- **Seasickness with moving dogs:** If dog runs behind user, following with gaze may cause dizziness
-- **3D model licensing:** If using pre-made dog avatars, ensure commercial license
+- **Apple 30% commission**: iOS subscriptions lose 30% to Apple first year, 15% after. Budget accordingly.
+- **Google 15% commission**: Play Store takes 15% (reduced from 30% for first $1M).
+- **Stripe 2.9% + $0.30**: Web transactions have different fee structure.
+- **Currency conversion**: Users in different countries see different prices. RevenueCat supports per-market pricing.
+- **Tax handling**: RevenueCat doesn't handle tax reporting. Use Stripe Tax or manual accounting.
+- **Play Console account verification**: Android requires app to verify purchases server-side (not just client-side). RevenueCat handles this.
+- **App Tracking Transparency**: If collecting device info for trial abuse prevention, may need ATT prompt on iOS.
