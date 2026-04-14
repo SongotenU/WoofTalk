@@ -29,7 +29,27 @@ Current codebase includes:
 - **API Gateway**: RESTful API with API key auth, rate limiting, usage tracking
 - **Admin Dashboard**: Full CMS for user management, content moderation, analytics
 
-## Current Milestone: M008 — Production Hardening (Complete)
+## Current Milestone: v1.0 — Subscription & Payments
+
+**Status:** Active — Defining requirements
+
+**Goal:** Add subscription monetization with RevenueCat across all platforms — free trial, soft paywall, paid plans.
+
+**Target features:**
+- RevenueCat SDK integration (iOS, Android, Web)
+- Subscription plans: $4.99/mo, $39.99/yr
+- 7-day free trial with full access
+- Soft paywall after trial (limited free translations/day)
+- Paywall UI for each platform
+- Subscription management (upgrade, cancel, restore)
+- Backend entitlement verification (Supabase Edge Functions)
+- Analytics for conversion tracking
+
+---
+
+## Milestone History
+
+### M008 — Production Hardening (Complete)
 
 **Status:** Complete ✅ — All 7 phases (43-49) shipped on 2026-04-07
 **Shipped:** 2026-04-07
@@ -42,26 +62,6 @@ Current codebase includes:
 - Phase 47: CI/CD + Production Deployment
 - Phase 48: Observability + Monitoring
 - Phase 49: Scale Testing
-
-**Artifacts:**
-- Phase directories: `.planning/phases/43-49/`
-- Archive: `.planning/milestones/v0.2.0-ROADMAP.md`, `.planning/milestones/v0.2.0-REQUIREMENTS.md`
-- State: `.planning/STATE.md` (milestone complete)
-
----
-
-## Next Milestone Goals
-
-**v1.0 — Planning Phase** (Current)
-
-The project is now production-ready with full CI/CD, observability, and resilience. Next steps:
-
-- Define v1.0 feature set and requirements
-- Research user experience improvements
-- Plan MVP scope for public release
-- Establish development velocity baselines
-
-**Start planning:** Run `/gsd-new-milestone` to begin v1.0 definition.
 
 ## Architecture / Key Patterns
 
@@ -123,12 +123,13 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M005: Platform Expansion (continued) — Web, Smartwatch → v3.1
 - [x] M006: Enterprise — Complete as v4.0 (API gateway, admin dashboard, org/team management)
 - [x] M007: AR/VR — Augmented reality and virtual reality translation features (Vision Pro + Quest)
-- [ ] M008: Production Hardening — Current Milestone
+- [x] M008: Production Hardening — Complete
+- [ ] M009: Subscription & Payments — Current Milestone
 
 ## Notes
 
 - M006 (Enterprise) was implemented as v4.0 milestone (completed 2026-04-02)
-- M007 (AR/VR Mixed Reality) completed 2026-04-04 — research, requirements, and all 5 phases defined
-- M008 is the next active milestone, focusing on production hardening and deployment
-- v4.1 (Security & Deployment Hardening) was a security cleanup milestone following v4.0
-- Last updated: 2026-04-04 after v0.1.0 milestone
+- M007 (AR/VR Mixed Reality) completed 2026-04-04
+- M008 (Production Hardening) completed 2026-04-07
+- M009 (Subscription & Payments) started 2026-04-14
+- Last updated: 2026-04-14

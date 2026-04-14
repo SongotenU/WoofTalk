@@ -1,48 +1,29 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: v0.2.0 milestone complete
-last_updated: "2026-04-07T02:18:31.162Z"
+milestone_name: Subscription & Payments
+status: Defining requirements
+last_updated: "2026-04-14"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
-## Milestone M008: Production Hardening — ARCHIVED ✅
+## Current Position
 
-**Status:** Shipped 2026-04-07 | See: `.planning/milestones/v0.2.0-ROADMAP.md`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-14 — Milestone v1.0 Subscription & Payments started
 
-### Archived Summary
+## Accumulated Context
 
-- 7 phases complete (43-49)
-- 7/7 plans delivered
-- 26/26 UAT checks passed
-- Production-ready with CI/CD, observability, resilience
-
-### Phase Commit History
-
-| Phase | Name | Status | Commit |
-|-------|------|--------|--------|
-| 43 | Memory Leak Elimination | ✅ | 2dea22b |
-| 44 | Structural Cleanup | ✅ | 6476066 |
-| 45 | Performance Hot Paths | ✅ | 30204a6 |
-| 46 | Resilience Infrastructure | ✅ | d942643 |
-| 47 | CI/CD + Production Deployment | ✅ | 52c4526 |
-| 48 | Observability + Monitoring | ✅ | 52f53d3 |
-| 49 | Scale Testing | ✅ | a2dde0d |
-
----
-
-## Current Focus: v1.0 Planning
-
-**Milestone:** v1.0  
-**Status:** Planning phase — ready to define requirements and roadmap  
-**Progress:** 0/0 phases, 0/0 plans
-
-*Last updated: 2026-04-07 after M008 archive*
+- Previous milestone (M008 Production Hardening) shipped 2026-04-07 with CI/CD, observability, resilience
+- App is production-ready across iOS, Android, Web, Watch platforms
+- Supabase backend with PostgreSQL, Edge Functions, RLS policies
+- RevenueCat chosen as cross-platform subscription management provider
