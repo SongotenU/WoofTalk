@@ -33,10 +33,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. PurchasesDelegate/listener fires on CustomerInfo updates across all platforms
   5. After any purchase, getCustomerInfo() is called immediately and entitlement cache refreshes before proceeding
   6. Unauthenticated users cannot reach the paywall — login is required first
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 50-01: [TBD]
+- [ ] 50-01: iOS — RevenueCatManager + EntitlementManager with PurchasesDelegate
+- [ ] 50-02: Android — Hilt SDK module + EntitlementManager with UpdatedCustomerInfoListener
+- [ ] 50-03: Web — RevenueCat JS SDK init + Zustand entitlement store + EntitlementProvider
 
 ### Phase 51: Subscription Backend
 **Goal**: Server-side subscription authority is established — webhooks update status, RLS enforces free tier limits, and Edge Functions verify entitlement before processing premium requests
@@ -108,7 +110,7 @@ Phases execute in numeric order: 50 → 51 → 52 → 53 → 54
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 50. RevenueCat SDK Integration | 0/? | Not started | - |
+| 50. RevenueCat SDK Integration | 0/3 | Planned | - |
 | 51. Subscription Backend | 0/? | Not started | - |
 | 52. Paywall UI | 0/? | Not started | - |
 | 53. Feature Gating & Soft Paywall | 0/? | Not started | - |
