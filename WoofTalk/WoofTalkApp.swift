@@ -11,6 +11,7 @@ import CoreData
 @main
 struct WoofTalkApp: App {
     let persistenceController = PersistenceController.shared
+    private let revenueCatManager = RevenueCatManager.shared
 
     var body: some Scene {
         WindowGroup {
@@ -19,18 +20,22 @@ struct WoofTalkApp: App {
                     .tabItem {
                         Label("Translate", systemImage: "bubble.left.and.bubble.right")
                     }
-                
+
                 CommunityPhraseBrowserView()
                     .tabItem {
                         Label("Community", systemImage: "person.3.fill")
                     }
-                
+
                 OfflineModeView()
                     .tabItem {
                         Label("Offline", systemImage: "moon.fill")
                     }
             }
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .environmentObject(EntitlementManager.shared)
+            .onAppear {
+                revenueCatManager.configure()
+            }
         }
     }
 }
