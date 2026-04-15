@@ -16,6 +16,8 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "com.wooftalk.HiltTestRunner"
+
+        buildConfigField("String", "REVENUECAT_ANDROID_API_KEY", "\"${System.getenv("REVENUECAT_ANDROID_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -39,6 +41,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -75,6 +78,9 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt:3.1.4")
     implementation("io.github.jan-tennert.supabase:realtime-kt:3.1.4")
     implementation("io.ktor:ktor-client-android:3.1.2")
+
+    implementation("com.revenuecat.purchases:purchases:9.9.0")
+    implementation("com.revenuecat.purchases:purchases-ui:9.9.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
