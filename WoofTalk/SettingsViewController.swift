@@ -1,7 +1,9 @@
 // MARK: - SettingsViewController
 
 import UIKit
-import TranslationModeManager  // Not needed if same target, but safe
+import SwiftUI
+import RevenueCatUI
+import TranslationModeManager
 
 final class SettingsViewController: UIViewController {
     
@@ -23,6 +25,7 @@ final class SettingsViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsValueCell")
         tableView.tableFooterView = UIView()
         view.addSubview(tableView)
     }
@@ -42,7 +45,7 @@ final class SettingsViewController: UIViewController {
 
 extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 7
+        return 8
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -71,6 +74,21 @@ extension SettingsViewController: UITableViewDataSource {
         case 6:
             cell.textLabel?.text = "About"
             cell.accessoryType = .disclosureIndicator
+        case 7:
+            let subCell = UITableViewCell(style: .value1, reuseIdentifier: "SettingsValueCell")
+            subCell.selectionStyle = .none
+            subCell.textLabel?.text = "Subscription"
+            let entitlement = EntitlementManager.shared
+            if entitlement.isPremium && !entitlement.isTrialActive {
+                subCell.detailTextLabel?.text = "Pro"
+                subCell.detailTextLabel?.textColor = .systemGreen
+            } else if entitlement.isTrialActive {
+                subCell.detailTextLabel?.text = "Trial"
+                subCell.detailTextLabel?.textColor = .systemGreen
+            } else {
+                subCell.accessoryType = .disclosureIndicator
+            }
+            return subCell
         default:
             cell.textLabel?.text = ""
         }
@@ -155,14 +173,43 @@ extension SettingsViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
+
         switch indexPath.row {
         case 4:
             showClearHistoryConfirmation()
         case 5:
             showAbout()
+        case 7:
+            if EntitlementManager.shared.isReadyToAccessPaywall {
+                presentPaywall()
+            } else {
+                let alert = UIAlertController(
+                    title: "Sign In Required",
+                    message: "Please sign in to manage your subscription.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                present(alert, animated: true)
+            }
         default:
             break
+        }
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadData()
+    }
+
+    private func presentPaywall() {
+        let paywallView = PaywallView()
+        let hostingController = UIHostingController(rootView: paywallView)
+        hostingController.isModalInPresentation = true
+        present(hostingController, animated: true) { [weak self] in
+            Task {
+                await EntitlementManager.shared.refreshEntitlements()
+                self?.tableView.reloadData()
+            }
         }
     }
     

@@ -1,9 +1,12 @@
 package com.wooftalk.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -14,7 +17,11 @@ fun SettingsScreen(
     aiEnabled: Boolean,
     onAiToggle: (Boolean) -> Unit,
     darkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    isPremium: Boolean = false,
+    isTrialActive: Boolean = false,
+    isReadyToAccessPaywall: Boolean = false,
+    onSubscriptionTap: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -77,6 +84,41 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Manage Account")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Subscription row (D-01, D-02)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (isReadyToAccessPaywall) {
+                            onSubscriptionTap()
+                        }
+                    }
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Subscription", style = MaterialTheme.typography.bodyLarge)
+                when {
+                    isPremium && !isTrialActive -> Text(
+                        "Pro",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    isTrialActive -> Text(
+                        "Trial",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    else -> Text(
+                        "Subscribe",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
     }

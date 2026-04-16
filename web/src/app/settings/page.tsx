@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase, signOut } from "@/lib/supabase";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { useEntitlementStore } from "@/lib/entitlement-store";
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -12,6 +13,7 @@ export default function SettingsPage() {
   const [voiceRate, setVoiceRate] = useState(1.0);
   const [voicePitch, setVoicePitch] = useState(1.0);
   const { speak } = useSpeechSynthesis();
+  const { isPremium, isTrialActive } = useEntitlementStore();
 
   useEffect(() => {
     const savedRate = localStorage.getItem('voiceRate');
@@ -141,6 +143,19 @@ export default function SettingsPage() {
             >
               Sign Out
             </button>
+          </div>
+
+          <div className="p-4 bg-card rounded-lg border">
+            <h2 className="text-lg font-semibold mb-4">Subscription</h2>
+            {isPremium && !isTrialActive ? (
+              <p className="text-primary font-medium">Pro plan active</p>
+            ) : isTrialActive ? (
+              <p className="text-muted-foreground">Trial active</p>
+            ) : (
+              <Link href="/subscribe" className="text-primary hover:underline">
+                View Plans
+              </Link>
+            )}
           </div>
         </div>
       </main>
