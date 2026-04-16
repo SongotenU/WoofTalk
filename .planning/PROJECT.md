@@ -31,7 +31,7 @@ Current codebase includes:
 
 ## Current Milestone: v1.0 — Subscription & Payments
 
-**Status:** Active — Defining requirements
+**Status:** Active — Executing (Phases 50-51 complete)
 
 **Goal:** Add subscription monetization with RevenueCat across all platforms — free trial, soft paywall, paid plans.
 
@@ -132,4 +132,4 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - M007 (AR/VR Mixed Reality) completed 2026-04-04
 - M008 (Production Hardening) completed 2026-04-07
 - M009 (Subscription & Payments) started 2026-04-14
-- Last updated: 2026-04-14
+- Last updated: 2026-04-16
