@@ -1,7 +1,7 @@
 ---
 phase: 52
 slug: paywall-ui
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-16
@@ -41,7 +41,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: Settings row tap target height at 48px (Apple HIG minimum for list rows); plan card internal padding at 20px for visual breathing room within pricing cards only.
+Exceptions: Settings row tap target height at 48px (Apple HIG minimum for list rows); plan card internal padding at 20px — 20px prevents card content from touching the border at mobile widths (375px viewport) while keeping both side-by-side cards compact enough to fit without horizontal scroll; 24px (lg) would push cards too wide at the smallest breakpoint.
 
 ---
 
@@ -52,7 +52,7 @@ Exceptions: Settings row tap target height at 48px (Apple HIG minimum for list r
 | Body | 16px | 400 (regular) | 1.5 | Existing `text-base` pattern |
 | Label | 14px | 400 (regular) | 1.5 | Existing `text-sm` pattern for secondary text |
 | Heading | 20px | 600 (semibold) | 1.2 | Existing `text-xl font-semibold` pattern in Settings |
-| Display | 28px | 700 (bold) | 1.2 | Existing `text-3xl font-bold` pattern in AboutViewController |
+| Display | 28px | 600 (semibold) | 1.2 | Display differentiated by size (28px vs 20px), not weight |
 
 ---
 
@@ -87,7 +87,7 @@ Destructive reserved for: Not used in this phase. Sign-out button already exists
 | Annual badge | "Save 33%" | PAY-05 |
 | Trial subtext | "7-day free trial, then {price}" | PAY-04: trial on both plans |
 | Restore purchases | "Restore Purchases" | PAY-07 |
-| Settings row (free user) | "Subscription" with "Subscribe" action | D-02 |
+| Settings row (free user) | "Subscription" with "View Plans" action | D-02 |
 | Settings row (premium user) | "Subscription" with "Pro" badge | D-02 |
 | Settings row (trial user) | "Subscription" with "Trial" badge | CONTEXT.md discretion |
 | Loading state | "Verifying subscription..." | PAY-08: loading until entitlement confirmed |
@@ -134,6 +134,12 @@ None in this phase. There are no cancel/unsubscribe actions — those happen in 
 | Return handling | `customerInfoUpdated` listener in `EntitlementProvider` detects entitlement after user returns from checkout tab; page polls `useEntitlementStore.isPremium` with 3-second interval, max 2 minutes |
 | Navigation | Link from Settings page to `/subscribe` (D-05) |
 | Deep link | `/subscribe` URL is shareable/deep-linkable |
+
+---
+
+## Visual Hierarchy
+
+**Focal point:** The two plan cards with their CTA buttons are the primary visual anchor. The Display heading ("Choose Your Plan") is secondary. The Restore Purchases link is tertiary.
 
 ---
 
@@ -238,11 +244,11 @@ No third-party registries. This phase builds with existing Tailwind + Radix patt
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
