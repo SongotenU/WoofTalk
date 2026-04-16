@@ -14,8 +14,8 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 50: RevenueCat SDK Integration** - SDK wired on all platforms with auth.uid identity and entitlement cache
-- [ ] **Phase 51: Subscription Backend** - Server-side authority: webhooks, RLS enforcement, entitlement verification
+- [x] **Phase 50: RevenueCat SDK Integration** - SDK wired on all platforms with auth.uid identity and entitlement cache
+- [x] **Phase 51: Subscription Backend** - Server-side authority: webhooks, RLS enforcement, entitlement verification (completed 2026-04-16)
 - [ ] **Phase 52: Paywall UI** - Platform-native paywalls displaying offerings and completing purchases
 - [ ] **Phase 53: Feature Gating & Soft Paywall** - Free tier limits enforced with non-blocking upgrade paths
 - [ ] **Phase 54: Cross-Platform Sync & Admin** - Entitlements work across platforms and admins can monitor
@@ -36,9 +36,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 50-01: iOS — RevenueCatManager + EntitlementManager with PurchasesDelegate
-- [ ] 50-02: Android — Hilt SDK module + EntitlementManager with UpdatedCustomerInfoListener
-- [ ] 50-03: Web — RevenueCat JS SDK init + Zustand entitlement store + EntitlementProvider
+- [x] 50-01: iOS — RevenueCatManager + EntitlementManager with PurchasesDelegate
+- [x] 50-02: Android — Hilt SDK module + EntitlementManager with UpdatedCustomerInfoListener
+- [x] 50-03: Web — RevenueCat JS SDK init + Zustand entitlement store + EntitlementProvider
 
 ### Phase 51: Subscription Backend
 **Goal**: Server-side subscription authority is established — webhooks update status, RLS enforces free tier limits, and Edge Functions verify entitlement before processing premium requests
@@ -53,7 +53,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 51-01: [TBD]
+- [x] 51-01: [TBD]
 
 ### Phase 52: Paywall UI
 **Goal**: Users can view subscription offerings, complete a purchase through the native payment flow, and see their entitlement confirmed — on all three platforms
@@ -110,8 +110,8 @@ Phases execute in numeric order: 50 → 51 → 52 → 53 → 54
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 50. RevenueCat SDK Integration | 0/3 | Planned | - |
-| 51. Subscription Backend | 0/? | Not started | - |
+| 50. RevenueCat SDK Integration | 3/3 | Complete | 2026-04-15 |
+| 51. Subscription Backend | 3/3 | Complete    | 2026-04-16 |
 | 52. Paywall UI | 0/? | Not started | - |
 | 53. Feature Gating & Soft Paywall | 0/? | Not started | - |
 | 54. Cross-Platform Sync & Admin | 0/? | Not started | - |
