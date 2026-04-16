@@ -50,10 +50,12 @@ Plans:
   3. Edge Functions verify subscription server-side via RevenueCat REST API with 5-minute result caching
   4. Free users cannot INSERT more than 3 translation_requests per day — RLS enforces this as a hard gate regardless of client behavior
   5. Edge Functions reject premium requests from free-tier users before processing
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [x] 51-01: [TBD]
+- [x] 51-01: Subscription backend migration + shared utility module
+- [x] 51-02: Entitlement webhook Edge Function
+- [x] 51-03: Entitlement check + translate tier gate
 
 ### Phase 52: Paywall UI
 **Goal**: Users can view subscription offerings, complete a purchase through the native payment flow, and see their entitlement confirmed — on all three platforms
@@ -66,11 +68,12 @@ Plans:
   4. Annual plan shows "Save 33%" badge, and iOS paywall is fully compliant with App Store Guideline 3.1.1 (no "cheaper on web" text)
   5. Purchase flow shows loading state until entitlement is confirmed, and restore purchases button is available on all paywalls
   6. Products are verified via getOfferings() before the paywall is displayed — no stale or missing offerings shown
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 3 plans
 
 Plans:
-- [ ] 52-01: [TBD]
+- [ ] 52-01: iOS — Subscription row + RevenueCatUI PaywallView with StoreKit purchases
+- [ ] 52-02: Android — Subscription row + RevenueCatUI Paywall composable with Play Billing
+- [ ] 52-03: Web — /subscribe page with plan cards + hosted checkout + Settings subscription card
 
 ### Phase 53: Feature Gating & Soft Paywall
 **Goal**: Free users experience clear limits (3 translations/day, last 10 history, locked premium features) with non-blocking upgrade paths; premium users have unrestricted access
@@ -112,6 +115,6 @@ Phases execute in numeric order: 50 → 51 → 52 → 53 → 54
 |-------|----------------|--------|-----------|
 | 50. RevenueCat SDK Integration | 3/3 | Complete | 2026-04-15 |
 | 51. Subscription Backend | 3/3 | Complete    | 2026-04-16 |
-| 52. Paywall UI | 0/? | Not started | - |
+| 52. Paywall UI | 0/3 | Not started | - |
 | 53. Feature Gating & Soft Paywall | 0/? | Not started | - |
 | 54. Cross-Platform Sync & Admin | 0/? | Not started | - |
