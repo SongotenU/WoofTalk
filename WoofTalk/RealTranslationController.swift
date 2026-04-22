@@ -2,6 +2,7 @@
 
 import Foundation
 import AVFoundation
+import Combine
 
 final class RealTranslationController {
     
@@ -9,6 +10,7 @@ final class RealTranslationController {
     private let translationEngine: TranslationEngine
     private let aiTranslationService: AITranslationServiceProtocol
     let modeManager: TranslationModeManager
+    private let entitlementManager = EntitlementManager.shared
     private let audioCapture: AudioCapture
     private let speechRecognition: SpeechRecognition
     private let audioPlayback: AudioPlayback
@@ -267,13 +269,20 @@ final class RealTranslationController {
     
     // MARK: - AI Translation
     func translateWithAI(input: String, direction: TranslationDirection = .humanToDog) async throws -> AITranslationResult {
+        // Check if user has premium access for AI translation
+        guard entitlementManager.isPremium else {
+            throw NSError(domain: "WoofTalkError", code: 402, userInfo: [
+                NSLocalizedDescriptionKey: "AI translation is a premium feature"
+            ])
+        }
+
         let startTime = CACurrentMediaTime()
-        
+
         let result = try await aiTranslationService.translate(input: input, direction: direction)
-        
+
         let latency = CACurrentMediaTime() - startTime
         updateMetrics(latency: latency, success: true)
-        
+
         return result
     }
     

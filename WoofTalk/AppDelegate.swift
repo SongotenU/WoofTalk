@@ -8,7 +8,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         window = UIWindow(frame: UIScreen.main.bounds)
-        
+
+        // Activate Watch Connectivity for entitlement sync
+        _ = WatchSyncManager.shared
+
         // Set up the main view controller
         let mainViewController = MainViewController()
         let navigationController = UINavigationController(rootViewController: mainViewController)

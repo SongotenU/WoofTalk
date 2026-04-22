@@ -5,9 +5,14 @@ const API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY ?? '';
 
 let initialized = false;
 
+export function isRevenueCatInitialized() {
+  return initialized;
+}
+
 // SDK-01/02/03: Initialize RevenueCat with anonymous user (D-01)
 export async function initRevenueCat() {
   if (initialized) return;
+  if (!API_KEY) return; // Skip if no key configured (e.g. local dev without RevenueCat)
 
   Purchases.configure({ apiKey: API_KEY, appUserID: undefined });
   initialized = true;
