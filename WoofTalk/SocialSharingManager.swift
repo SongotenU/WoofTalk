@@ -4,6 +4,7 @@ import os.log
 import Foundation
 import UIKit
 import SwiftUI
+import RevenueCat
 
 /// Errors that can occur during social sharing
 enum SocialSharingError: LocalizedError {
@@ -96,6 +97,15 @@ final class SocialSharingManager {
     ///   - viewController: The view controller to present the share sheet from
     ///   - completion: Completion handler called after sharing
     func share(phrase: CommunityPhrase, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
+        // Check if user has premium access for export/share feature
+        let entitlementManager = EntitlementManager.shared
+        guard entitlementManager.isPremium else {
+            // Show upgrade prompt for premium feature
+            showUpgradePrompt(from: viewController)
+            completion(.failure(.shareFailed))
+            return
+        }
+
         let content = createShareContent(from: phrase)
         presentShareSheet(with: content, from: viewController, completion: completion)
     }
@@ -116,6 +126,15 @@ final class SocialSharingManager {
     ///   - viewController: The view controller to present the share sheet from
     ///   - completion: Completion handler called after sharing
     func shareTranslation(humanText: String, dogTranslation: String, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
+        // Check if user has premium access for export/share feature
+        let entitlementManager = EntitlementManager.shared
+        guard entitlementManager.isPremium else {
+            // Show upgrade prompt for premium feature
+            showUpgradePrompt(from: viewController)
+            completion(.failure(.shareFailed))
+            return
+        }
+
         let content = createShareContent(humanText: humanText, dogTranslation: dogTranslation)
         presentShareSheet(with: content, from: viewController, completion: completion)
     }
@@ -185,8 +204,55 @@ final class SocialSharingManager {
             "activity_type": activityType?.rawValue ?? "unknown",
             "has_contributor": content.contributorName != nil
         ]
-        
+
         os_log("%{public}@", log: OSLog.default, type: .default, "[SocialSharing] Share event: \(eventData)")
+    }
+
+    private func showUpgradePrompt(from viewController: UIViewController) {
+        let alert = UIAlertController(
+            title: "Premium Feature",
+            message: "Export and share functionality is a premium feature. Upgrade to access this feature.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Upgrade", style: .default) { [weak self] _ in
+            self?.presentPaywall(from: viewController)
+        })
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        // Find the presenting view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+
+            var topVC = rootViewController
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+
+            topVC.present(alert, animated: true, completion: nil)
+        }
+    }
+
+    private func presentPaywall(from viewController: UIViewController) {
+        // Find the presenting view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+
+            var topVC = rootViewController
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+
+            let paywallView = PaywallView()
+            let hostingController = UIHostingController(rootView: paywallView)
+            hostingController.isModalInPresentation = true
+            topVC.present(hostingController, animated: true) { [weak self] in
+                Task {
+                    await EntitlementManager.shared.refreshEntitlements()
+                }
+            }
+        }
     }
 }
 

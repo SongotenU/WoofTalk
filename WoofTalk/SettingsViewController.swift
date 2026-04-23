@@ -3,6 +3,7 @@
 import UIKit
 import SwiftUI
 import RevenueCatUI
+import Purchases
 import TranslationModeManager
 
 final class SettingsViewController: UIViewController {
@@ -45,7 +46,7 @@ final class SettingsViewController: UIViewController {
 
 extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 8
+        return 10
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -89,6 +90,18 @@ extension SettingsViewController: UITableViewDataSource {
                 subCell.accessoryType = .disclosureIndicator
             }
             return subCell
+        case 8:
+            cell.textLabel?.text = "Restore Purchases"
+            cell.accessoryType = .disclosureIndicator
+        case 9:
+            let entitlement = EntitlementManager.shared
+            if entitlement.isPremium {
+                cell.textLabel?.text = "Manage Subscription"
+                cell.accessoryType = .disclosureIndicator
+            } else {
+                cell.textLabel?.text = ""
+                cell.isHidden = true
+            }
         default:
             cell.textLabel?.text = ""
         }
@@ -191,6 +204,12 @@ extension SettingsViewController: UITableViewDelegate {
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 present(alert, animated: true)
             }
+        case 8:
+            restorePurchases()
+        case 9:
+            if EntitlementManager.shared.isPremium {
+                openManageSubscription()
+            }
         default:
             break
         }
@@ -211,6 +230,36 @@ extension SettingsViewController: UITableViewDelegate {
                 self?.tableView.reloadData()
             }
         }
+    }
+
+    private func restorePurchases() {
+        Task {
+            do {
+                _ = try await Purchases.shared.restorePurchases()
+                await EntitlementManager.shared.refreshEntitlements()
+                tableView.reloadData()
+                let alert = UIAlertController(
+                    title: "Purchases Restored",
+                    message: "Your subscription has been restored.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                present(alert, animated: true)
+            } catch {
+                let alert = UIAlertController(
+                    title: "Restore Failed",
+                    message: error.localizedDescription,
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                present(alert, animated: true)
+            }
+        }
+    }
+
+    private func openManageSubscription() {
+        guard let url = URL(string: "https://apps.apple.com/account/subscriptions") else { return }
+        UIApplication.shared.open(url)
     }
     
     private func showClearHistoryConfirmation() {

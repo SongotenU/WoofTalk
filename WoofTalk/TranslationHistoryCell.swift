@@ -1,6 +1,7 @@
 // MARK: - TranslationHistoryCell
 
 import UIKit
+import RevenueCat
 
 final class TranslationHistoryCell: UITableViewCell {
     
@@ -133,29 +134,37 @@ final class TranslationHistoryCell: UITableViewCell {
     }
     
     // MARK: - Actions
-    
+
     @objc private func submitButtonTapped() {
         guard let record = record,
               let contributionManager = contributionManager,
               let contributionSyncManager = contributionSyncManager else {
             return
         }
-        
+
+        // Check if user has premium access for community contribution
+        let entitlementManager = EntitlementManager.shared
+        guard entitlementManager.isPremium else {
+            // Show upgrade prompt for premium feature
+            showUpgradePrompt()
+            return
+        }
+
         // Show activity indicator
         activityIndicator.startAnimating()
         submitButton.isHidden = true
-        
+
         // Call validation and submission
         contributionManager.submitTranslation(record) { [weak self] result in
             DispatchQueue.main.async {
                 self?.activityIndicator.stopAnimating()
-                
+
                 switch result {
                 case .success():
                     // Success - show confirmation
                     self?.showSuccessAlert()
                     self?.updateSubmitButtonState()
-                    
+
                 case .failure(let error):
                     // Show error
                     self?.showErrorAlert(error)
@@ -195,12 +204,59 @@ final class TranslationHistoryCell: UITableViewCell {
     }
     
     // MARK: - Helper Methods
-    
+
     private func formatTimestamp(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+
+    private func showUpgradePrompt() {
+        let alert = UIAlertController(
+            title: "Premium Feature",
+            message: "Community phrase contribution is a premium feature. Upgrade to access this feature.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Upgrade", style: .default) { [weak self] _ in
+            self?.presentPaywall()
+        })
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        // Find the presenting view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+
+            var topVC = rootViewController
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+
+            topVC.present(alert, animated: true, completion: nil)
+        }
+    }
+
+    private func presentPaywall() {
+        // Find the presenting view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+
+            var topVC = rootViewController
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+
+            let paywallView = PaywallView()
+            let hostingController = UIHostingController(rootView: paywallView)
+            hostingController.isModalInPresentation = true
+            topVC.present(hostingController, animated: true) { [weak self] in
+                Task {
+                    await EntitlementManager.shared.refreshEntitlements()
+                }
+            }
+        }
     }
 }
 

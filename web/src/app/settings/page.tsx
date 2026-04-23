@@ -148,14 +148,52 @@ export default function SettingsPage() {
           <div className="p-4 bg-card rounded-lg border">
             <h2 className="text-lg font-semibold mb-4">Subscription</h2>
             {isPremium && !isTrialActive ? (
-              <p className="text-primary font-medium">Pro plan active</p>
+              <div className="space-y-2">
+                <p className="text-primary font-medium">Pro plan active</p>
+                <a
+                  href="https://billing.stripe.com/p/login"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Manage Subscription →
+                </a>
+              </div>
             ) : isTrialActive ? (
-              <p className="text-muted-foreground">Trial active</p>
+              <div className="space-y-2">
+                <p className="text-muted-foreground">Trial active</p>
+                <a
+                  href="https://billing.stripe.com/p/login"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Manage Subscription →
+                </a>
+              </div>
             ) : (
               <Link href="/subscribe" className="text-primary hover:underline">
                 View Plans
               </Link>
             )}
+          </div>
+
+          <div className="p-4 bg-card rounded-lg border">
+            <h2 className="text-lg font-semibold mb-4">Restore Purchases</h2>
+            <button
+              onClick={async () => {
+                try {
+                  const { restorePurchases } = await import('@/lib/purchases-web');
+                  await restorePurchases();
+                  alert('Purchases restored successfully!');
+                } catch {
+                  alert('Failed to restore purchases. Please try again.');
+                }
+              }}
+              className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm"
+            >
+              Restore Purchases
+            </button>
           </div>
         </div>
       </main>

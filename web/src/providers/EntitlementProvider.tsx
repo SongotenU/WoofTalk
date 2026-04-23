@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import Purchases from '@revenuecat/purchases-js';
-import { initRevenueCat } from '@/lib/revenuecat';
+import { initRevenueCat, isRevenueCatInitialized } from '@/lib/revenuecat';
 import { useEntitlementStore } from '@/lib/entitlement-store';
 import { supabase } from '@/lib/supabase';
 
@@ -14,10 +14,12 @@ export function EntitlementProvider({ children }: { children: ReactNode }) {
     // SDK-01/02/03: Initialize with anonymous user
     initRevenueCat();
 
-    // SDK-04: Listen for CustomerInfo updates
-    Purchases.getSharedInstance().on('customerInfoUpdated', (customerInfo) => {
-      fromCustomerInfo(customerInfo);
-    });
+    // SDK-04: Listen for CustomerInfo updates (only if SDK initialized)
+    if (isRevenueCatInitialized()) {
+      Purchases.getSharedInstance().on('customerInfoUpdated', (customerInfo) => {
+        fromCustomerInfo(customerInfo);
+      });
+    }
 
     // Sync auth state
     supabase.auth.getSession().then(({ data: { session } }) => {

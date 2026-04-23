@@ -3,6 +3,7 @@
 import UIKit
 import AVFoundation
 import Combine
+import RevenueCat
 
 /// Real-time translation display and user feedback interface
 final class TranslationViewController: UIViewController {

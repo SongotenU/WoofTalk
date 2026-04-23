@@ -22,6 +22,8 @@ import com.wooftalk.ui.theme.WoofTalkTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val entitlementManager: EntitlementManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -31,6 +33,14 @@ class MainActivity : ComponentActivity() {
             WoofTalkTheme {
                 WoofTalkApp()
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Check entitlements on resume to get fresh state after cross-platform purchase
+        viewModelScope.launch {
+            entitlementManager.checkEntitlements()
         }
     }
 }
