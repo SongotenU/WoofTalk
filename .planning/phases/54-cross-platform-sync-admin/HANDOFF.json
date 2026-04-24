@@ -1,0 +1,48 @@
+{
+  "phase": "54",
+  "name": "Cross-Platform Sync & Admin",
+  "status": "wip",
+  "destination": ".planning/phases/54-cross-platform-sync-admin/",
+  "timestamp": "2026-04-24T08:50:32.000Z",
+  "milestone": {
+    "id": "M009",
+    "name": "Subscription & Payments",
+    "version": "v1.0.0",
+    "percent": 83,
+    "total_phases": 5,
+    "completed_phases": 4
+  },
+  "completed_work": [
+    "54-01: iOS/Watch cross-platform sync — Restore Purchases + Manage Subscription rows added to SettingsViewController; WatchSyncManager.swift singleton with WCSessionDelegate for Watch entitlement sync",
+    "54-02: Android cross-platform sync — Restore Purchases + Manage Subscription rows added to SettingsScreen; entitlement listener in MainActivity.onResume()",
+    "54-03: Web cross-platform sync + Admin Dashboard — Stripe portal link in Settings; useEntitlementSync hook with real-time Supabase subscription_status; admin subscription dashboard with /api/admin/subscriptions endpoint"
+  ],
+  "remaining_work": [
+    "Stage and commit all Phase 54 implementation files",
+    "Update ROADMAP.md to reflect Phase 54 complete",
+    "Update STATE.md to reflect Phase 54 complete",
+    "Create and commit Phase 54 planning docs if not already committed",
+    "Verify Phase 54 implementation compiles and works correctly",
+    "Create PR for Phase 54"
+  ],
+  "decisions": [
+    "WatchSyncManager.swift singleton adopts WCSessionDelegate, sends entitlement dict via WCSession.default.updateApplicationContext()",
+    "Android uses Play Store subscription URL (not.restorePurchases which was deemed redundant — restore handled by platform)",
+    "Web admin dashboard at /admin/subscriptions with useEntitlementSync hook using Supabase real-time",
+    "Entitlements synced across platforms via shared RevenueCat appUserID = Supabase auth.uid"
+  ],
+  "blockers": [],
+  "files_pending_commit": [
+    "WoofTalk/WatchSyncManager.swift (NEW)",
+    "web/src/hooks/useEntitlementSync.ts (NEW)",
+    "web/src/app/admin/subscriptions/page.tsx (NEW)",
+    "web/src/app/api/admin/subscriptions/route.ts (NEW)",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/MainActivity.kt (MODIFIED)",
+    "web/src/app/admin/layout.tsx (MODIFIED)",
+    "web/src/app/admin/page.tsx (MODIFIED)",
+    ".planning/phases/54-cross-platform-sync-admin/ (all docs untracked)",
+    ".planning/ROADMAP.md (MODIFIED)",
+    ".planning/STATE.md (MODIFIED)"
+  ],
+  "phase_50_note": "Phase 50 (RevenueCat SDK) was implemented but lives on branch milestone/M002, not merged to main. Separate tracking needed."
+}

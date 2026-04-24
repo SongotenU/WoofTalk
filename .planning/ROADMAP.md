@@ -16,9 +16,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 50: RevenueCat SDK Integration** - SDK wired on all platforms with auth.uid identity and entitlement cache
 - [x] **Phase 51: Subscription Backend** - Server-side authority: webhooks, RLS enforcement, entitlement verification (completed 2026-04-16)
-- [ ] **Phase 52: Paywall UI** - Platform-native paywalls displaying offerings and completing purchases
-- [ ] **Phase 53: Feature Gating & Soft Paywall** - Free tier limits enforced with non-blocking upgrade paths
-- [ ] **Phase 54: Cross-Platform Sync & Admin** - Entitlements work across platforms and admins can monitor
+- [x] **Phase 52: Paywall UI** - Platform-native paywalls displaying offerings and completing purchases (shipped PR #4, PR #5 2026-04-23)
+- [x] **Phase 53: Feature Gating & Soft Paywall** - Free tier limits enforced with non-blocking upgrade paths (shipped PR #4, PR #5 2026-04-23)
+- [x] **Phase 54: Cross-Platform Sync & Admin** - Entitlements work across platforms and admins can monitor (implementation fixes applied 2026-04-23)
 
 ## Phase Details
 
@@ -71,9 +71,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 52-01: iOS — Subscription row + RevenueCatUI PaywallView with StoreKit purchases
-- [ ] 52-02: Android — Subscription row + RevenueCatUI Paywall composable with Play Billing
-- [ ] 52-03: Web — /subscribe page with plan cards + hosted checkout + Settings subscription card
+- [x] 52-01: iOS — Subscription row + RevenueCatUI PaywallView with StoreKit purchases
+- [x] 52-02: Android — Subscription row + RevenueCatUI Paywall composable with Play Billing
+- [x] 52-03: Web — /subscribe page with plan cards + hosted checkout + Settings subscription card
 
 ### Phase 53: Feature Gating & Soft Paywall
 **Goal**: Free users experience clear limits (3 translations/day, last 10 history, locked premium features) with non-blocking upgrade paths; premium users have unrestricted access

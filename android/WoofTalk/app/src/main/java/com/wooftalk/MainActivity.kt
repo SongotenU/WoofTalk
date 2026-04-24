@@ -13,12 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import com.wooftalk.ui.navigation.Screen
 import com.wooftalk.ui.screen.HistoryScreen
 import com.wooftalk.ui.screen.SettingsScreen
 import com.wooftalk.ui.screen.TranslationScreen
 import com.wooftalk.ui.theme.WoofTalkTheme
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -39,7 +41,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         // Check entitlements on resume to get fresh state after cross-platform purchase
-        viewModelScope.launch {
+        lifecycleScope.launch {
             entitlementManager.checkEntitlements()
         }
     }
