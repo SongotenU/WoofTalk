@@ -49,41 +49,37 @@ struct CommunityPhraseDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quality Metrics")
                         .font(.headline)
-                    
+
                     HStack(spacing: 16) {
                         QualityMetricView(
                             title: "Score",
                             value: phrase.qualityScoreFormatted,
-                            color: qualityColor
+                            color: phrase.qualityColor
                         )
-                        
+
                         QualityMetricView(
                             title: "Uses",
                             value: "\(phrase.usageCount)",
                             color: .blue
                         )
-                        
+
                         QualityMetricView(
                             title: "Age",
                             value: phrase.ageDisplayString,
                             color: .secondary
                         )
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Quality: \(phrase.qualityScoreFormatted)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
                                 Rectangle()
                                     .fill(Color(.systemGray5))
                                     .frame(height: 8)
                                     .cornerRadius(4)
-                                
+
                                 Rectangle()
-                                    .fill(qualityColor)
+                                    .fill(phrase.qualityColor)
                                     .frame(width: geometry.size.width * CGFloat(phrase.qualityScore), height: 8)
                                     .cornerRadius(4)
                             }
@@ -150,30 +146,20 @@ struct CommunityPhraseDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(.systemGroupedBackground))
     }
-    
-    private var qualityColor: Color {
-        switch phrase.qualityScore {
-        case 0.9...1.0: return .green
-        case 0.7..<0.9: return .blue
-        case 0.5..<0.7: return .orange
-        default: return .red
-        }
-    }
-    
+
     private var contributorInitial: String {
         let name = phrase.contributorDisplay
         return String(name.prefix(1)).uppercased()
     }
     
     private func copyTranslation() {
-        if let translation = phrase.dogTranslation {
-            #if os(iOS)
-            UIPasteboard.general.string = translation
-            #endif
-            isCopied = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                isCopied = false
-            }
+        guard let translation = phrase.dogTranslation else { return }
+        #if os(iOS)
+        UIPasteboard.general.string = translation
+        #endif
+        isCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            isCopied = false
         }
     }
 }

@@ -9,9 +9,7 @@ final class RevenueCatManager: NSObject, ObservableObject, PurchasesDelegate {
     @Published var isConfigured = false
     private var cancellables = Set<AnyCancellable>()
 
-    private override init() {
-        super.init()
-    }
+    private override init() { super.init() }
 
     func configure() {
         let apiKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_IOS_API_KEY") as? String ?? ""
@@ -19,7 +17,6 @@ final class RevenueCatManager: NSObject, ObservableObject, PurchasesDelegate {
             print("[RevenueCat] REVENUECAT_IOS_API_KEY not set — SDK not initialized")
             return
         }
-
         Purchases.configure(withAPIKey: apiKey, appUserID: nil)
         Purchases.shared.delegate = self
         isConfigured = true
@@ -41,26 +38,14 @@ final class RevenueCatManager: NSObject, ObservableObject, PurchasesDelegate {
             .store(in: &cancellables)
     }
 
-    // MARK: - PurchasesDelegate
-
     nonisolated func purchases(_ purchases: Purchases, receivedCustomerInfo customerInfo: CustomerInfo) {
         DispatchQueue.main.async {
-            NotificationCenter.default.post(
-                name: .CustomerInfoUpdated,
-                object: customerInfo
-            )
+            NotificationCenter.default.post(name: .CustomerInfoUpdated, object: customerInfo)
         }
     }
 
-    // MARK: - Public helpers
-
-    func refreshCustomerInfo() async throws -> CustomerInfo {
-        try await Purchases.shared.getCustomerInfo()
-    }
-
-    func logIn(userId: String) async throws {
-        _ = try await Purchases.shared.logIn(userId)
-    }
+    func refreshCustomerInfo() async throws -> CustomerInfo { try await Purchases.shared.customerInfo() }
+    func logIn(userId: String) async throws { _ = try await Purchases.shared.logIn(userId) }
 }
 
 extension Notification.Name {

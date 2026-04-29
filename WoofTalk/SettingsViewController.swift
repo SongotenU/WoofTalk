@@ -1,27 +1,20 @@
-// MARK: - SettingsViewController
-
 import UIKit
 import SwiftUI
-import RevenueCatUI
-import Purchases
-import TranslationModeManager
 
 final class SettingsViewController: UIViewController {
-    
+
     private var tableView: UITableView!
-    private var settings = Settings.shared
-    
+    private let settings = Settings.shared
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupUI()
         setupConstraints()
     }
-    
+
     private func setupUI() {
         view.backgroundColor = .systemBackground
         title = "Settings"
-        
         tableView = UITableView()
         tableView.dataSource = self
         tableView.delegate = self
@@ -30,7 +23,7 @@ final class SettingsViewController: UIViewController {
         tableView.tableFooterView = UIView()
         view.addSubview(tableView)
     }
-    
+
     private func setupConstraints() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -42,17 +35,13 @@ final class SettingsViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-
 extension SettingsViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
-    }
-    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 10 }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
         cell.selectionStyle = .none
-        
+
         switch indexPath.row {
         case 0:
             cell.textLabel?.text = "Latency Threshold"
@@ -76,20 +65,7 @@ extension SettingsViewController: UITableViewDataSource {
             cell.textLabel?.text = "About"
             cell.accessoryType = .disclosureIndicator
         case 7:
-            let subCell = UITableViewCell(style: .value1, reuseIdentifier: "SettingsValueCell")
-            subCell.selectionStyle = .none
-            subCell.textLabel?.text = "Subscription"
-            let entitlement = EntitlementManager.shared
-            if entitlement.isPremium && !entitlement.isTrialActive {
-                subCell.detailTextLabel?.text = "Pro"
-                subCell.detailTextLabel?.textColor = .systemGreen
-            } else if entitlement.isTrialActive {
-                subCell.detailTextLabel?.text = "Trial"
-                subCell.detailTextLabel?.textColor = .systemGreen
-            } else {
-                subCell.accessoryType = .disclosureIndicator
-            }
-            return subCell
+            return subscriptionCell()
         case 8:
             cell.textLabel?.text = "Restore Purchases"
             cell.accessoryType = .disclosureIndicator
@@ -105,11 +81,24 @@ extension SettingsViewController: UITableViewDataSource {
         default:
             cell.textLabel?.text = ""
         }
-        
         return cell
     }
-    
-    private func createLatencyThresholdControl() -> UIView {
+
+    private func subscriptionCell() -> UITableViewCell {
+        let cell = UITableViewCell(style: .value1, reuseIdentifier: "SettingsValueCell")
+        cell.selectionStyle = .none
+        cell.textLabel?.text = "Subscription"
+        let entitlement = EntitlementManager.shared
+        if entitlement.isPremium {
+            cell.detailTextLabel?.text = entitlement.isTrialActive ? "Trial" : "Pro"
+            cell.detailTextLabel?.textColor = .systemGreen
+        } else {
+            cell.accessoryType = .disclosureIndicator
+        }
+        return cell
+    }
+
+    private func createLatencyThresholdControl() -> UISlider {
         let slider = UISlider()
         slider.minimumValue = 1.0
         slider.maximumValue = 3.0
@@ -117,61 +106,55 @@ extension SettingsViewController: UITableViewDataSource {
         slider.addTarget(self, action: #selector(latencyThresholdChanged(_:)), for: .valueChanged)
         return slider
     }
-    
-    private func createAudioQualityControl() -> UIView {
+
+    private func createAudioQualityControl() -> UISegmentedControl {
         let segmented = UISegmentedControl(items: ["Low", "Medium", "High"])
         segmented.selectedSegmentIndex = settings.audioQuality.rawValue
         segmented.addTarget(self, action: #selector(audioQualityChanged(_:)), for: .valueChanged)
         return segmented
     }
-    
-    private func createLanguageControl() -> UIView {
+
+    private func createLanguageControl() -> UISegmentedControl {
         let segmented = UISegmentedControl(items: ["English", "Spanish", "French"])
-        segmented.selectedSegmentIndex = 0 // Default to English
+        segmented.selectedSegmentIndex = 0
         segmented.addTarget(self, action: #selector(languageChanged(_:)), for: .valueChanged)
         return segmented
     }
-    
-    private func createVibrationSwitch() -> UIView {
+
+    private func createVibrationSwitch() -> UISwitch {
         let toggle = UISwitch()
         toggle.isOn = settings.enableVibration
         toggle.addTarget(self, action: #selector(vibrationChanged(_:)), for: .valueChanged)
         return toggle
     }
-    
-    private func createTranslationModeControl() -> UIView {
+
+    private func createTranslationModeControl() -> UISegmentedControl {
         let segmented = UISegmentedControl(items: ["AI", "Rule-Based", "Auto"])
-        segmented.accessibilityIdentifier = "translationModeControl"
-        // Find the current mode's index
         let modes: [TranslationMode] = [.ai, .ruleBased, .auto]
         if let index = modes.firstIndex(of: settings.translationMode) {
             segmented.selectedSegmentIndex = index
-        } else {
-            segmented.selectedSegmentIndex = 1 // Default to Rule-Based if not found
         }
         segmented.addTarget(self, action: #selector(translationModeChanged(_:)), for: .valueChanged)
         return segmented
     }
-    
+
     @objc private func latencyThresholdChanged(_ sender: UISlider) {
         settings.latencyThreshold = Double(sender.value)
     }
-    
+
     @objc private func audioQualityChanged(_ sender: UISegmentedControl) {
         settings.audioQuality = AudioQuality(rawValue: sender.selectedSegmentIndex) ?? .medium
     }
-    
+
     @objc private func translationModeChanged(_ sender: UISegmentedControl) {
         let modes: [TranslationMode] = [.ai, .ruleBased, .auto]
         if sender.selectedSegmentIndex < modes.count {
             settings.translationMode = modes[sender.selectedSegmentIndex]
         }
     }
-    
-    @objc private func languageChanged(_ sender: UISegmentedControl) {
-        // Handle language change
-    }
-    
+
+    @objc private func languageChanged(_ sender: UISegmentedControl) {}
+
     @objc private func vibrationChanged(_ toggle: UISwitch) {
         settings.enableVibration = toggle.isOn
     }
@@ -180,38 +163,17 @@ extension SettingsViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension SettingsViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 60
-    }
-    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 60 }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
         switch indexPath.row {
-        case 4:
-            showClearHistoryConfirmation()
-        case 5:
-            showAbout()
-        case 7:
-            if EntitlementManager.shared.isReadyToAccessPaywall {
-                presentPaywall()
-            } else {
-                let alert = UIAlertController(
-                    title: "Sign In Required",
-                    message: "Please sign in to manage your subscription.",
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                present(alert, animated: true)
-            }
-        case 8:
-            restorePurchases()
-        case 9:
-            if EntitlementManager.shared.isPremium {
-                openManageSubscription()
-            }
-        default:
-            break
+        case 5: showClearHistoryConfirmation()
+        case 6: showAbout()
+        case 7: presentPaywallIfAllowed()
+        case 8: restorePurchases()
+        case 9: if EntitlementManager.shared.isPremium { openManageSubscription() }
+        default: break
         }
     }
 
@@ -220,14 +182,17 @@ extension SettingsViewController: UITableViewDelegate {
         tableView.reloadData()
     }
 
-    private func presentPaywall() {
-        let paywallView = PaywallView()
-        let hostingController = UIHostingController(rootView: paywallView)
+    private func presentPaywallIfAllowed() {
+        guard EntitlementManager.shared.isReadyToAccessPaywall else {
+            presentAlert(title: "Sign In Required", message: "Please sign in to manage your subscription.")
+            return
+        }
+        let hostingController = UIHostingController(rootView: PaywallView())
         hostingController.isModalInPresentation = true
-        present(hostingController, animated: true) { [weak self] in
+        present(hostingController, animated: true) {
             Task {
                 await EntitlementManager.shared.refreshEntitlements()
-                self?.tableView.reloadData()
+                self.tableView.reloadData()
             }
         }
     }
@@ -238,21 +203,9 @@ extension SettingsViewController: UITableViewDelegate {
                 _ = try await Purchases.shared.restorePurchases()
                 await EntitlementManager.shared.refreshEntitlements()
                 tableView.reloadData()
-                let alert = UIAlertController(
-                    title: "Purchases Restored",
-                    message: "Your subscription has been restored.",
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                present(alert, animated: true)
+                presentAlert(title: "Purchases Restored", message: "Your subscription has been restored.")
             } catch {
-                let alert = UIAlertController(
-                    title: "Restore Failed",
-                    message: error.localizedDescription,
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                present(alert, animated: true)
+                presentAlert(title: "Restore Failed", message: error.localizedDescription)
             }
         }
     }
@@ -261,66 +214,59 @@ extension SettingsViewController: UITableViewDelegate {
         guard let url = URL(string: "https://apps.apple.com/account/subscriptions") else { return }
         UIApplication.shared.open(url)
     }
-    
+
     private func showClearHistoryConfirmation() {
-        let alert = UIAlertController(
-            title: "Clear Translation History",
-            message: "This will permanently delete all translation records.",
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: "Clear Translation History", message: "This will permanently delete all translation records.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Clear", style: .destructive) { _ in
-            // Clear history logic
-        })
+        alert.addAction(UIAlertAction(title: "Clear", style: .destructive) { _ in })
         present(alert, animated: true)
     }
-    
+
     private func showAbout() {
-        let aboutVC = AboutViewController()
-        navigationController?.pushViewController(aboutVC, animated: true)
+        navigationController?.pushViewController(AboutViewController(), animated: true)
+    }
+
+    private func presentAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
 // MARK: - AboutViewController
 
 final class AboutViewController: UIViewController {
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupUI()
-    }
-    
-    private func setupUI() {
         view.backgroundColor = .systemBackground
         title = "About"
-        
+
         let titleLabel = UILabel()
         titleLabel.text = "WoofTalk"
         titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
         titleLabel.textAlignment = .center
-        
+
         let versionLabel = UILabel()
         versionLabel.text = "Version 1.0.0"
         versionLabel.font = .systemFont(ofSize: 16)
         versionLabel.textAlignment = .center
         versionLabel.textColor = .secondaryLabel
-        
+
         let descriptionLabel = UILabel()
         descriptionLabel.text = "Real-time dog translation app with offline capability"
         descriptionLabel.font = .systemFont(ofSize: 16)
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 0
         descriptionLabel.textColor = .secondaryLabel
-        
+
         let stackView = UIStackView(arrangedSubviews: [titleLabel, versionLabel, descriptionLabel])
         stackView.axis = .vertical
         stackView.spacing = 16
         stackView.alignment = .center
-        
-        view.addSubview(stackView)
-        
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+
         NSLayoutConstraint.activate([
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -328,21 +274,4 @@ final class AboutViewController: UIViewController {
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32)
         ])
     }
-}
-
-// MARK: - Settings
-
-final class Settings {
-    static let shared = Settings()
-    
-    var latencyThreshold: Double = 2.0
-    var audioQuality: AudioQuality = .medium
-    var enableVibration: Bool = true
-    var targetLanguage: String = "Dog"
-}
-
-enum AudioQuality: Int {
-    case low = 0
-    case medium = 1
-    case high = 2
 }

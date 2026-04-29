@@ -47,13 +47,7 @@ struct CommunityPhraseBrowserView: View {
                     .padding(.horizontal)
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                
-                if !viewModel.isOnline {
-                    OfflineBannerView()
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                }
-                
+
                 if viewModel.isLoading {
                     Spacer()
                     ProgressView("Loading phrases...")
@@ -76,10 +70,10 @@ struct CommunityPhraseBrowserView: View {
         .onAppear {
             viewModel.loadPhrases()
         }
-        .onChange(of: viewModel.minQualityFilter) { _, _ in
+        .onChange(of: viewModel.minQualityFilter) {
             viewModel.loadPhrases()
         }
-        .onChange(of: viewModel.sortOption) { _, _ in
+        .onChange(of: viewModel.sortOption) {
             viewModel.loadPhrases()
         }
     }
@@ -122,19 +116,18 @@ struct CommunityPhraseBrowserView: View {
 class CommunityPhraseBrowserViewModel: ObservableObject {
     @Published var phrases: [CommunityPhrase] = []
     @Published var isLoading = false
-    @Published var isOnline = true
     @Published var hasMore = false
     @Published var minQualityFilter: Double? = nil
     @Published var sortOption: SortOption = .quality
-    
-    private let cacheManager = CommunityPhraseCacheManager.shared
+
+    private let searchService = CommunityPhraseSearchService.shared
     private var currentPage = 0
     private let pageSize = 20
-    
+
     func loadPhrases() {
         isLoading = true
         currentPage = 0
-        phrases = cacheManager.getCachedPhrases(
+        phrases = searchService.getPhrases(
             minQuality: minQualityFilter,
             sortBy: sortOption,
             offset: 0,
@@ -143,62 +136,45 @@ class CommunityPhraseBrowserViewModel: ObservableObject {
         hasMore = phrases.count == pageSize
         isLoading = false
     }
-    
+
     func search(query: String) {
         isLoading = true
         currentPage = 0
         if query.isEmpty {
-            phrases = cacheManager.getCachedPhrases(
-                minQuality: minQualityFilter,
-                sortBy: sortOption,
-                offset: 0,
-                limit: pageSize
-            )
-        } else {
-            phrases = cacheManager.getCachedPhrases(
-                searchQuery: query,
-                minQuality: minQualityFilter,
-                sortBy: .relevance,
-                offset: 0,
-                limit: pageSize
-            )
+            loadPhrases()
+            return
         }
+        phrases = searchService.getPhrases(
+            searchQuery: query,
+            minQuality: minQualityFilter,
+            sortBy: .relevance,
+            offset: 0,
+            limit: pageSize
+        )
         hasMore = phrases.count == pageSize
         isLoading = false
     }
-    
+
     func refresh() async {
-        isOnline = await checkConnectivity()
-        if isOnline {
-            await withCheckedContinuation { continuation in
-                cacheManager.syncWithCloud { result in
-                    switch result {
-                    case .success:
-                        Task { @MainActor in
-                            loadPhrases()
-                            continuation.resume()
-                        }
-                    case .failure:
-                        continuation.resume()
-                    }
+        await withCheckedContinuation { continuation in
+            CommunityPhraseCacheManager.shared.syncWithCloud { result in
+                if case .success = result {
+                    Task { @MainActor in loadPhrases() }
                 }
+                continuation.resume()
             }
         }
     }
-    
+
     func loadMore() {
         currentPage += 1
-        let morePhrases = cacheManager.getCachedPhrases(
-            offset: currentPage * pageSize,
-            limit: pageSize,
+        let morePhrases = searchService.getPhrases(
             minQuality: minQualityFilter,
-            sortBy: sortOption
+            sortBy: sortOption,
+            offset: currentPage * pageSize,
+            limit: pageSize
         )
         phrases.append(contentsOf: morePhrases)
         hasMore = morePhrases.count == pageSize
-    }
-    
-    private func checkConnectivity() async -> Bool {
-        return true
     }
 }

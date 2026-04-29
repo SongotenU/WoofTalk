@@ -64,21 +64,16 @@ final class UsageAnalyticsTracker {
     func recordFeatureUsage(featureName: String, sessionId: String, sessionDuration: TimeInterval = 0) {
         lock.lock()
         defer { lock.unlock() }
-        
-        if var stats = featureUsage[featureName] {
-            stats.recordUsage(sessionDuration: sessionDuration)
-            featureUsage[featureName] = stats
-        } else {
-            var stats = FeatureUsageStats(featureName: featureName)
-            stats.recordUsage(sessionDuration: sessionDuration)
-            featureUsage[featureName] = stats
-        }
-        
+
+        var stats = featureUsage[featureName] ?? FeatureUsageStats(featureName: featureName)
+        stats.recordUsage(sessionDuration: sessionDuration)
+        featureUsage[featureName] = stats
+
         currentSession?.featuresUsed.append(featureName)
         currentSession?.translationCount += 1
-        
+
         saveFeatureUsage()
-        
+
         let event = TranslationAnalyticsEvent(
             eventType: .featureUsed,
             sessionId: sessionId,
@@ -108,18 +103,12 @@ final class UsageAnalyticsTracker {
     func recordLanguagePairUsage(sourceLanguage: String, targetLanguage: String, sessionId: String) {
         lock.lock()
         defer { lock.unlock() }
-        
+
         let key = "\(sourceLanguage)->\(targetLanguage)"
-        
-        if var usage = languagePairUsage[key] {
-            usage.recordUsage()
-            languagePairUsage[key] = usage
-        } else {
-            var usage = LanguagePairUsage(sourceLanguage: sourceLanguage, targetLanguage: targetLanguage)
-            usage.recordUsage()
-            languagePairUsage[key] = usage
-        }
-        
+        var usage = languagePairUsage[key] ?? LanguagePairUsage(sourceLanguage: sourceLanguage, targetLanguage: targetLanguage)
+        usage.recordUsage()
+        languagePairUsage[key] = usage
+
         saveLanguagePairUsage()
     }
     
@@ -157,45 +146,37 @@ final class UsageAnalyticsTracker {
     func getActiveFeatureCount() -> Int {
         lock.lock()
         defer { lock.unlock() }
-        
+
         let oneDayAgo = Date().addingTimeInterval(-86400)
         return featureUsage.values.filter { $0.lastUsed > oneDayAgo }.count
     }
     
     // MARK: - Time-based Analytics
-    
+
     func getDailyUsage(days: Int = 7) -> [Date: Int] {
         lock.lock()
         defer { lock.unlock() }
-        
-        var dailyUsage: [Date: Int] = [:]
+
         let calendar = Calendar.current
-        
-        for dayOffset in 0..<days {
-            let date = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -dayOffset, to: Date()) ?? Date())
-            dailyUsage[date] = 0
-        }
-        
+        var dailyUsage: [Date: Int] = [:]
+
         for stats in featureUsage.values {
             let dayStart = calendar.startOfDay(for: stats.lastUsed)
-            if dailyUsage[dayStart] != nil {
-                dailyUsage[dayStart]! += stats.usageCount
+            if let daysAgo = calendar.date(byAdding: .day, value: -days, to: Date()),
+               dayStart >= daysAgo {
+                dailyUsage[dayStart, default: 0] += stats.usageCount
             }
         }
-        
+
         return dailyUsage
     }
-    
-    func getWeeklyUsage() -> Int {
-        let weekAgo = Date().addingTimeInterval(-604800)
-        let dailyUsage = getDailyUsage(days: 7)
-        return dailyUsage.values.reduce(0) { $0 + $1 }
+
+    var weeklyUsage: Int {
+        getDailyUsage(days: 7).values.reduce(0, +)
     }
-    
-    func getMonthlyUsage() -> Int {
-        let monthAgo = Date().addingTimeInterval(-2592000)
-        let dailyUsage = getDailyUsage(days: 30)
-        return dailyUsage.values.reduce(0) { $0 + $1 }
+
+    var monthlyUsage: Int {
+        getDailyUsage(days: 30).values.reduce(0, +)
     }
     
     // MARK: - Clear Data

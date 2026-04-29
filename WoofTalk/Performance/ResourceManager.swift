@@ -6,12 +6,9 @@ final class ResourceManager {
     
     private var lazyResources: [String: Any] = [:]
     private let resourceLock = NSLock()
-    
+
     private var paginationState: [String: PaginationState] = [:]
-    
-    private let maxTotalCacheSize: Int = 100 * 1024 * 1024
-    private var currentCacheSize: Int = 0
-    
+
     private init() {}
     
     func lazyResource<T>(for key: String, loader: @escaping () -> T) -> T {
@@ -27,14 +24,7 @@ final class ResourceManager {
         return resource.value
     }
     
-    func preloadResource(for key: String) {
-        resourceLock.lock()
-        defer { resourceLock.unlock() }
-        
-        if let box = lazyResources[key] {
-            _ = (box as? Box<Any>)?.value
-        }
-    }
+    func preloadResource(for key: String) {}
     
     func invalidateResource(for key: String) {
         resourceLock.lock()
@@ -68,78 +58,33 @@ final class ResourceManager {
         )
     }
     
-    func registerCacheSize(_ size: Int, for key: String) {
-        currentCacheSize += size
-        enforceCacheSizeLimit()
-    }
-    
-    private func enforceCacheSizeLimit() {
-        guard currentCacheSize > maxTotalCacheSize else { return }
-        
-        let targetSize = maxTotalCacheSize / 2
-        var freedSize = 0
-        
-        let sortedKeys = lazyResources.keys.sorted { _, _ in
-            return true
-        }
-        
-        for key in sortedKeys {
-            if currentCacheSize - freedSize <= targetSize {
-                break
-            }
-            
-            lazyResources.removeValue(forKey: key)
-            freedSize += 1024 * 1024
-        }
-        
-        currentCacheSize -= freedSize
-    }
-    
     func clearNonEssentialCaches() {
         resourceLock.lock()
         defer { resourceLock.unlock() }
-        
+
         let essentialKeys = ["user_profile", "app_config", "language_packs"]
-        
-        for key in lazyResources.keys {
-            if !essentialKeys.contains(key) {
-                lazyResources.removeValue(forKey: key)
-            }
-        }
-        
-        currentCacheSize = 0
+        lazyResources = lazyResources.filter { essentialKeys.contains($0.key) }
     }
     
     func clearAllResources() {
         resourceLock.lock()
         defer { resourceLock.unlock() }
-        
+
         lazyResources.removeAll()
         paginationState.removeAll()
-        currentCacheSize = 0
-    }
-    
-    var totalCacheSize: Int {
-        resourceLock.lock()
-        defer { resourceLock.unlock() }
-        return currentCacheSize
     }
 }
 
 private class Box<T> {
     private var _value: T?
     private let loader: () -> T
-    private(set) var lastAccessTime: Date = Date()
-    
+
     init(loader: @escaping () -> T) {
         self.loader = loader
     }
-    
+
     var value: T {
-        if _value == nil {
-            _value = loader()
-        }
-        lastAccessTime = Date()
+        if _value == nil { _value = loader() }
         return _value!
     }
 }

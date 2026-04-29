@@ -1,15 +1,9 @@
 import Foundation
 import CoreData
-import SwiftUI
 
 enum ReportType: String, CaseIterable, Codable {
-    case spam = "spam"
-    case harassment = "harassment"
-    case inappropriate = "inappropriate"
-    case misinformation = "misinformation"
-    case violence = "violence"
-    case other = "other"
-    
+    case spam, harassment, inappropriate, misinformation, violence, other
+
     var displayName: String {
         switch self {
         case .spam: return "Spam"
@@ -20,7 +14,7 @@ enum ReportType: String, CaseIterable, Codable {
         case .other: return "Other"
         }
     }
-    
+
     var severity: Int {
         switch self {
         case .spam: return 1
@@ -34,12 +28,8 @@ enum ReportType: String, CaseIterable, Codable {
 }
 
 enum ReportStatus: String, CaseIterable, Codable {
-    case submitted = "submitted"
-    case underReview = "under_review"
-    case resolved = "resolved"
-    case dismissed = "dismissed"
-    case escalated = "escalated"
-    
+    case submitted, underReview, resolved, dismissed, escalated
+
     var displayName: String {
         switch self {
         case .submitted: return "Submitted"
@@ -66,12 +56,12 @@ public class ModerationReport: NSManagedObject {
     @NSManaged public var resolvedBy: String?
     @NSManaged public var moderatorNotes: String?
     @NSManaged public var priority: Int16
-    
+
     var displayStatus: ReportStatus {
         get { ReportStatus(rawValue: status ?? "submitted") ?? .submitted }
         set { status = newValue.rawValue }
     }
-    
+
     var displayReportType: ReportType {
         get { ReportType(rawValue: reportType ?? "other") ?? .other }
         set { reportType = newValue.rawValue }
@@ -85,15 +75,14 @@ extension ModerationReport {
 }
 
 final class AbuseReportingManager {
-    
     static let shared = AbuseReportingManager(coreDataContext: PersistenceController.shared.container.viewContext)
-    
+
     private let coreDataContext: NSManagedObjectContext
-    
+
     init(coreDataContext: NSManagedObjectContext) {
         self.coreDataContext = coreDataContext
     }
-    
+
     func submitReport(
         reportedUserId: String,
         reportedContentId: String? = nil,
@@ -112,40 +101,28 @@ final class AbuseReportingManager {
         report.status = ReportStatus.submitted.rawValue
         report.timestamp = Date()
         report.priority = Int16(reportType.severity)
-        
-        do {
-            try coreDataContext.save()
-            return report
-        } catch {
-            throw AbuseReportError.saveFailed(error)
-        }
+
+        try coreDataContext.save()
+        return report
     }
-    
+
     func fetchReports(for userId: String) throws -> [ModerationReport] {
-        let fetchRequest: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "reportedUserId == %@", userId)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-        
-        return try coreDataContext.fetch(fetchRequest)
+        let request: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
+        request.predicate = NSPredicate(format: "reportedUserId == %@", userId)
+        request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        return try coreDataContext.fetch(request)
     }
-    
+
     func fetchPendingReports() throws -> [ModerationReport] {
-        let fetchRequest: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
-        let submittedStatus = ReportStatus.submitted.rawValue
-        let underReviewStatus = ReportStatus.underReview.rawValue
-        fetchRequest.predicate = NSPredicate(
-            format: "status == %@ OR status == %@",
-            submittedStatus,
-            underReviewStatus
-        )
-        fetchRequest.sortDescriptors = [
+        let request: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
+        request.predicate = NSPredicate(format: "status IN %@", [ReportStatus.submitted.rawValue, ReportStatus.underReview.rawValue])
+        request.sortDescriptors = [
             NSSortDescriptor(key: "priority", ascending: false),
             NSSortDescriptor(key: "timestamp", ascending: true)
         ]
-        
-        return try coreDataContext.fetch(fetchRequest)
+        return try coreDataContext.fetch(request)
     }
-    
+
     func updateReportStatus(
         report: ModerationReport,
         newStatus: ReportStatus,
@@ -154,61 +131,51 @@ final class AbuseReportingManager {
     ) throws {
         report.status = newStatus.rawValue
         report.moderatorNotes = notes
-        
+
         if newStatus == .resolved || newStatus == .dismissed {
             report.resolvedAt = Date()
             report.resolvedBy = moderatorId
         }
-        
-        do {
-            try coreDataContext.save()
-        } catch {
-            throw AbuseReportError.updateFailed(error)
-        }
+
+        try coreDataContext.save()
     }
-    
+
     func escalateReport(_ report: ModerationReport, moderatorId: String) throws {
-        try updateReportStatus(
-            report: report,
-            newStatus: .escalated,
-            moderatorId: moderatorId,
-            notes: "Escalated for urgent review"
-        )
+        try updateReportStatus(report: report, newStatus: .escalated, moderatorId: moderatorId, notes: "Escalated for urgent review")
     }
-    
+
     func getReportStatistics() throws -> ReportStatistics {
-        let fetchRequest: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
-        
-        let allReports = try coreDataContext.fetch(fetchRequest)
-        
-        let submittedCount = allReports.filter { $0.displayStatus == .submitted }.count
-        let underReviewCount = allReports.filter { $0.displayStatus == .underReview }.count
-        let resolvedCount = allReports.filter { $0.displayStatus == .resolved }.count
-        let dismissedCount = allReports.filter { $0.displayStatus == .dismissed }.count
-        let escalatedCount = allReports.filter { $0.displayStatus == .escalated }.count
-        
+        let allReports = try coreDataContext.fetch(ModerationReport.fetchRequest())
+
+        var submitted = 0, underReview = 0, resolved = 0, dismissed = 0, escalated = 0
         var byType: [ReportType: Int] = [:]
-        for reportType in ReportType.allCases {
-            byType[reportType] = allReports.filter { $0.displayReportType == reportType }.count
+
+        for report in allReports {
+            switch report.displayStatus {
+            case .submitted: submitted += 1
+            case .underReview: underReview += 1
+            case .resolved: resolved += 1
+            case .dismissed: dismissed += 1
+            case .escalated: escalated += 1
+            }
+            byType[report.displayReportType, default: 0] += 1
         }
-        
+
         return ReportStatistics(
             total: allReports.count,
-            pending: submittedCount + underReviewCount,
-            resolved: resolvedCount,
-            dismissed: dismissedCount,
-            escalated: escalatedCount,
+            pending: submitted + underReview,
+            resolved: resolved,
+            dismissed: dismissed,
+            escalated: escalated,
             byType: byType
         )
     }
-    
+
     func hasUserBeenReported(userId: String) throws -> Bool {
-        let fetchRequest: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "reportedUserId == %@", userId)
-        fetchRequest.fetchLimit = 1
-        
-        let count = try coreDataContext.count(for: fetchRequest)
-        return count > 0
+        let request: NSFetchRequest<ModerationReport> = ModerationReport.fetchRequest()
+        request.predicate = NSPredicate(format: "reportedUserId == %@", userId)
+        request.fetchLimit = 1
+        return try coreDataContext.count(for: request) > 0
     }
 }
 
@@ -219,7 +186,7 @@ struct ReportStatistics {
     let dismissed: Int
     let escalated: Int
     let byType: [ReportType: Int]
-    
+
     var resolutionRate: Double {
         guard total > 0 else { return 0 }
         return Double(resolved + dismissed) / Double(total)
@@ -231,17 +198,13 @@ enum AbuseReportError: LocalizedError {
     case updateFailed(Error)
     case reportNotFound
     case invalidData
-    
+
     var errorDescription: String? {
         switch self {
-        case .saveFailed(let error):
-            return "Failed to save report: \(error.localizedDescription)"
-        case .updateFailed(let error):
-            return "Failed to update report: \(error.localizedDescription)"
-        case .reportNotFound:
-            return "Report not found"
-        case .invalidData:
-            return "Invalid report data"
+        case .saveFailed(let error): return "Failed to save report: \(error.localizedDescription)"
+        case .updateFailed(let error): return "Failed to update report: \(error.localizedDescription)"
+        case .reportNotFound: return "Report not found"
+        case .invalidData: return "Invalid report data"
         }
     }
 }

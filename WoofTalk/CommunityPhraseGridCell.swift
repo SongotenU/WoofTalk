@@ -9,7 +9,7 @@ struct CommunityPhraseGridCell: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Spacer()
-                QualityBadge(score: phrase.qualityScore)
+                QualityBadge(phrase: phrase)
             }
             
             Text(phrase.displayText)

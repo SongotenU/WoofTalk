@@ -10,11 +10,6 @@ final class NetworkOptimizer {
     private let maxCacheSize = 50 * 1024 * 1024 // 50MB
     private var currentCacheSize: Int = 0
     
-    // MARK: - Connection Pool
-    private var connectionPool: [URLSession] = []
-    private let maxPoolSize = 4
-    private var currentPoolIndex = 0
-    
     // MARK: - Offline Queue
     private var offlineQueue: [QueuedRequest] = []
     private var isOffline = false
@@ -134,23 +129,6 @@ final class NetworkOptimizer {
         return try? (data as NSData).decompressed(using: .zlib) as Data
     }
     
-    // MARK: - Connection Pooling
-    func getPooledSession() -> URLSession {
-        if connectionPool.isEmpty {
-            let config = URLSessionConfiguration.default
-            config.httpMaximumConnectionsPerHost = 6
-            config.timeoutIntervalForRequest = 30
-            config.timeoutIntervalForResource = 60
-            config.requestCachePolicy = .returnCacheDataElseLoad
-            
-            return URLSession(configuration: config)
-        }
-        
-        let session = connectionPool[currentPoolIndex]
-        currentPoolIndex = (currentPoolIndex + 1) % connectionPool.count
-        return session
-    }
-    
     // MARK: - Retry with Exponential Backoff
     func retryConfiguration(for attempt: Int) -> RetryConfig {
         let delay = baseRetryDelay * pow(2.0, Double(attempt))
@@ -172,19 +150,9 @@ final class NetworkOptimizer {
     
     private func processOfflineQueue() {
         guard !offlineQueue.isEmpty else { return }
-        
-        let requests = offlineQueue
         offlineQueue.removeAll()
-        
-        for request in requests {
-            executeQueuedRequest(request)
-        }
     }
-    
-    private func executeQueuedRequest(_ request: QueuedRequest) {
-        // Execute the queued request when network is available
-    }
-    
+
     func setOfflineMode(_ offline: Bool) {
         isOffline = offline
         if !offline {

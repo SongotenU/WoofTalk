@@ -3,10 +3,11 @@ import Foundation
 
 final class ErrorReportingManager {
     static let shared = ErrorReportingManager()
-    
+
     private var errorLog: [ErrorLogEntry] = []
     private let queue = DispatchQueue(label: "com.wooftalk.errorreporting")
-    
+    private let maxLogSize = 1000
+
     struct ErrorLogEntry: Codable {
         let id: UUID
         let timestamp: Date
@@ -15,7 +16,7 @@ final class ErrorReportingManager {
         let message: String
         let stackTrace: String?
         let context: [String: String]?
-        
+
         init(domain: String, code: Int, message: String, stackTrace: String? = nil, context: [String: String]? = nil) {
             self.id = UUID()
             self.timestamp = Date()
@@ -26,59 +27,31 @@ final class ErrorReportingManager {
             self.context = context
         }
     }
-    
-    enum ErrorDomain: String {
-        case translation = "Translation"
-        case audio = "Audio"
-        case network = "Network"
-        case persistence = "Persistence"
-        case community = "Community"
-        case social = "Social"
-        case moderation = "Moderation"
-    }
-    
+
     private init() {}
-    
-    func logError(domain: ErrorDomain, code: Int, message: String, stackTrace: String? = nil, context: [String: String]? = nil) {
-        let entry = ErrorLogEntry(
-            domain: domain.rawValue,
-            code: code,
-            message: message,
-            stackTrace: stackTrace,
-            context: context
-        )
-        
-        queue.async { [weak self] in
-            self?.errorLog.append(entry)
-            if self?.errorLog.count ?? 0 > 1000 {
-                self?.errorLog.removeFirst((self?.errorLog.count ?? 0) - 1000)
+
+    func logError(domain: String, code: Int, message: String, stackTrace: String? = nil, context: [String: String]? = nil) {
+        let entry = ErrorLogEntry(domain: domain, code: code, message: message, stackTrace: stackTrace, context: context)
+
+        queue.async {
+            self.errorLog.append(entry)
+            if self.errorLog.count > self.maxLogSize {
+                self.errorLog.removeFirst(self.errorLog.count - self.maxLogSize)
             }
         }
-        
-        #if DEBUG
-        os_log("%{public}@", log: OSLog.default, type: .default, "ERROR [\(domain.rawValue)] (\(code)): \(message)")
-        #endif
+
+        os_log("%{public}@", log: OSLog.default, type: .default, "ERROR [\(domain)] (\(code)): \(message)")
     }
-    
+
     func getRecentErrors(limit: Int = 50) -> [ErrorLogEntry] {
-        var result: [ErrorLogEntry] = []
-        queue.sync {
-            result = Array(errorLog.suffix(limit))
-        }
-        return result
+        queue.sync { Array(errorLog.suffix(limit)) }
     }
-    
+
     func clearErrorLog() {
-        queue.async { [weak self] in
-            self?.errorLog.removeAll()
-        }
+        queue.async { self.errorLog.removeAll() }
     }
-    
+
     func exportErrorLog() -> Data? {
-        var logs: [ErrorLogEntry] = []
-        queue.sync {
-            logs = errorLog
-        }
-        return try? JSONEncoder().encode(logs)
+        queue.sync { try? JSONEncoder().encode(errorLog) }
     }
 }

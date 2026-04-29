@@ -1,183 +1,111 @@
-import os.log
-// MARK: - VocabularyDatabase
-
 import Foundation
 import SQLite3
-import AVFoundation
 
-/// SQLite database for storing translation vocabulary
 final class VocabularyDatabase {
-    
-    // MARK: - Public Types
-    
-    /// Vocabulary lookup result
-    struct VocabularyLookupResult {
-        let translatedText: String
-        let confidence: Double
-        let source: Source
-        
-        enum Source {
-            case mlModel
-            case database
-            case simpleMapping
-        }
-    }
-    
-    /// Vocabulary coverage statistics
-    struct VocabularyCoverage: CustomStringConvertible {
-        let humanToDogPhrases: Int
-        let dogToHumanPhrases: Int
-        let totalPhrases: Int
-        let coveragePercentage: Double
-        
-        var description: String {
-            return "VocabularyCoverage(humanToDog: \(humanToDogPhrases), dogToHuman: \(dogToHumanPhrases), total: \(totalPhrases), coverage: \(String(format: "%.1f", coveragePercentage))%)")
-        }
-    }
-    
-    // MARK: - Private Properties
-    
-    static let shared = VocabularyDatabase()
     private let databaseFileName = "wooftalk_vocabulary.sqlite"
-    private var database: OpaquePointer? = nil
-    private let databaseQueue = DispatchQueue(label: "com.wooftalk.vocabulary.database")
-    
-    // MARK: - Initialization
-    
+    private var database: OpaquePointer?
+
     private init() {
         openDatabase()
         createTables()
         populateDatabase()
     }
-    
-    deinit {
-        closeDatabase()
-    }
-    
-    // MARK: - Public Methods
-    
-    /// Lookup human speech to dog translation
+
+    deinit { closeDatabase() }
+
     func lookupHumanToDog(_ text: String) -> String {
-        guard !text.isEmpty else { return "" }
-        
-        let normalizedText = normalizeText(text)
-        var result = ""
-        
-        databaseQueue.sync {
-            result = lookupHumanToDogInternal(normalizedText)
-        }
-        
-        return result
+        !text.isEmpty ? lookupHumanToDogInternal(normalizeText(text)) : ""
     }
-    
-    /// Lookup dog vocalization to human translation
+
     func lookupDogToHuman(_ text: String) -> String {
-        guard !text.isEmpty else { return "" }
-        
-        let normalizedText = normalizeText(text)
-        var result = ""
-        
-        databaseQueue.sync {
-            result = lookupDogToHumanInternal(normalizedText)
-        }
-        
-        return result
+        !text.isEmpty ? lookupDogToHumanInternal(normalizeText(text)) : ""
     }
-    
-    /// Get vocabulary coverage statistics
-    func getCoverageStatistics() -> VocabularyCoverage {
-        var coverage = VocabularyCoverage(
-            humanToDogPhrases: 0,
-            dogToHumanPhrases: 0,
-            totalPhrases: 0,
-            coveragePercentage: 0.0
-        )
-        
-        databaseQueue.sync {
-            coverage = getCoverageStatisticsInternal()
-        }
-        
-        return coverage
-    }
-    
-    /// Get translation confidence for a phrase
-    func getTranslationConfidence(_ text: String, direction: TranslationDirection) -> Double {
-        guard !text.isEmpty else { return 0.0 }
-        
-        let normalizedText = normalizeText(text)
-        var confidence = 0.0
-        
-        databaseQueue.sync {
-            confidence = getTranslationConfidenceInternal(normalizedText, direction: direction)
-        }
-        
-        return confidence
-    }
-    
-    // MARK: - Private Methods
-    
+
     private func openDatabase() {
         let fileURL = getDatabaseFileURL()
-        
         if sqlite3_open(fileURL.path, &database) != SQLITE_OK {
-            os_log("%{public}@", log: OSLog.default, type: .default, "Error opening vocabulary database")
             database = nil
         }
     }
-    
+
     private func closeDatabase() {
-        if database != nil {
-            sqlite3_close(database)
-            database = nil
-        }
+        if let db = database { sqlite3_close(db); database = nil }
     }
-    
+
     private func createTables() {
-        let createTableQuery = ""
-            + "CREATE TABLE IF NOT EXISTS vocabulary ("
-            + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + "human_text TEXT NOT NULL,"
-            + "dog_text TEXT NOT NULL,"
-            + "context TEXT,"
-            + "frequency INTEGER DEFAULT 1,"
-            + "confidence REAL DEFAULT 0.8,"
-            + "category TEXT,"
-            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-            + ");"
-        
-        let createIndexQuery = "CREATE INDEX IF NOT EXISTS idx_human_text ON vocabulary (human_text);"
-        let createDogIndexQuery = "CREATE INDEX IF NOT EXISTS idx_dog_text ON vocabulary (dog_text);"
-        
-        executeQuery(createTableQuery)
-        executeQuery(createIndexQuery)
-        executeQuery(createDogIndexQuery)
+        executeQuery("""
+            CREATE TABLE IF NOT EXISTS vocabulary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                human_text TEXT NOT NULL,
+                dog_text TEXT NOT NULL
+            );
+        """)
+        executeQuery("CREATE INDEX IF NOT EXISTS idx_human_text ON vocabulary (human_text);")
+        executeQuery("CREATE INDEX IF NOT EXISTS idx_dog_text ON vocabulary (dog_text);")
     }
-    
+
     private func populateDatabase() {
-        // Check if database is empty
-        let countQuery = "SELECT COUNT(*) FROM vocabulary;"
-        var statement: OpaquePointer? = nil
-        
-        if sqlite3_prepare_v2(database, countQuery, -1, &statement, nil) == SQLITE_OK {
-            if sqlite3_step(statement) == SQLITE_ROW {
-                let count = sqlite3_column_int(statement, 0)
-                sqlite3_finalize(statement)
-                
-                // If database is empty, populate with initial vocabulary
-                if count == 0 {
-                    populateInitialVocabulary()
-                }
-            }
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(database, "SELECT COUNT(*) FROM vocabulary;", -1, &stmt, nil) == SQLITE_OK else { return }
+        defer { sqlite3_finalize(stmt) }
+        if sqlite3_step(stmt) == SQLITE_ROW, sqlite3_column_int(stmt, 0) == 0 {
+            populateInitialVocabulary()
         }
     }
-    
+
     private func populateInitialVocabulary() {
-        let initialVocabulary: [[String]] = [
-            // Basic commands
-            ["sit", "woof woof woof"],
-            ["stay", "woof woof woof woof"],
-            ["come", "woof woof woof woof woof"],
-            ["no", "woof woof woof woof woof woof woof woof"],
-            ["yes", "woof woof woof woof woof woof woof woof woof"],
-            ["good boy", "woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof woof
+        let entries = [
+            ("sit", "woof woof woof"),
+            ("stay", "woof woof woof woof"),
+            ("come", "woof woof woof woof woof"),
+            ("no", "woof woof woof woof woof woof woof"),
+            ("yes", "woof woof woof woof woof woof woof woof"),
+            ("good boy", "woof woof woof woof woof woof woof woof woof woof"),
+        ]
+        for (human, dog) in entries {
+            insertVocabulary(humanText: human, dogText: dog)
+        }
+    }
+
+    private func insertVocabulary(humanText: String, dogText: String) {
+        var stmt: OpaquePointer?
+        let query = "INSERT INTO vocabulary (human_text, dog_text) VALUES (?, ?);"
+        guard sqlite3_prepare_v2(database, query, -1, &stmt, nil) == SQLITE_OK else { return }
+        defer { sqlite3_finalize(stmt) }
+        sqlite3_bind_text(stmt, 1, (humanText as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(stmt, 2, (dogText as NSString).utf8String, -1, nil)
+        sqlite3_step(stmt)
+    }
+
+    private func lookupHumanToDogInternal(_ text: String) -> String {
+        querySingleValue("SELECT dog_text FROM vocabulary WHERE human_text = ? LIMIT 1;", value: text)
+    }
+
+    private func lookupDogToHumanInternal(_ text: String) -> String {
+        querySingleValue("SELECT human_text FROM vocabulary WHERE dog_text = ? LIMIT 1;", value: text)
+    }
+
+    private func querySingleValue(_ query: String, value: String) -> String {
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(database, query, -1, &stmt, nil) == SQLITE_OK else { return "" }
+        defer { sqlite3_finalize(stmt) }
+        sqlite3_bind_text(stmt, 1, (value as NSString).utf8String, -1, nil)
+        if sqlite3_step(stmt) == SQLITE_ROW {
+            return String(cString: sqlite3_column_text(stmt, 0))
+        }
+        return ""
+    }
+
+    private func normalizeText(_ text: String) -> String {
+        text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func getDatabaseFileURL() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(databaseFileName)
+    }
+
+    private func executeQuery(_ query: String) {
+        sqlite3_exec(database, (query as NSString).utf8String, nil, nil, nil)
+    }
+}

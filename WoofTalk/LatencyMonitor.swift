@@ -17,174 +17,81 @@ final class LatencyMonitor {
     private init() {}
     
     func recordLatency(_ latency: TimeInterval, translationType: String, success: Bool) {
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let record = LatencyRecord(
-                timestamp: Date(),
-                latency: latency,
-                translationType: translationType,
-                success: success
-            )
-            
+        queue.async {
+            let record = LatencyRecord(timestamp: Date(), latency: latency, translationType: translationType, success: success)
             self.latencyHistory.append(record)
-            
             if self.latencyHistory.count > self.maxHistorySize {
                 self.latencyHistory.removeFirst(self.latencyHistory.count - self.maxHistorySize)
             }
-            
-            NotificationCenter.default.post(
-                name: .latencyRecorded,
-                object: nil,
-                userInfo: ["latency": latency, "type": translationType]
-            )
+            NotificationCenter.default.post(name: .latencyRecorded, object: nil, userInfo: ["latency": latency, "type": translationType])
         }
+    }
+    
+    private func recentRecords(duration: TimeInterval) -> [LatencyRecord] {
+        let cutoff = Date().addingTimeInterval(-duration)
+        return latencyHistory.filter { $0.timestamp > cutoff }
+    }
+    
+    private func percentileLatency(_ records: [LatencyRecord], p: Double) -> TimeInterval {
+        guard !records.isEmpty else { return 0.0 }
+        let sorted = records.map { $0.latency }.sorted()
+        let index = min(Int(Double(sorted.count) * p), sorted.count - 1)
+        return sorted[index]
     }
     
     func getAverageLatency(duration: TimeInterval = 60) -> TimeInterval {
         queue.sync {
-            let cutoff = Date().addingTimeInterval(-duration)
-            let recentRecords = latencyHistory.filter { $0.timestamp > cutoff }
-            
-            guard !recentRecords.isEmpty else { return 0 }
-            
-            let totalLatency = recentRecords.reduce(0.0) { $0 + $1.latency }
-            return totalLatency / Double(recentRecords.count)
+            let records = recentRecords(duration: duration)
+            guard !records.isEmpty else { return 0.0 }
+            return records.reduce(0.0) { $0 + $1.latency } / Double(records.count)
         }
     }
-    
+
     func getP50Latency(duration: TimeInterval = 60) -> TimeInterval {
         queue.sync {
-            let cutoff = Date().addingTimeInterval(-duration)
-            let recentRecords = latencyHistory.filter { $0.timestamp > cutoff }
-            
-            guard !recentRecords.isEmpty else { return 0 }
-            
-            let sortedLatencies = recentRecords.map { $0.latency }.sorted()
-            let midIndex = sortedLatencies.count / 2
-            
-            if sortedLatencies.count % 2 == 0 {
-                return (sortedLatencies[midIndex - 1] + sortedLatencies[midIndex]) / 2
-            } else {
-                return sortedLatencies[midIndex]
-            }
+            let records = recentRecords(duration: duration)
+            guard !records.isEmpty else { return 0.0 }
+            let sorted = records.map { $0.latency }.sorted()
+            let mid = sorted.count / 2
+            return sorted.count % 2 == 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
         }
     }
-    
+
     func getP95Latency(duration: TimeInterval = 60) -> TimeInterval {
-        queue.sync {
-            let cutoff = Date().addingTimeInterval(-duration)
-            let recentRecords = latencyHistory.filter { $0.timestamp > cutoff }
-            
-            guard !recentRecords.isEmpty else { return 0 }
-            
-            let sortedLatencies = recentRecords.map { $0.latency }.sorted()
-            let index = Int(Double(sortedLatencies.count) * 0.95)
-            
-            return sortedLatencies[min(index, sortedLatencies.count - 1)]
-        }
+        queue.sync { percentileLatency(recentRecords(duration: duration), p: 0.95) }
     }
-    
+
     func getP99Latency(duration: TimeInterval = 60) -> TimeInterval {
-        queue.sync {
-            let cutoff = Date().addingTimeInterval(-duration)
-            let recentRecords = latencyHistory.filter { $0.timestamp > cutoff }
-            
-            guard !recentRecords.isEmpty else { return 0 }
-            
-            let sortedLatencies = recentRecords.map { $0.latency }.sorted()
-            let index = Int(Double(sortedLatencies.count) * 0.99)
-            
-            return sortedLatencies[min(index, sortedLatencies.count - 1)]
-        }
+        queue.sync { percentileLatency(recentRecords(duration: duration), p: 0.99) }
     }
-    
+
     func getSuccessRate(duration: TimeInterval = 60) -> Double {
         queue.sync {
-            let cutoff = Date().addingTimeInterval(-duration)
-            let recentRecords = latencyHistory.filter { $0.timestamp > cutoff }
-            
-            guard !recentRecords.isEmpty else { return 0 }
-            
-            let successCount = recentRecords.filter { $0.success }.count
-            return Double(successCount) / Double(recentRecords.count)
+            let records = recentRecords(duration: duration)
+            guard !records.isEmpty else { return 0.0 }
+            return Double(records.filter { $0.success }.count) / Double(records.count)
         }
     }
-    
+
     func getLatencyDistribution() -> [String: Int] {
         queue.sync {
-            var distribution: [String: Int] = [
-                "<500ms": 0,
-                "500ms-1s": 0,
-                "1s-2s": 0,
-                ">2s": 0
-            ]
-            
+            var distribution = ["<500ms": 0, "500ms-1s": 0, "1s-2s": 0, ">2s": 0]
             for record in latencyHistory {
-                if record.latency < 0.5 {
-                    distribution["<500ms", default: 0] += 1
-                } else if record.latency < 1.0 {
-                    distribution["500ms-1s", default: 0] += 1
-                } else if record.latency < 2.0 {
-                    distribution["1s-2s", default: 0] += 1
-                } else {
-                    distribution[">2s", default: 0] += 1
+                switch record.latency {
+                case ..<0.5: distribution["<500ms"]! += 1
+                case ..<1.0: distribution["500ms-1s"]! += 1
+                case ..<2.0: distribution["1s-2s"]! += 1
+                default: distribution[">2s"]! += 1
                 }
             }
-            
             return distribution
         }
     }
     
-    func getReport() -> LatencyReport {
+    func getRecentLatencies(count: Int = 10) -> [LatencyRecord] {
         queue.sync {
-            LatencyReport(
-                averageLatency: getAverageLatency(),
-                p50Latency: getP50Latency(),
-                p95Latency: getP95Latency(),
-                p99Latency: getP99Latency(),
-                successRate: getSuccessRate(),
-                totalTranslations: latencyHistory.count,
-                distribution: getLatencyDistribution()
-            )
+            let endIndex = min(count, latencyHistory.count)
+            return Array(latencyHistory.suffix(endIndex))
         }
     }
-    
-    func clearHistory() {
-        queue.async { [weak self] in
-            self?.latencyHistory.removeAll()
-        }
-    }
-}
-
-struct LatencyReport {
-    let averageLatency: TimeInterval
-    let p50Latency: TimeInterval
-    let p95Latency: TimeInterval
-    let p99Latency: TimeInterval
-    let successRate: Double
-    let totalTranslations: Int
-    let distribution: [String: Int]
-    
-    var meetsTarget: Bool {
-        return averageLatency < 1.0
-    }
-    
-    var summary: String {
-        return """
-        Latency Report
-        ==============
-        Average: \(String(format: "%.2f", averageLatency))s
-        P50: \(String(format: "%.2f", p50Latency))s
-        P95: \(String(format: "%.2f", p95Latency))s
-        P99: \(String(format: "%.2f", p99Latency))s
-        Success Rate: \(String(format: "%.1f", successRate * 100))%
-        Total: \(totalTranslations)
-        Target Met: \(meetsTarget ? "YES" : "NO")
-        """
-    }
-}
-
-extension Notification.Name {
-    static let latencyRecorded = Notification.Name("latencyRecorded")
 }

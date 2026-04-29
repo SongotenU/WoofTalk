@@ -1,9 +1,5 @@
 import Foundation
 
-// MARK: - LanguagePack
-
-struct LanguagePack {
-
 /// Vocabulary pack containing translations for an animal language
 struct LanguagePack: Codable {
     let language: AnimalLanguage
@@ -11,56 +7,34 @@ struct LanguagePack: Codable {
     let animalToHuman: [String: String]
     let audioPatterns: [String]
     let metadata: PackMetadata
-    
+
     struct PackMetadata: Codable {
         let version: String
         let phraseCount: Int
         let lastUpdated: Date
     }
-    
-    var vocabularySize: Int {
-        return humanToAnimal.count + animalToHuman.count
-    }
+
+    var vocabularySize: Int { humanToAnimal.count + animalToHuman.count }
 }
 
 /// Manager for loading and accessing language packs
 final class LanguagePackManager {
     static let shared = LanguagePackManager()
-    
+
     private var loadedPacks: [AnimalLanguage: LanguagePack] = [:]
-    private let packQueue = DispatchQueue(label: "com.wooftalk.languagepack", qos: .userInitiated)
-    
+
     private init() {
-        loadDefaultPacks()
+        AnimalLanguage.allCases.forEach { loadedPacks[$0] = createDefaultPack(for: $0) }
     }
-    
+
     func getPack(for language: AnimalLanguage) -> LanguagePack? {
-        return loadedPacks[language]
+        loadedPacks[language]
     }
-    
-    func loadPack(for language: AnimalLanguage) {
-        packQueue.async { [weak self] in
-            guard let self = self else { return }
-            if self.loadedPacks[language] == nil {
-                self.loadedPacks[language] = self.createDefaultPack(for: language)
-            }
-        }
-    }
-    
-    func getAllPacks() -> [AnimalLanguage: LanguagePack] {
-        return loadedPacks
-    }
-    
+
     func vocabularySize(for language: AnimalLanguage) -> Int {
-        return loadedPacks[language]?.vocabularySize ?? 0
+        loadedPacks[language]?.vocabularySize ?? 0
     }
-    
-    private func loadDefaultPacks() {
-        for language in AnimalLanguage.allCases {
-            loadedPacks[language] = createDefaultPack(for: language)
-        }
-    }
-    
+
     private func createDefaultPack(for language: AnimalLanguage) -> LanguagePack {
         switch language {
         case .dog:
@@ -102,7 +76,7 @@ final class LanguagePackManager {
                 audioPatterns: ["woof", "bark", "whine", "howl", "growl", "yelp"],
                 metadata: PackMetadata(version: "1.0.0", phraseCount: 28, lastUpdated: Date())
             )
-            
+
         case .cat:
             return LanguagePack(
                 language: .cat,
@@ -135,7 +109,7 @@ final class LanguagePackManager {
                 audioPatterns: ["meow", "purr", "hiss", "yowl", "chirp", "trill"],
                 metadata: PackMetadata(version: "1.0.0", phraseCount: 20, lastUpdated: Date())
             )
-            
+
         case .bird:
             return LanguagePack(
                 language: .bird,

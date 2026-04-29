@@ -1,5 +1,3 @@
-// MARK: - ControlPanelViewDelegate
-
 protocol ControlPanelViewDelegate: AnyObject {
     func controlPanelDidTapTranslate(_ view: ControlPanelView)
     func controlPanelDidTapSettings(_ view: ControlPanelView)

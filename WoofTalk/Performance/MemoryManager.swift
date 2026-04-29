@@ -84,13 +84,10 @@ final class MemoryManager {
     private let qualityScoreCache: LRUCache<String, QualityScoreResult>
     private let languageDetectionCache: LRUCache<String, DetectedLanguage>
     
-    // MARK: - Lazy Initializers
+    // MARK: - Lazy Initialization
     private var qualityScorer: TranslationQualityScorer?
     private var metadataParser: AITranslationMetadata?
-    
-    // MARK: - Weak References
-    private var observers: [ObjectWrapper] = []
-    
+
     // MARK: - Memory Pressure
     private var isLowMemoryMode = false
     private var memoryPressureSource: DispatchSourceMemoryPressure?
@@ -141,25 +138,15 @@ final class MemoryManager {
     
     // MARK: - Lazy Initialization
     func getQualityScorer() -> TranslationQualityScorer {
-        if qualityScorer == nil {
-            qualityScorer = TranslationQualityScorer()
-        }
+        qualityScorer = qualityScorer ?? TranslationQualityScorer()
         return qualityScorer!
     }
-    
+
     func getMetadataParser() -> AITranslationMetadata {
-        if metadataParser == nil {
-            metadataParser = AITranslationMetadata()
-        }
+        metadataParser = metadataParser ?? AITranslationMetadata()
         return metadataParser!
     }
-    
-    // MARK: - Weak Observer Pattern
-    func addObserver(_ observer: AnyObject) {
-        observers.removeAll { $0.object === nil }
-        observers.append(ObjectWrapper(object: observer))
-    }
-    
+
     // MARK: - Memory Pressure Handling
     private func setupMemoryPressureHandler() {
         memoryPressureSource = DispatchSource.makeMemoryPressureSource(
@@ -175,19 +162,13 @@ final class MemoryManager {
     }
     
     private func handleMemoryPressure() {
-        guard let source = memoryPressureSource else { return }
-        
-        if source.isCancelled { return }
-        
-        let event = source.data
-        
-        if event.contains(.critical) {
-            // Critical pressure - clear all caches
+        guard let source = memoryPressureSource, !source.isCancelled else { return }
+
+        if source.data.contains(.critical) {
             clearAllCaches()
             isLowMemoryMode = true
             NotificationCenter.default.post(name: .memoryPressureCritical, object: nil)
-        } else if event.contains(.warning) {
-            // Warning - reduce cache sizes by 50%
+        } else if source.data.contains(.warning) {
             reduceCacheSizes(by: 0.5)
             NotificationCenter.default.post(name: .memoryPressureWarning, object: nil)
         }
@@ -198,21 +179,13 @@ final class MemoryManager {
         qualityScoreCache.clear()
         languageDetectionCache.clear()
     }
-    
-    func reduceCacheSizes(by factor: Double) {
-        // Keep only a fraction of each cache
-        // LRU cache handles this internally, but we trigger cleanup
-        clearExpiredCacheEntries()
+
+    func reduceCacheSizes(by ratio: Double) {
+        translationCache.clear()
+        qualityScoreCache.clear()
+        languageDetectionCache.clear()
     }
-    
-    private func clearExpiredCacheEntries() {
-        // Clear entries older than 1 hour
-        let oneHourAgo = Date().addingTimeInterval(-3600)
-        
-        // For translation cache, we'd need to track timestamps
-        // This is a simplified implementation
-    }
-    
+
     func setLowMemoryMode(_ enabled: Bool) {
         isLowMemoryMode = enabled
         if enabled {
@@ -276,15 +249,6 @@ struct DetectedLanguage {
     
     var isExpired: Bool {
         return Date().timeIntervalSince(timestamp) > 3600 // 1 hour
-    }
-}
-
-// MARK: - Object Wrapper for Weak References
-private class ObjectWrapper {
-    weak var object: AnyObject?
-    
-    init(object: AnyObject) {
-        self.object = object
     }
 }
 

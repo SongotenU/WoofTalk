@@ -4,24 +4,24 @@ import SwiftUI
 
 struct CommunityPhraseCell: View {
     let phrase: CommunityPhrase
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(phrase.displayText)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 Spacer()
-                
-                QualityBadge(score: phrase.qualityScore)
+
+                QualityBadge(phrase: phrase)
             }
-            
+
             Text(phrase.translationPreview)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .lineLimit(2)
-            
+
             HStack {
                 Image(systemName: "person.circle")
                     .font(.caption)
@@ -29,9 +29,9 @@ struct CommunityPhraseCell: View {
                 Text(phrase.contributorDisplay)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
-                
+
                 Text(phrase.ageDisplayString)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -42,25 +42,16 @@ struct CommunityPhraseCell: View {
 }
 
 struct QualityBadge: View {
-    let score: Double
-    
+    let phrase: CommunityPhrase
+
     var body: some View {
-        Text("\(Int(score * 100))%")
+        Text(phrase.qualityScoreFormatted)
             .font(.caption)
             .fontWeight(.semibold)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(qualityColor.opacity(0.2))
-            .foregroundColor(qualityColor)
+            .background(phrase.qualityColor.opacity(0.2))
+            .foregroundColor(phrase.qualityColor)
             .cornerRadius(8)
-    }
-    
-    private var qualityColor: Color {
-        switch score {
-        case 0.9...1.0: return .green
-        case 0.7..<0.9: return .blue
-        case 0.5..<0.7: return .orange
-        default: return .red
-        }
     }
 }

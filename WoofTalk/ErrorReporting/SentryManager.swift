@@ -1,123 +1,42 @@
 import os.log
-import Foundation
 
 final class SentryManager {
-    
     static let shared = SentryManager()
-    
+
     private var isEnabled = false
-    private var dsn: String = ""
-    
-    private var eventCount = 0
     private var breadcrumbs: [Breadcrumb] = []
     private let maxBreadcrumbs = 100
-    
+
     private init() {}
-    
+
     func initialize(dsn: String) {
-        self.dsn = dsn
-        self.isEnabled = !dsn.isEmpty
-        
-        if isEnabled {
-            os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Initialized with DSN")
-        } else {
-            os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Running in development mode (no DSN)")
-        }
+        isEnabled = !dsn.isEmpty
+        let msg = isEnabled ? "SentryManager: Initialized" : "SentryManager: Dev mode (no DSN)"
+        os_log("%{public}@", log: OSLog.default, type: .default, msg)
     }
-    
+
     func captureError(_ error: Error, context: [String: Any]? = nil) {
         guard isEnabled else { return }
-        
-        eventCount += 1
-        
-        let event = SentryEvent(
-            eventId: UUID().uuidString,
-            timestamp: Date(),
-            level: .error,
-            message: error.localizedDescription,
-            context: context ?? [:],
-            breadcrumbs: breadcrumbs
-        )
-        
-        sendToSentry(event)
+        os_log("SentryManager: Captured error %{public}@", error.localizedDescription)
     }
-    
+
     func captureMessage(_ message: String, level: SentryLevel = .info, context: [String: Any]? = nil) {
         guard isEnabled else { return }
-        
-        eventCount += 1
-        
-        let event = SentryEvent(
-            eventId: UUID().uuidString,
-            timestamp: Date(),
-            level: level,
-            message: message,
-            context: context ?? [:],
-            breadcrumbs: breadcrumbs
-        )
-        
-        sendToSentry(event)
+        os_log("SentryManager: Captured message %{public}@", message)
     }
-    
+
     func addBreadcrumb(category: String, message: String, level: BreadcrumbLevel = .info) {
-        let breadcrumb = Breadcrumb(
-            timestamp: Date(),
-            category: category,
-            message: message,
-            level: level
-        )
-        
-        breadcrumbs.append(breadcrumb)
-        
-        if breadcrumbs.count > maxBreadcrumbs {
-            breadcrumbs.removeFirst()
-        }
+        breadcrumbs.append(Breadcrumb(timestamp: Date(), category: category, message: message, level: level))
+        if breadcrumbs.count > maxBreadcrumbs { breadcrumbs.removeFirst() }
     }
-    
-    func clearBreadcrumbs() {
-        breadcrumbs.removeAll()
-    }
-    
-    func setUser(id: String, email: String? = nil) {
-        addBreadcrumb(category: "user", message: "User set: \(id)")
-    }
-    
-    private func sendToSentry(_ event: SentryEvent) {
-        os_log("%{public}@", log: OSLog.default, type: .default, "SentryManager: Capturing event \(event.eventId)")
-    }
-    
-    func getEventCount() -> Int {
-        return eventCount
-    }
+
+    func clearBreadcrumbs() { breadcrumbs.removeAll() }
+    func setUser(id: String) { addBreadcrumb(category: "user", message: "User: \(id)") }
 }
 
-enum SentryLevel: String {
-    case debug = "debug"
-    case info = "info"
-    case warning = "warning"
-    case error = "error"
-    case fatal = "fatal"
-}
-
-enum BreadcrumbLevel: String {
-    case debug = "debug"
-    case info = "info"
-    case warning = "warning"
-    case error = "error"
-}
+enum SentryLevel: String { case debug, info, warning, error, fatal }
+enum BreadcrumbLevel: String { case debug, info, warning, error }
 
 struct Breadcrumb {
-    let timestamp: Date
-    let category: String
-    let message: String
-    let level: BreadcrumbLevel
-}
-
-struct SentryEvent {
-    let eventId: String
-    let timestamp: Date
-    let level: SentryLevel
-    let message: String
-    let context: [String: Any]
-    let breadcrumbs: [Breadcrumb]
+    let timestamp: Date, category: String, message: String, level: BreadcrumbLevel
 }

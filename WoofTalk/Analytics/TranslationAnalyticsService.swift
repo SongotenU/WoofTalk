@@ -97,10 +97,10 @@ final class TranslationAnalyticsService {
         
         usageTracker.recordTranslation(sessionId: sessionId, duration: latencyMs / 1000)
         
-        let direction = languageDirection.contains("ToDog") || languageDirection == "humanToAnimal" ? "human" : "animal"
+        let isHumanToAnimal = languageDirection.contains("ToDog") || languageDirection == "humanToAnimal"
         usageTracker.recordLanguagePairUsage(
-            sourceLanguage: direction,
-            targetLanguage: direction == "human" ? "animal" : "human",
+            sourceLanguage: isHumanToAnimal ? "human" : "animal",
+            targetLanguage: isHumanToAnimal ? "animal" : "human",
             sessionId: sessionId
         )
     }
@@ -126,24 +126,6 @@ final class TranslationAnalyticsService {
             translationType: translationType,
             languageDirection: languageDir
         )
-    }
-    
-    // MARK: - Integration with RealTranslationController
-    
-    func trackRealTimeTranslation(
-        result: AITranslationResult,
-        latencyMs: Double,
-        direction: TranslationDirection = .humanToDog
-    ) {
-        trackAITranslation(result: result, latencyMs: latencyMs, translationType: .realTime, direction: direction)
-    }
-    
-    func trackStreamingTranslation(
-        result: AITranslationResult,
-        latencyMs: Double,
-        direction: TranslationDirection = .humanToDog
-    ) {
-        trackAITranslation(result: result, latencyMs: latencyMs, translationType: .streaming, direction: direction)
     }
     
     // MARK: - Integration with LanguageRoutingService

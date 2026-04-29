@@ -1,10 +1,6 @@
-import os.log
-// MARK: - SocialSharingManager
-
 import Foundation
 import UIKit
 import SwiftUI
-import RevenueCat
 
 /// Errors that can occur during social sharing
 enum SocialSharingError: LocalizedError {
@@ -30,20 +26,14 @@ struct ShareContent {
     let dogTranslation: String
     let qualityScore: Double?
     let contributorName: String?
-    
+
     var shareText: String {
         var text = "\"\(humanText)\" → \"\(dogTranslation)\""
-        
         if let contributor = contributorName {
             text += "\n\nContributed by \(contributor)"
         }
-        
         text += "\n\nTranslated with WoofTalk 🐕"
         return text
-    }
-    
-    var attributionText: String {
-        return "Translation by WoofTalk"
     }
 }
 
@@ -92,22 +82,13 @@ final class SocialSharingManager {
     }
     
     /// Presents the share sheet for a community phrase
-    /// - Parameters:
-    ///   - phrase: The community phrase to share
-    ///   - viewController: The view controller to present the share sheet from
-    ///   - completion: Completion handler called after sharing
     func share(phrase: CommunityPhrase, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
-        // Check if user has premium access for export/share feature
-        let entitlementManager = EntitlementManager.shared
-        guard entitlementManager.isPremium else {
-            // Show upgrade prompt for premium feature
+        guard EntitlementManager.shared.isPremium else {
             showUpgradePrompt(from: viewController)
             completion(.failure(.shareFailed))
             return
         }
-
-        let content = createShareContent(from: phrase)
-        presentShareSheet(with: content, from: viewController, completion: completion)
+        presentShareSheet(with: createShareContent(from: phrase), from: viewController, completion: completion)
     }
     
     /// Presents the share sheet for custom content
@@ -120,23 +101,13 @@ final class SocialSharingManager {
     }
     
     /// Presents the share sheet for translation
-    /// - Parameters:
-    ///   - humanText: The human text
-    ///   - dogTranslation: The dog translation
-    ///   - viewController: The view controller to present the share sheet from
-    ///   - completion: Completion handler called after sharing
     func shareTranslation(humanText: String, dogTranslation: String, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
-        // Check if user has premium access for export/share feature
-        let entitlementManager = EntitlementManager.shared
-        guard entitlementManager.isPremium else {
-            // Show upgrade prompt for premium feature
+        guard EntitlementManager.shared.isPremium else {
             showUpgradePrompt(from: viewController)
             completion(.failure(.shareFailed))
             return
         }
-
-        let content = createShareContent(humanText: humanText, dogTranslation: dogTranslation)
-        presentShareSheet(with: content, from: viewController, completion: completion)
+        presentShareSheet(with: createShareContent(humanText: humanText, dogTranslation: dogTranslation), from: viewController, completion: completion)
     }
     
     // MARK: - Private Methods
@@ -206,6 +177,13 @@ final class SocialSharingManager {
         ]
 
         os_log("%{public}@", log: OSLog.default, type: .default, "[SocialSharing] Share event: \(eventData)")
+    }
+
+    private func topViewController() -> UIViewController? {
+        guard let root = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else { return nil }
+        var top = root
+        while let presented = top.presentedViewController { top = presented }
+        return top
     }
 
     private func showUpgradePrompt(from viewController: UIViewController) {
