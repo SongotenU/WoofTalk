@@ -12,6 +12,8 @@ protocol AITranslationServiceProtocol {
     func loadModel() async throws
     var modelVersion: String { get }
     func fallbackTranslate(input: String, direction: TranslationDirection) -> String
+    // Streaming support
+    func translateStream(input: String, direction: TranslationDirection) -> AsyncThrowingStream<AITranslationResult, Error>
 }
 
 struct AITranslationResult {
@@ -152,6 +154,73 @@ final class AITranslationService: AITranslationServiceProtocol {
             return (try? translationEngine.translateHumanToDog(speechText: input)) ?? "Translation not available"
         case .dogToHuman:
             return (try? translationEngine.translateDogToHuman(dogVocalization: input)) ?? "Translation not available"
+        }
+    }
+
+    // MARK: - Streaming Translation
+
+    func translateStream(input: String, direction: TranslationDirection) -> AsyncThrowingStream<AITranslationResult, Error> {
+        return AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    guard self.isModelLoaded else {
+                        continuation.finish(throwing: AITranslationError.modelNotLoaded)
+                        return
+                    }
+                    guard !input.isEmpty else {
+                        continuation.finish(throwing: AITranslationError.invalidInput)
+                        return
+                    }
+
+                    // Emit partial result with low confidence first
+                    let partialResult1 = AITranslationResult(
+                        translatedText: "Translating...",
+                        qualityScore: TranslationQualityScore(confidence: 0.1),
+                        inferenceTime: 0,
+                        modelVersion: self.modelVersion
+                    )
+                    continuation.yield(partialResult1)
+
+                    // Simulate streaming chunks
+                    try await Task.sleep(nanoseconds: 100_000_000)
+
+                    let normalized = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    let enhanced = Self.enhancedTranslations[direction]?[normalized]
+
+                    let (translation, confidence): (String, Double)
+                    if let found = enhanced {
+                        translation = found.text
+                        confidence = found.confidence
+                    } else {
+                        translation = self.fallbackTranslate(input: input, direction: direction)
+                        confidence = 0.55
+                    }
+
+                    // Emit intermediate result
+                    let partialResult2 = AITranslationResult(
+                        translatedText: String(translation.prefix(translation.count / 2)),
+                        qualityScore: TranslationQualityScore(confidence: confidence * 0.5),
+                        inferenceTime: 0.05,
+                        modelVersion: self.modelVersion
+                    )
+                    continuation.yield(partialResult2)
+
+                    try await Task.sleep(nanoseconds: 100_000_000)
+
+                    // Emit final result
+                    let qualityScore = TranslationQualityScore(confidence: confidence)
+                    let finalResult = AITranslationResult(
+                        translatedText: translation,
+                        qualityScore: qualityScore,
+                        inferenceTime: 0.2,
+                        modelVersion: self.modelVersion
+                    )
+                    continuation.yield(finalResult)
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
         }
     }
 

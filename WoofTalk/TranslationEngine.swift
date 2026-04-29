@@ -40,6 +40,8 @@ final class TranslationEngine {
 
         if let mlTranslation = try translationModels.translate(text, direction: direction) {
             cache.cacheTranslation(text: text, translatedText: mlTranslation, direction: direction, confidence: 1.0)
+            saveTranslationForWidgets(humanText: text, dogTranslation: mlTranslation)
+            SpotlightIndexer.shared.indexTranslation(RecentTranslation(humanText: text, dogTranslation: mlTranslation, timestamp: Date()))
             return mlTranslation
         }
 
@@ -48,16 +50,33 @@ final class TranslationEngine {
             : vocabularyDatabase.lookupDogToHuman(text)
         if !vocabularyTranslation.isEmpty {
             cache.cacheTranslation(text: text, translatedText: vocabularyTranslation, direction: direction, confidence: 0.8)
+            saveTranslationForWidgets(humanText: text, dogTranslation: vocabularyTranslation)
+            SpotlightIndexer.shared.indexTranslation(RecentTranslation(humanText: text, dogTranslation: vocabularyTranslation, timestamp: Date()))
             return vocabularyTranslation
         }
 
         let simpleTranslation = translateSimplePhrase(text, direction: direction)
         if !simpleTranslation.isEmpty {
             cache.cacheTranslation(text: text, translatedText: simpleTranslation, direction: direction, confidence: 0.5)
+            saveTranslationForWidgets(humanText: text, dogTranslation: simpleTranslation)
+            SpotlightIndexer.shared.indexTranslation(RecentTranslation(humanText: text, dogTranslation: simpleTranslation, timestamp: Date()))
             return simpleTranslation
         }
 
         throw TranslationError.translationFailed
+    }
+
+    private func saveTranslationForWidgets(humanText: String, dogTranslation: String) {
+        let defaults = UserDefaults(suiteName: "group.vandopha.WoofTalk") ?? UserDefaults.standard
+        var translations: [RecentTranslation] = []
+        if let data = defaults.data(forKey: "recentTranslations"),
+           let existing = try? JSONDecoder().decode([RecentTranslation].self, from: data) {
+            translations = Array(existing.prefix(9))
+        }
+        translations.insert(RecentTranslation(humanText: humanText, dogTranslation: dogTranslation, timestamp: Date()), at: 0)
+        if let data = try? JSONEncoder().encode(Array(translations.prefix(10))) {
+            defaults.set(data, forKey: "recentTranslations")
+        }
     }
 
     private static let humanToDogPhrases: [String: String] = [

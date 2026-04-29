@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Purchases from "@revenuecat/purchases-js";
+import { Purchases } from "@revenuecat/purchases-js";
+import { supabase } from "@/lib/supabase";
 import { useEntitlementStore } from "@/lib/entitlement-store";
 import { isRevenueCatInitialized } from "@/lib/revenuecat";
 
@@ -28,6 +29,20 @@ export default function SubscribePage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState("");
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralApplied, setReferralApplied] = useState(false);
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+      // Store referral code for when user subscribes
+      localStorage.setItem("wooftalk_referral", ref);
+      setReferralApplied(true);
+    }
+  }, []);
 
   // Fetch offerings on mount (PAY-09)
   useEffect(() => {
@@ -135,6 +150,22 @@ export default function SubscribePage() {
       // D-06: RevenueCat hosted checkout (Stripe) opens in new tab
       const { url } = await Purchases.getSharedInstance().getWebPurchaseURL(pkg);
       if (url) {
+        // Apply referral code if present
+        const storedRef = localStorage.getItem("wooftalk_referral");
+        if (storedRef) {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              await supabase.rpc("apply_referral_code", {
+                p_user_id: user.id,
+                p_code: storedRef
+              });
+              localStorage.removeItem("wooftalk_referral");
+            }
+          } catch (err) {
+            console.error("Failed to apply referral:", err);
+          }
+        }
         window.open(url, "_blank");
         setCheckoutOpen(true);
       } else {
@@ -225,6 +256,14 @@ export default function SubscribePage() {
       </nav>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Referral banner */}
+        {referralApplied && (
+          <div className="bg-primary/10 text-primary px-4 py-3 rounded-lg mb-6 text-center">
+            <p className="font-medium">You were referred by a friend!</p>
+            <p className="text-sm">Complete your subscription and you'll both get 1 month free.</p>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <h1 className="text-[28px] font-semibold leading-tight">Choose Your Plan</h1>
           <p className="text-sm text-muted-foreground mt-2">7-day free trial on all plans</p>
@@ -301,7 +340,59 @@ export default function SubscribePage() {
             <p className="text-sm text-muted-foreground mt-1">{restoreMessage}</p>
           )}
         </div>
+
+        {/* Promo Code Section */}
+        <div className="max-w-md mx-auto mt-8 pt-8 border-t">
+          <PromoCodeInput />
+        </div>
       </main>
+    </div>
+  );
+}
+
+function PromoCodeInput() {
+  const [code, setCode] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleApply = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    setMessage("");
+
+    try {
+      // RevenueCat doesn't directly expose promo code redemption via JS SDK
+      // Show instructions to user
+      setMessage("Please enter your promo code during checkout in the payment window.");
+    } catch (err: any) {
+      setMessage(err.message || "Invalid promo code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="text-center">
+      <p className="text-sm font-medium mb-3">Have a promo code?</p>
+      <div className="flex gap-2 max-w-xs mx-auto">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="PROMO2026"
+          className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm uppercase"
+        />
+        <button
+          onClick={handleApply}
+          disabled={!code.trim() || loading}
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm hover:bg-secondary/90 disabled:opacity-50"
+        >
+          {loading ? "..." : "Apply"}
+        </button>
+      </div>
+      {message && (
+        <p className="text-xs text-muted-foreground mt-2">{message}</p>
+      )}
     </div>
   );
 }

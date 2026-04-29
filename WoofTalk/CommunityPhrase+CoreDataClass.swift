@@ -12,6 +12,8 @@ public class CommunityPhrase: NSManagedObject {
     @NSManaged public var direction: String?
     @NSManaged public var usageCount: Int64
     @NSManaged public var lastUsed: Date?
+    @NSManaged public var photoData: Data?
+    @NSManaged public var reactions: [String: Int]?
 
     private var ageComponents: DateComponents? {
         guard let timestamp else { return nil }
@@ -56,5 +58,34 @@ public class CommunityPhrase: NSManagedObject {
     func delete(context: NSManagedObjectContext) throws {
         context.delete(self)
         try context.save()
+    }
+
+    func addReaction(_ emoji: String, context: NSManagedObjectContext) throws {
+        var current = reactions ?? [:]
+        current[emoji, default: 0] += 1
+        reactions = current
+        try context.save()
+    }
+
+    func removeReaction(_ emoji: String, context: NSManagedObjectContext) throws {
+        var current = reactions ?? [:]
+        guard let count = current[emoji], count > 0 else { return }
+        if count == 1 {
+            current.removeValue(forKey: emoji)
+        } else {
+            current[emoji] = count - 1
+        }
+        reactions = current
+        try context.save()
+    }
+
+    var topReactions: [(emoji: String, count: Int)] {
+        guard let reactions = reactions else { return [] }
+        return reactions.map { ($0.key, $0.value) }.sorted { $0.count > $1.count }.prefix(3).map { ($0.emoji, $0.count) }
+    }
+
+    var photoImage: UIImage? {
+        guard let data = photoData else { return nil }
+        return UIImage(data: data)
     }
 }

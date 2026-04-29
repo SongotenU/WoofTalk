@@ -83,6 +83,9 @@ final class NotificationManager: ObservableObject {
     /// Handles receiving a notification
     func handleReceivedNotification(_ userInfo: [AnyHashable: Any]) {
         guard let typeString = userInfo["type"] as? String, let type = NotificationType(rawValue: typeString) else { return }
+        let title = userInfo["title"] as? String ?? "WoofTalk"
+        let body = userInfo["body"] as? String ?? ""
+        scheduleLocalNotification(title: title, body: body, type: type, userInfo: userInfo)
         switch type {
         case .newFollower: handleNewFollower(userInfo)
         case .contributionApproved: handleContributionApproved(userInfo)

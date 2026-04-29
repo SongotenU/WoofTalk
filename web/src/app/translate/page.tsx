@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { translate, detectLanguage } from "@/lib/translation/engine";
-import { translationCache } from "@/lib/translation/cache";
 import type { TranslationDirection, TranslationResult } from "@/lib/translation/types";
 import { supabase, fetchTranslations, saveTranslation } from "@/lib/supabase";
 import { VoiceInput } from "@/components/VoiceInput";
 import { VoiceOutput } from "@/components/VoiceOutput";
+import ShareButton from "@/components/ShareButton";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { subscribeToPush } from "@/lib/push";
+import { getCachedTranslation, saveTranslationHistory, getTranslationHistory } from "@/lib/translation/indexeddb-history";
+import { Bell } from "lucide-react";
 
 export default function TranslatePage() {
   const [inputText, setInputText] = useState("");
@@ -15,6 +19,28 @@ export default function TranslatePage() {
   const [selectedLang, setSelectedLang] = useState<"dog" | "cat" | "bird">("dog");
   const [isTranslating, setIsTranslating] = useState(false);
   const [history, setHistory] = useState<TranslationResult[]>([]);
+  const [notificationPerm, setNotificationPerm] = useState<NotificationPermission>("default");
+
+  useKeyboardShortcuts();
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPerm(Notification.permission);
+    }
+    // Load history from IndexedDB
+    getTranslationHistory(20).then(entries => {
+      setHistory(entries.map(e => e.result));
+    });
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) return;
+    const permission = await Notification.requestPermission();
+    setNotificationPerm(permission);
+    if (permission === "granted") {
+      await subscribeToPush();
+    }
+  };
 
   const handleVoiceResult = (transcript: string) => {
     setInputText(transcript);
@@ -26,7 +52,7 @@ export default function TranslatePage() {
 
     const direction = `human_to_${selectedLang}` as TranslationDirection;
 
-    const cached = translationCache.get(inputText, direction);
+    const cached = await getCachedTranslation(inputText, direction);
     if (cached) {
       setResult(cached);
       setHistory(prev => [cached, ...prev].slice(0, 20));
@@ -35,7 +61,7 @@ export default function TranslatePage() {
     }
 
     const translationResult = translate(inputText, direction);
-    translationCache.put(inputText, direction, translationResult);
+    await saveTranslationHistory(inputText, direction, translationResult);
     setResult(translationResult);
     setHistory(prev => [translationResult, ...prev].slice(0, 20));
     setIsTranslating(false);
@@ -59,11 +85,16 @@ export default function TranslatePage() {
     <div className="min-h-screen bg-background">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-primary">🐾 WoofTalk</Link>
-          <div className="flex gap-4">
+          <Link href="/" className="text-2xl font-bold text-primary">WoofTalk</Link>
+          <div className="flex items-center gap-4">
             <Link href="/translate" className="text-primary font-medium">Translate</Link>
-            <Link href="/history" className="text-muted-foreground">History</Link>
-            <Link href="/settings" className="text-muted-foreground">Settings</Link>
+            <Link href="/history" className="text-muted-foreground hover:text-foreground">History</Link>
+            <Link href="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
+            {notificationPerm !== "granted" && "Notification" in window && (
+              <button onClick={requestNotificationPermission} title="Enable notifications" className="text-muted-foreground hover:text-foreground">
+                <Bell className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -99,6 +130,7 @@ export default function TranslatePage() {
           </div>
 
           <button
+            data-action="translate"
             onClick={handleTranslate}
             disabled={!inputText.trim() || isTranslating}
             className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium disabled:opacity-50 hover:bg-primary/90 transition-colors"
@@ -118,7 +150,10 @@ export default function TranslatePage() {
                   <span>Source: {result.source}</span>
                 </div>
               </div>
-              <VoiceOutput text={result.outputText} />
+              <div className="flex items-center gap-2 ml-3">
+                <ShareButton text={result.outputText} sourceLang="human" targetLang={selectedLang} />
+                <VoiceOutput text={result.outputText} />
+              </div>
             </div>
           </div>
         )}
@@ -129,13 +164,16 @@ export default function TranslatePage() {
             <div className="space-y-2">
               {history.map((item, i) => (
                 <div key={i} className="p-3 bg-card rounded border flex justify-between items-center">
-                  <div>
-                    <p className="text-sm">{item.inputText}</p>
-                    <p className="text-sm text-primary">{item.outputText}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">{item.inputText}</p>
+                    <p className="text-sm text-primary truncate">{item.outputText}</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {(item.confidence * 100).toFixed(0)}%
-                  </span>
+                  <div className="flex items-center gap-2 ml-2 shrink-0">
+                    <span className="text-xs text-muted-foreground">
+                      {(item.confidence * 100).toFixed(0)}%
+                    </span>
+                    <ShareButton text={item.outputText} targetLang={selectedLang} />
+                  </div>
                 </div>
               ))}
             </div>

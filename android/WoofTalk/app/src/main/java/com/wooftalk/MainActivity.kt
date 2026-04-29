@@ -1,5 +1,8 @@
 package com.wooftalk
 
+import android.app.PictureInPictureParams
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,26 +17,67 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import dagger.hilt.android.AndroidEntryPoint
 import com.wooftalk.ui.navigation.Screen
 import com.wooftalk.ui.screen.HistoryScreen
 import com.wooftalk.ui.screen.SettingsScreen
 import com.wooftalk.ui.screen.TranslationScreen
 import com.wooftalk.ui.theme.WoofTalkTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val entitlementManager: EntitlementManager by inject()
+
+    @Inject lateinit var entitlementManager: EntitlementManager
+
+    private var isInPipMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Enable PiP mode support
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(16, 9))
+                    .build()
+            )
+        }
+
+        // Handle shortcut intents
+        handleIntent(intent)
+
         setContent {
             WoofTalkTheme {
                 WoofTalkApp()
+            }
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        isInPipMode = isInPictureInPictureMode
+        // Adjust UI for PiP mode - hide non-essential elements
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: android.content.Intent?) {
+        intent?.getStringExtra("navigate_to")?.let { destination ->
+            // Handle navigation based on shortcut or deep link
+            when (destination) {
+                "translate" -> {
+                    // Navigate to translation tab
+                }
+                "history" -> {
+                    // Navigate to history tab
+                }
             }
         }
     }
@@ -43,6 +87,16 @@ class MainActivity : ComponentActivity() {
         // Check entitlements on resume to get fresh state after cross-platform purchase
         lifecycleScope.launch {
             entitlementManager.checkEntitlements()
+        }
+    }
+
+    fun enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            enterPictureInPictureMode(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(16, 9))
+                    .build()
+            )
         }
     }
 }

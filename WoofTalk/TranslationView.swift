@@ -12,26 +12,35 @@ final class TranslationView: UIView {
 
     private let inputLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 18)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 18))
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Input text"
+        label.accessibilityTraits = .staticText
         return label
     }()
 
     private let translatedLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 24, weight: .semibold)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 24, weight: .semibold))
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Translated text"
+        label.accessibilityTraits = .staticText
         return label
     }()
 
     private let statusLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 14))
         label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.text = "Ready to translate"
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Status"
+        label.accessibilityTraits = .staticText
         return label
     }()
 
@@ -41,6 +50,9 @@ final class TranslationView: UIView {
         button.backgroundColor = .systemBlue
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
+        button.accessibilityLabel = "Translate"
+        button.accessibilityHint = "Double tap to translate your input"
+        button.accessibilityTraits = .button
         return button
     }()
 
@@ -50,6 +62,9 @@ final class TranslationView: UIView {
         button.backgroundColor = .systemGray
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
+        button.accessibilityLabel = "Clear"
+        button.accessibilityHint = "Double tap to clear input and translation"
+        button.accessibilityTraits = .button
         return button
     }()
 
@@ -59,6 +74,9 @@ final class TranslationView: UIView {
         button.backgroundColor = .systemGreen
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
+        button.accessibilityLabel = "History"
+        button.accessibilityHint = "Double tap to view translation history"
+        button.accessibilityTraits = .button
         return button
     }()
 

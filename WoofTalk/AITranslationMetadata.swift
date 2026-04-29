@@ -16,6 +16,37 @@ struct AITranslationMetadata: Codable {
         self.inferenceTimeMs = inferenceTime * 1000
         self.timestamp = Date()
     }
+
+    var confidencePercentage: Int { Int(confidence * 100) }
+
+    var confidenceDescription: String {
+        switch confidence {
+        case 0.8...: return "High"
+        case 0.6..<0.8: return "Medium"
+        case 0.4..<0.6: return "Low"
+        default: return "Very Low"
+        }
+    }
+}
+
+struct TranslationConfidence {
+    let score: Double
+    let tier: TranslationQualityScore.QualityTier
+    let description: String
+
+    init(confidence: Double) {
+        self.score = confidence
+        self.tier = TranslationQualityScore(confidence: confidence).qualityTier
+        switch tier {
+        case .high: self.description = "High confidence translation"
+        case .medium: self.description = "Medium confidence - may need verification"
+        case .low: self.description = "Low confidence - please verify"
+        case .veryLow: self.description = "Very low confidence - review needed"
+        }
+    }
+
+    var percentage: Int { Int(score * 100) }
+    var colorName: String { tier.color }
 }
 
 extension UserDefaults {

@@ -1,4 +1,4 @@
-import Purchases from '@revenuecat/purchases-js';
+import { Purchases } from '@revenuecat/purchases-js';
 import { supabase } from './supabase';
 
 const API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY ?? '';

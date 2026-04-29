@@ -14,17 +14,24 @@ struct ContentView: View {
                 .tabItem {
                     Label("Translate", systemImage: "bubble.left.and.bubble.right")
                 }
+                .accessibilityLabel("Translate Tab")
+                .accessibilityHint("Real-time dog translation")
 
             CommunityPhraseBrowserView()
                 .tabItem {
                     Label("Community", systemImage: "person.3.fill")
                 }
+                .accessibilityLabel("Community Tab")
+                .accessibilityHint("Browse community phrases")
 
             OfflineModeView()
                 .tabItem {
                     Label("Offline", systemImage: "moon.fill")
                 }
+                .accessibilityLabel("Offline Mode Tab")
+                .accessibilityHint("Use app without internet")
         }
+        .accessibilityLabel("Main Tab Navigation")
     }
 }
 

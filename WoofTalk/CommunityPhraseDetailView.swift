@@ -20,9 +20,19 @@ struct CommunityPhraseDetailView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                     }
-                    
+
+                    if let image = phrase.photoImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .cornerRadius(12)
+                    }
+
                     Divider()
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Dog Translation")
                             .font(.caption)
@@ -31,9 +41,9 @@ struct CommunityPhraseDetailView: View {
                             Text(phrase.displayTranslation)
                                 .font(.title3)
                                 .foregroundColor(.blue)
-                            
+
                             Spacer()
-                            
+
                             Button(action: copyTranslation) {
                                 Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                                     .foregroundColor(.blue)
@@ -45,6 +55,9 @@ struct CommunityPhraseDetailView: View {
                 .background(Color(.systemBackground))
                 .cornerRadius(16)
                 .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+
+                ReactionPickerView(phrase: phrase)
+                    .padding(.horizontal)
                 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quality Metrics")

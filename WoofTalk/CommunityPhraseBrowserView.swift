@@ -17,17 +17,19 @@ struct CommunityPhraseBrowserView: View {
                 SearchBarView(text: $searchText) {
                     viewModel.search(query: searchText)
                 }
-                .padding()
-                
+                .accessibilityLabel("Search phrases")
+
                 HStack {
                     Button(action: { isGridView.toggle() }) {
                         Image(systemName: isGridView ? "list.bullet" : "square.grid.2x2")
                             .font(.title2)
                     }
                     .foregroundColor(.primary)
-                    
+                    .accessibilityLabel(isGridView ? "Switch to list view" : "Switch to grid view")
+                    .accessibilityHint("Toggles between grid and list layout")
+
                     Spacer()
-                    
+
                     Button(action: { withAnimation { showingFilters.toggle() } }) {
                         HStack {
                             Image(systemName: "line.3.horizontal.decrease.circle")
@@ -35,6 +37,8 @@ struct CommunityPhraseBrowserView: View {
                         }
                     }
                     .foregroundColor(.primary)
+                    .accessibilityLabel("Filters")
+                    .accessibilityHint("Toggle filter options")
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 8)
@@ -63,6 +67,7 @@ struct CommunityPhraseBrowserView: View {
                 }
             }
             .navigationTitle("Community Phrases")
+            .accessibilityLabel("Community Phrases Browser")
             .refreshable {
                 await viewModel.refresh()
             }
@@ -90,24 +95,32 @@ struct CommunityPhraseBrowserView: View {
                             CommunityPhraseGridCell(phrase: phrase)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .accessibilityLabel("Phrase: \(phrase.name ?? "Unknown")")
+                        .accessibilityHint("Double tap to view details")
                     }
                 }
                 .padding()
-                
+
                 if viewModel.hasMore {
                     Button("Load More") {
                         viewModel.loadMore()
                     }
                     .padding()
+                    .accessibilityLabel("Load more phrases")
+                    .accessibilityHint("Loads additional phrases")
                 }
             }
+            .accessibilityLabel("Phrase grid")
         } else {
             List(viewModel.phrases, id: \.id) { phrase in
                 NavigationLink(destination: CommunityPhraseDetailView(phrase: phrase)) {
                     CommunityPhraseCell(phrase: phrase)
                 }
+                .accessibilityLabel("Phrase: \(phrase.name ?? "Unknown")")
+                .accessibilityHint("Double tap to view details")
             }
             .listStyle(PlainListStyle())
+            .accessibilityLabel("Phrase list")
         }
     }
 }

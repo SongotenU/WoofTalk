@@ -30,6 +30,7 @@ export function VoiceInput({ onResult, onError }: VoiceInputProps) {
   return (
     <div className="flex flex-col items-center gap-2">
       <button
+        data-action="voice-toggle"
         onClick={handleToggle}
         className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all ${
           isListening

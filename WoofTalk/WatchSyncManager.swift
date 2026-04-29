@@ -46,6 +46,12 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
         } catch {
             print("[WatchSync] Failed to update context: \(error)")
         }
+
+        // Also send last translation if available
+        if let lastTranslation = UserDefaults.standard.string(forKey: "lastTranslation") {
+            let userInfo: [String: Any] = ["lastTranslation": lastTranslation]
+            session.transferUserInfo(userInfo)
+        }
     }
 
     // MARK: - WCSessionDelegate

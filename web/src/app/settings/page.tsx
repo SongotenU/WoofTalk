@@ -5,21 +5,29 @@ import Link from "next/link";
 import { supabase, signOut } from "@/lib/supabase";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 import { useEntitlementStore } from "@/lib/entitlement-store";
+import { useTheme } from "@/lib/theme-provider";
+import { Sun, Moon, Monitor, Contrast } from "lucide-react";
 
 export default function SettingsPage() {
-  const [darkMode, setDarkMode] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [cacheSize, setCacheSize] = useState(1000);
   const [voiceRate, setVoiceRate] = useState(1.0);
   const [voicePitch, setVoicePitch] = useState(1.0);
+  const [highContrast, setHighContrast] = useState(false);
   const { speak } = useSpeechSynthesis();
   const { isPremium, isTrialActive } = useEntitlementStore();
+  const { theme, toggleTheme, setTheme } = useTheme();
 
   useEffect(() => {
     const savedRate = localStorage.getItem('voiceRate');
     const savedPitch = localStorage.getItem('voicePitch');
+    const savedContrast = localStorage.getItem('highContrast');
     if (savedRate) setVoiceRate(parseFloat(savedRate));
     if (savedPitch) setVoicePitch(parseFloat(savedPitch));
+    if (savedContrast === 'true') {
+      setHighContrast(true);
+      document.documentElement.setAttribute('data-contrast', 'high');
+    }
   }, []);
 
   const handleVoiceRateChange = (value: number) => {
@@ -36,11 +44,23 @@ export default function SettingsPage() {
     speak("Hello", { rate: voiceRate, pitch: voicePitch });
   };
 
+  const getThemeIcon = () => {
+    if (theme === "dark") return <Moon className="w-4 h-4" />;
+    if (theme === "light") return <Sun className="w-4 h-4" />;
+    return <Monitor className="w-4 h-4" />;
+  };
+
+  const getThemeLabel = () => {
+    if (theme === "dark") return "Dark";
+    if (theme === "light") return "Light";
+    return "System";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-primary">🐾 WoofTalk</Link>
+          <Link href="/" className="text-2xl font-bold text-primary">WoofTalk</Link>
           <div className="flex gap-4">
             <Link href="/translate" className="text-muted-foreground hover:text-foreground">Translate</Link>
             <Link href="/history" className="text-muted-foreground hover:text-foreground">History</Link>
@@ -70,14 +90,61 @@ export default function SettingsPage() {
 
           <div className="p-4 bg-card rounded-lg border">
             <h2 className="text-lg font-semibold mb-4">Appearance</h2>
-            <div className="flex items-center justify-between">
-              <span>Dark Mode</span>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-primary' : 'bg-muted'}`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
-              </button>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span>Theme</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{getThemeLabel()}</span>
+                  {getThemeIcon()}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    theme === "light" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <Sun className="w-3.5 h-3.5 inline mr-1" /> Light
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    theme === "dark" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <Moon className="w-3.5 h-3.5 inline mr-1" /> Dark
+                </button>
+                <button
+                  onClick={() => setTheme("system")}
+                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    theme === "system" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <Monitor className="w-3.5 h-3.5 inline mr-1" /> System
+                </button>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t">
+                <div className="flex items-center gap-2">
+                  <Contrast className="w-4 h-4" />
+                  <span>High Contrast</span>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = !highContrast;
+                    setHighContrast(next);
+                    localStorage.setItem('highContrast', String(next));
+                    if (next) {
+                      document.documentElement.setAttribute('data-contrast', 'high');
+                    } else {
+                      document.documentElement.removeAttribute('data-contrast');
+                    }
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors ${highContrast ? 'bg-primary' : 'bg-muted'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${highContrast ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -148,19 +215,30 @@ export default function SettingsPage() {
           <div className="p-4 bg-card rounded-lg border">
             <h2 className="text-lg font-semibold mb-4">Subscription</h2>
             {isPremium && !isTrialActive ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-primary font-medium">Pro plan active</p>
-                <a
-                  href="https://billing.stripe.com/p/login"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Manage Subscription →
-                </a>
+                <div className="flex gap-2">
+                  <a
+                    href="https://billing.stripe.com/p/login"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Manage Subscription
+                  </a>
+                  <span className="text-muted-foreground">|</span>
+                  <Link href="/settings/cancel" className="text-sm text-destructive hover:underline">
+                    Cancel
+                  </Link>
+                </div>
+                <div className="pt-3 border-t">
+                  <Link href="/referral" className="text-sm text-primary hover:underline">
+                    Refer a Friend
+                  </Link>
+                </div>
               </div>
             ) : isTrialActive ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-muted-foreground">Trial active</p>
                 <a
                   href="https://billing.stripe.com/p/login"
@@ -168,8 +246,13 @@ export default function SettingsPage() {
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Manage Subscription →
+                  Manage Subscription
                 </a>
+                <div className="pt-3 border-t">
+                  <Link href="/referral" className="text-sm text-primary hover:underline">
+                    Refer a Friend
+                  </Link>
+                </div>
               </div>
             ) : (
               <Link href="/subscribe" className="text-primary hover:underline">

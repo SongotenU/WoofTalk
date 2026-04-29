@@ -5,12 +5,14 @@ enum AnimalLanguage: String, CaseIterable, Codable {
     case dog = "dog"
     case cat = "cat"
     case bird = "bird"
+    case rabbit = "rabbit"
 
     var displayName: String {
         switch self {
         case .dog: return "Dog"
         case .cat: return "Cat"
         case .bird: return "Bird"
+        case .rabbit: return "Rabbit"
         }
     }
 
@@ -19,6 +21,7 @@ enum AnimalLanguage: String, CaseIterable, Codable {
         case .dog: return "🐕"
         case .cat: return "🐱"
         case .bird: return "🐦"
+        case .rabbit: return "🐰"
         }
     }
 
@@ -27,6 +30,7 @@ enum AnimalLanguage: String, CaseIterable, Codable {
         case .dog: return "Dog barks, whines, and howls"
         case .cat: return "Cat meows, purrs, and hisses"
         case .bird: return "Bird chirps, tweets, and sings"
+        case .rabbit: return "Rabbit thumps, grunts, and clucks"
         }
     }
 
@@ -35,6 +39,7 @@ enum AnimalLanguage: String, CaseIterable, Codable {
         case .dog: return 0.6
         case .cat: return 0.6
         case .bird: return 0.5
+        case .rabbit: return 0.5
         }
     }
 
@@ -43,6 +48,7 @@ enum AnimalLanguage: String, CaseIterable, Codable {
         case .dog: return 300...3000
         case .cat: return 400...4000
         case .bird: return 1000...8000
+        case .rabbit: return 200...2000
         }
     }
 
@@ -51,6 +57,7 @@ enum AnimalLanguage: String, CaseIterable, Codable {
         case .dog: return ["woof", "bark", "whine", "howl", "growl", "yelp", "sniff"]
         case .cat: return ["meow", "purr", "hiss", "yowl", "chirp", "trill"]
         case .bird: return ["chirp", "tweet", "sing", "squawk", "warble", "call"]
+        case .rabbit: return ["thump", "grunt", "cluck", "scream", "purr", "tooth-grind"]
         }
     }
 }

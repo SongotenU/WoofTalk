@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import Purchases from '@revenuecat/purchases-js';
+import { Purchases } from '@revenuecat/purchases-js';
 import { initRevenueCat, isRevenueCatInitialized } from '@/lib/revenuecat';
 import { useEntitlementStore } from '@/lib/entitlement-store';
 import { supabase } from '@/lib/supabase';
