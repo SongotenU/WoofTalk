@@ -15,6 +15,13 @@ final class TranslationModels {
         return try model.translate(text, direction: direction)
     }
 
+    func translateWithFallback(_ text: String, direction: TranslationDirection) throws -> String {
+        guard let result = try translate(text, direction: direction) else {
+            throw TranslationEngine.TranslationError.translationFailed
+        }
+        return result
+    }
+
     func isModelAvailable() -> Bool {
         model != nil
     }
@@ -24,13 +31,16 @@ final class TranslationModels {
 
 final class TranslateModel {
 
-    func translate(_ text: String, direction: TranslationDirection) throws -> String {
+    func translate(_ text: String, direction: TranslationDirection) throws -> String? {
         let phraseMapping: [String: String] = [
             "sit": direction == .humanToDog ? "woof woof woof" : "sit",
             "stay": direction == .humanToDog ? "woof woof woof woof" : "stay",
             "come": direction == .humanToDog ? "woof woof woof woof woof" : "come",
             "hello": direction == .humanToDog ? "woof woof" : "hello",
         ]
-        return phraseMapping[text.lowercased()] ?? ""
+        guard let translated = phraseMapping[text.lowercased()] else {
+            return nil
+        }
+        return translated
     }
 }
