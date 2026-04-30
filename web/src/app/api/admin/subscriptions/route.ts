@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminClient } from '@/lib/supabase/server-admin';
+import { getAdminClient, isAdminOrAdminStatus } from '@/lib/supabase/server-admin';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   try {
+    // WR-01: Verify admin authentication
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify the JWT with Supabase
     const adminClient = getAdminClient();
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check admin role
+    const isAdmin = await isAdminOrAdminStatus(user.id);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const appId = process.env.REVENUECAT_APP_ID;
     const apiKey = process.env.REVENUECAT_API_KEY;
