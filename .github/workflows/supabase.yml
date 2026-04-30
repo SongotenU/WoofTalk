@@ -18,8 +18,10 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Preview migrations (dry-run)
+        run: supabase db push --dry-run
       - name: Apply migrations
-        run: supabase db push --project-ref $SUPABASE_PROJECT_ID
+        run: supabase db push
 
   deploy-edge-functions:
     runs-on: ubuntu-latest
@@ -32,5 +34,5 @@ jobs:
       - name: Deploy Edge Functions
         run: |
           for fn in $(ls supabase/functions/ | grep -v '^_shared$'); do
-            supabase functions deploy "$fn" --project-ref $SUPABASE_PROJECT_ID
+            supabase functions deploy "$fn"
           done

@@ -28,13 +28,24 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check for insecure RLS policies
         run: |
-          insecure=$(grep -rl 'WITH CHECK (true)\|USING (true)' supabase/migrations/ 2>/dev/null || true)
-          if [ -n "$insecure" ]; then
-            echo "WARNING: Found overly permissive RLS policies:"
-            echo "$insecure"
+          # Check for actual policy definitions with permissive checks (excluding comments)
+          # Look for WITH CHECK (true) or USING (true) patterns on the same line (not in comments)
+          found=0
+          for f in supabase/migrations/*.sql; do
+            # Skip comment lines and check for insecure patterns
+            if grep -n 'WITH CHECK (true)\|USING (true)' "$f" 2>/dev/null | grep -v '^\s*--' > /tmp/rls_check.txt; then
+              if [ -s /tmp/rls_check.txt ]; then
+                echo "ERROR: Found insecure RLS policy in $f:"
+                cat /tmp/rls_check.txt
+                found=1
+              fi
+            fi
+          done
+          rm -f /tmp/rls_check.txt
+          if [ "$found" -eq 1 ]; then
             exit 1
           fi
-          echo "RLS audit passed — no open policies found"
+          echo "RLS audit passed — no insecure policies found"
 
   deploy:
     runs-on: ubuntu-latest
