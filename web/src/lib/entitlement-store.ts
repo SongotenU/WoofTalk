@@ -34,7 +34,7 @@ export const useEntitlementStore = create<EntitlementState>((set) => ({
   fromCustomerInfo(customerInfo: CustomerInfo) {
     const proEntitlement = customerInfo.entitlements.all['pro'];
     const isPremiumActive = proEntitlement?.isActive === true;
-    const isTrial = isPremiumActive && customerInfo.activeSubscriptions.length === 0;
+    const isTrial = isPremiumActive && customerInfo.activeSubscriptions.size === 0;
 
     set({
       isPremium: isPremiumActive,

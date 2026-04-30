@@ -28,10 +28,11 @@ export function useEntitlementSync() {
         async () => {
           // Refresh entitlements from RevenueCat when subscription_status changes
           try {
-            const { getPurchases } = await import('@/lib/purchases-web');
-            const purchases = await getPurchases();
-            const customerInfo = await purchases.getCustomerInfo();
-            fromCustomerInfo(customerInfo);
+            const { refreshEntitlements } = await import('@/lib/revenuecat');
+            const customerInfo = await refreshEntitlements();
+            if (customerInfo) {
+              fromCustomerInfo(customerInfo);
+            }
           } catch {
             // Silent — will retry on next focus
           }
@@ -44,10 +45,11 @@ export function useEntitlementSync() {
     // 2. Poll RevenueCat on window focus (cross-device sync)
     const handleFocus = async () => {
       try {
-        const { getPurchases } = await import('@/lib/purchases-web');
-        const purchases = await getPurchases();
-        const customerInfo = await purchases.getCustomerInfo();
-        fromCustomerInfo(customerInfo);
+        const { refreshEntitlements } = await import('@/lib/revenuecat');
+        const customerInfo = await refreshEntitlements();
+        if (customerInfo) {
+          fromCustomerInfo(customerInfo);
+        }
       } catch {
         // Silent — offline or not configured
       }

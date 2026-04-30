@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
-
 export default withPWA({
   dest: "public",
   register: true,
@@ -17,4 +15,5 @@ export default withPWA({
       options: { cacheName: "supabase-cache", expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 } },
     },
   ],
+  // Custom SW code is appended via postbuild script
 })(nextConfig);

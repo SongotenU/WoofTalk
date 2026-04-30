@@ -12,10 +12,16 @@ struct WoofTalkApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(\ .managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(EntitlementManager.shared)
                 .onAppear {
                     revenueCatManager.configure()
+                    // FIX: Configure SupabaseManager with environment credentials
+                    // This was missing - without it, client is nil and all auth fails
+                    SupabaseManager.shared.configure(
+                        url: ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "",
+                        anonKey: ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+                    )
                 }
         }
     }
