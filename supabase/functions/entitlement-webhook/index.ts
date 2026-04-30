@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/middleware.ts';
+import { timingSafeEqual } from 'https://deno.land/std@0.168.0/crypto/timing_safe_equal.ts';
 
 function mapStore(store: string): 'ios' | 'android' | 'web' | 'none' {
   switch (store) {
@@ -22,10 +23,27 @@ serve(async (req) => {
     });
   }
 
-  // D-02: Authorization header verification
+  // D-02: Authorization header verification with timing-safe comparison
   const authHeader = req.headers.get('Authorization');
   const webhookSecret = Deno.env.get('REVENUECAT_WEBHOOK_AUTH');
-  if (!authHeader || authHeader !== `Bearer ${webhookSecret}`) {
+  const expectedAuth = `Bearer ${webhookSecret}`;
+
+  if (!authHeader || webhookSecret === null) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Timing-safe comparison: first check length equality, then use timingSafeEqual
+  if (authHeader.length !== expectedAuth.length) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const authHeaderBytes = new TextEncoder().encode(authHeader);
+  const expectedAuthBytes = new TextEncoder().encode(expectedAuth);
+  if (!(await timingSafeEqual(authHeaderBytes, expectedAuthBytes))) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
