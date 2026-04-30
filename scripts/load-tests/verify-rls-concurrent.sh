@@ -35,6 +35,28 @@ for i in $(seq 1 10); do
     FAILED=$((FAILED + 1))
     echo "  Iteration $i: User1=$RES1, User2=$RES2"
   fi
+
+  # Negative test: User1 tries to access User2's data (should fail with 401 or 403)
+  CROSS1=$(curl -s -o /dev/null -w "%{http_code}" \
+    -X GET "${URL}/rest/v1/phrases?id=eq.user2-test-id" \
+    -H "apikey: ${KEY}" \
+    -H "Authorization: Bearer ${TOKEN1}")
+  TOTAL=$((TOTAL + 1))
+  if [ "$CROSS1" -ne 401 ] && [ "$CROSS1" -ne 403 ]; then
+    FAILED=$((FAILED + 1))
+    echo "  Iteration $i: RLS FAILED - User1 accessed User2's data (status=$CROSS1)"
+  fi
+
+  # Negative test: User2 tries to access User1's data (should fail with 401 or 403)
+  CROSS2=$(curl -s -o /dev/null -w "%{http_code}" \
+    -X GET "${URL}/rest/v1/phrases?id=eq.user1-test-id" \
+    -H "apikey: ${KEY}" \
+    -H "Authorization: Bearer ${TOKEN2}")
+  TOTAL=$((TOTAL + 1))
+  if [ "$CROSS2" -ne 401 ] && [ "$CROSS2" -ne 403 ]; then
+    FAILED=$((FAILED + 1))
+    echo "  Iteration $i: RLS FAILED - User2 accessed User1's data (status=$CROSS2)"
+  fi
 done
 
 echo ""

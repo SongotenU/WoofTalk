@@ -23,21 +23,24 @@ export const options = {
 
 const BASE = __ENV.SUPABASE_FUNCTIONS_URL || 'http://localhost:54321/functions/v1';
 const API_KEY = __ENV.SUPABASE_ANON_KEY || 'test-key';
+const AUTH_TOKEN = __ENV.SUPABASE_USER_TOKEN || '';
 
 export default function () {
   // Test translate function
+  const translateHeaders = {
+    'Content-Type': 'application/json',
+    'apikey': API_KEY,
+  };
+  if (AUTH_TOKEN) {
+    translateHeaders['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+  }
   const translateRes = http.post(
     `${BASE}/translate`,
     JSON.stringify({
       input: 'hello',
       direction: 'humanToDog',
     }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': API_KEY,
-      },
-    },
+    { headers: translateHeaders },
   );
 
   check(translateRes, {
@@ -49,14 +52,18 @@ export default function () {
   sleep(1);
 
   // Test search function
+  const searchHeaders = {
+    'Content-Type': 'application/json',
+    'apikey': API_KEY,
+  };
+  if (AUTH_TOKEN) {
+    searchHeaders['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+  }
   const searchRes = http.post(
     `${BASE}/phrases-search`,
     JSON.stringify({ query: 'hello', limit: 10 }),
     {
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': API_KEY,
-      },
+      headers: searchHeaders,
       timeout: '5s',
     },
   );
