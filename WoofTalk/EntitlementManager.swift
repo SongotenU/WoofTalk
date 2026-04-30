@@ -1,28 +1,6 @@
 import Foundation
+import RevenueCat
 import Combine
-
-// MARK: - Simulator build mocks (RevenueCat not linked)
-
-struct CustomerInfo {
-    let entitlements: [String: Entitlement]
-    let activeSubscriptions: Set<String>
-
-    struct Entitlement { let isActive: Bool }
-}
-
-extension Notification.Name {
-    static let CustomerInfoUpdated = Notification.Name("CustomerInfoUpdated")
-}
-
-final class Purchases {
-    static let shared = Purchases()
-    func getCustomerInfo() async throws -> CustomerInfo {
-        CustomerInfo(entitlements: [:], activeSubscriptions: [])
-    }
-    func restorePurchases() async throws -> CustomerInfo {
-        CustomerInfo(entitlements: [:], activeSubscriptions: [])
-    }
-}
 
 @MainActor
 final class EntitlementManager: ObservableObject {
@@ -39,33 +17,63 @@ final class EntitlementManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     private init() {
-        NotificationCenter.default.publisher(for: .CustomerInfoUpdated)
+        // Listen for CustomerInfo updates from RevenueCat
+        Purchases.shared.customerInfo { [weak self] (customerInfo, error) in
+            if let error = error {
+                print("[EntitlementManager] Failed to get initial customer info: \(error)")
+                return
+            }
+            if let customerInfo = customerInfo {
+                self?.update(from: customerInfo)
+            }
+        }
+
+        // Listen for ongoing CustomerInfo updates
+        NotificationCenter.default.publisher(for: .RCUpdatedCustomerInfo)
             .compactMap { $0.object as? CustomerInfo }
             .sink { [weak self] in self?.update(from: $0) }
             .store(in: &cancellables)
     }
 
     private func update(from customerInfo: CustomerInfo) {
-        let isActive = customerInfo.entitlements["pro"]?.isActive == true
-        isPremium = isActive
-        subscriptionTier = isActive ? (customerInfo.activeSubscriptions.isEmpty ? "trial" : "pro") : "free"
+        let isProActive = customerInfo.entitlements["pro"]?.isActive == true
+        let isTrialActive = customerInfo.entitlements["trial"]?.isActive == true
+
+        isPremium = isProActive
+        self.isTrialActive = isTrialActive
+        subscriptionTier = isProActive ? "pro" : (isTrialActive ? "trial" : "free")
     }
 
     func refreshEntitlements() async {
         isLoading = true
         do {
-            update(from: try await Purchases.shared.getCustomerInfo())
+            let customerInfo = try await Purchases.shared.customerInfo()
+            update(from: customerInfo)
         } catch {
             self.error = error
+            print("[EntitlementManager] Failed to refresh entitlements: \(error)")
         }
         isLoading = false
     }
 
     func checkEntitlements() {
         Task {
-            if let info = try? await Purchases.shared.getCustomerInfo() {
-                update(from: info)
+            do {
+                let customerInfo = try await Purchases.shared.customerInfo()
+                update(from: customerInfo)
+            } catch {
+                print("[EntitlementManager] Failed to check entitlements: \(error)")
             }
         }
+    }
+
+    func logIn(appUserId: String) async throws {
+        let (customerInfo, _) = try await Purchases.shared.logIn(appUserId)
+        update(from: customerInfo)
+    }
+
+    func logOut() async throws {
+        let customerInfo = try await Purchases.shared.logOut()
+        update(from: customerInfo)
     }
 }

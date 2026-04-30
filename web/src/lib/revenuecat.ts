@@ -49,6 +49,8 @@ export async function closeRevenueCat() {
     Purchases.getSharedInstance().close();
   } catch {
     // Ignore
+  } finally {
+    initialized = false; // Allow re-init on next sign-in
   }
 }
 

@@ -14,14 +14,12 @@ object RevenueCatModule {
 
     @Provides
     @Singleton
-    fun providePurchasesConfiguration(
-        app: android.app.Application
-    ): PurchasesConfiguration {
+    fun providePurchases(app: android.app.Application): Purchases {
         val apiKey = BuildConfig.REVENUECAT_ANDROID_API_KEY
-        return PurchasesConfiguration.Builder(app, apiKey)
-            // FIX: Don't set appUserID here
-            // RevenueCat will auto-generate an anonymous ID, and we can update it later
-            // when the user logs in via Supabase using EntitlementManager.logIn()
+        val config = PurchasesConfiguration.Builder(app, apiKey)
+            // Don't set appUserID here - will be set later via login
             .build()
+        Purchases.configure(config)
+        return Purchases.sharedInstance
     }
 }
