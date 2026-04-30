@@ -11,22 +11,36 @@ jobs:
     steps:
       - name: Check Supabase Health
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.SUPABASE_URL }}/rest/v1/" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          # Check with timeout, retry once on 500+ before alerting
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 --connect-timeout 5 "${{ secrets.SUPABASE_URL }}/rest/v1/" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
           if [ "$STATUS" -ge 500 ]; then
-            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-              -H 'Content-type: application/json' \
-              --data '{"text":"ALERT: Supabase returning '"'"'$STATUS'"'"' — WoofTalk backend may be down"}'
-            exit 1
+            echo "Supabase returned $STATUS, retrying in 10s..."
+            sleep 10
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 --connect-timeout 5 "${{ secrets.SUPABASE_URL }}/rest/v1/" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+            if [ "$STATUS" -ge 500 ]; then
+              curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+                -H 'Content-type: application/json' \
+                --data '{"text":"ALERT: Supabase returning '"'"'$STATUS'"'"' — WoofTalk backend may be down"}'
+              exit 1
+            fi
           fi
           echo "Supabase healthy ($STATUS)"
 
       - name: Check Web App
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.WEB_APP_URL }}")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 --connect-timeout 5 "${{ secrets.WEB_APP_URL }}")
           if [ "$STATUS" -ne 200 ]; then
-            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-              -H 'Content-type: application/json' \
-              --data '{"text":"ALERT: Web app returning '"'"'$STATUS'"'"'"}'
-            exit 1
+            # Retry once on non-200 before alerting
+            if [ "$STATUS" -ge 500 ]; then
+              echo "Web app returned $STATUS, retrying in 10s..."
+              sleep 10
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 --connect-timeout 5 "${{ secrets.WEB_APP_URL }}")
+            fi
+            if [ "$STATUS" -ne 200 ]; then
+              curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+                -H 'Content-type: application/json' \
+                --data '{"text":"ALERT: Web app returning '"'"'$STATUS'"'"'"}'
+              exit 1
+            fi
           fi
           echo "Web app healthy ($STATUS)"
