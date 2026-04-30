@@ -112,7 +112,6 @@ export default function SubscribePage() {
   }, []);
 
   const handleSubscribe = async (packageId: string) => {
-    if (!checkoutOpen) return;
     const rcOffer = await purchases.getSharedInstance().getOfferings();
     const packageToPurchase = rcOffer.current?.availablePackages.find(
       (p) => p.identifier === packageId

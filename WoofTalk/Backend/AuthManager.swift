@@ -7,6 +7,7 @@ final class AuthManager: ObservableObject {
     static let shared = AuthManager()
 
     @Published var isAuthenticated = false
+    @Published var isLoading = true
     @Published var currentUser: User?
     @Published var platform: String = "ios"
 
@@ -32,6 +33,7 @@ final class AuthManager: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] user in
                 self?.currentUser = user
+                self?.isLoading = false  // Auth state initialized
                 if let user = user {
                     self?.storeSessionSecurely(user: user)
                 } else {
@@ -39,6 +41,13 @@ final class AuthManager: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        // In case no user is logged in, stop loading after a delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            if self?.currentUser == nil {
+                self?.isLoading = false
+            }
+        }
     }
 
     func signUp(email: String, password: String) async throws -> User {

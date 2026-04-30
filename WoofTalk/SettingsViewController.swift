@@ -7,6 +7,9 @@ final class SettingsViewController: UIViewController {
     private var tableView: UITableView!
     private let settings = Settings.shared
 
+    // Total number of settings rows — update this when adding/removing rows
+    private let settingsRowCount = 14
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -37,7 +40,7 @@ final class SettingsViewController: UIViewController {
 }
 
 extension SettingsViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 14 }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { settingsRowCount }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
@@ -221,6 +224,11 @@ extension SettingsViewController: UITableViewDelegate {
     }
 
     private func presentPaywallIfAllowed() {
+        // Check if auth is still loading before showing "Sign In Required"
+        if AuthManager.shared.isLoading {
+            presentAlert(title: "Loading", message: "Please wait while we verify your account...")
+            return
+        }
         guard EntitlementManager.shared.isReadyToAccessPaywall else {
             presentAlert(title: "Sign In Required", message: "Please sign in to manage your subscription.")
             return
