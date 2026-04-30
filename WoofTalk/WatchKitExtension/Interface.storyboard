@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="2.0" toolsVersion="18121.1" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.WatchKit.Plugin" version="18121.1"/>
+    </dependencies>
+    <scenes>
+        <!--Interface Controller-->
+        <scene sceneID="KbU-mp-9aQ">
+            <objects>
+                <controller identifier="InterfaceController" customClass="InterfaceController" id="KbU-mp-9aQ">
+                    <items>
+                        <group id="vQH-eN-0Ym">
+                            <items>
+                                <label text="WoofTalk" alignment="center" id="fZg-3M-eli">
+                                    <fontDescription key="font" style="UICTFontTextStyleTitle1"/>
+                                </label>
+                                <label text="Status" alignment="center" id="UjD-5K-1cF">
+                                    <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
+                                </label>
+                                <label text="WoofTalk Ready" alignment="center" id="GaT-6B-2dR-main">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                    <color key="textColor" red="1" green="0.8" blue="0" alpha="1" colorSpace="calibratedRGB"/>
+                                </label>
+                            </items>
+                        </group>
+                        <group id="hRk-7F-3sP">
+                            <items>
+                                <label text="Last Translation:" alignment="center" id="JkL-8G-4fD">
+                                    <fontDescription key="font" style="UICTFontTextStyleCaption2"/>
+                                </label>
+                                <label text="No translations yet" alignment="center" id="LmL-9H-5gF" customClass="WKInterfaceLabel">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                    <connections>
+                                        <outlet property="lastTranslationLabel" destination="LmL-9H-5gF" id="NnM-0I-6hG"/>
+                                    </connections>
+                                </label>
+                            </items>
+                        </group>
+                        <button title="Quick Translate" id="BtN-1J-7iH">
+                            <connections>
+                                <action selector="quickTranslateTapped" destination="KbU-mp-9aQ" id="CuO-2K-8jI"/>
+                            </connections>
+                        </button>
+                        <button title="Open Translator" id="DtP-3L-9kJ">
+                            <connections>
+                                <action selector="openTranslatorTapped" destination="KbU-mp-9aQ" id="EvQ-4M-0lK"/>
+                            </connections>
+                        </button>
+                        <button title="History" id="FtR-5N-1mL">
+                            <connections>
+                                <action selector="openHistoryTapped" destination="KbU-mp-9aQ" id="GwS-6O-2nM"/>
+                            </connections>
+                        </button>
+                        <label text="WoofTalk Ready" alignment="center" id="GaT-6B-2dR" customClass="WKInterfaceLabel">
+                            <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
+                            <color key="textColor" red="1" green="0.8" blue="0" alpha="1" colorSpace="calibratedRGB"/>
+                            <connections>
+                                <outlet property="statusLabel" destination="GaT-6B-2dR" id="HxT-7P-3oN"/>
+                            </connections>
+                        </label>
+                    </items>
+                    <connections>
+                        <outlet property="statusLabel" destination="GaT-6B-2dR" id="IyU-8Q-4pO"/>
+                        <outlet property="lastTranslationLabel" destination="LmL-9H-5gF" id="JzV-9R-5qP"/>
+                    </connections>
+                </controller>
+            </objects>
+            <point key="canvasLocation" x="-246" y="138"/>
+        </scene>
+        <!--Translation View Controller-->
+        <scene sceneID="XcV-np-0bR">
+            <objects>
+                <controller identifier="TranslationViewController" customClass="TranslationViewController" id="XcV-np-0bR">
+                    <items>
+                        <group id="YdW-oq-1cS-translation">
+                            <items>
+                                <label text="Translation" alignment="center" id="ZeX-pq-2dT-translation">
+                                    <fontDescription key="font" style="UICTFontTextStyleTitle2"/>
+                                </label>
+                                <label text="Direction" alignment="center" id="AfY-qr-3eU" customClass="WKInterfaceLabel">
+                                    <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
+                                </label>
+                                <label text="Input" alignment="center" id="BgZ-rs-4fV" customClass="WKInterfaceLabel">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                </label>
+                                <label text="Translation" alignment="center" id="ChA-st-5gW" customClass="WKInterfaceLabel">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                    <color key="textColor" red="0" green="0.5" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </label>
+                            </items>
+                        </group>
+                        <button title="Switch Direction" id="DiB-tu-6hX">
+                            <connections>
+                                <action selector="switchDirectionTapped" destination="XcV-np-0bR" id="EjC-uv-7iY"/>
+                            </connections>
+                        </button>
+                        <button title="Translate" id="FkD-vw-8jZ-translation">
+                            <connections>
+                                <action selector="translateTapped" destination="XcV-np-0bR" id="GlE-wx-9kA-translation"/>
+                            </connections>
+                        </button>
+                        <button title="Replay Voice" id="HmF-xy-0lB">
+                            <connections>
+                                <action selector="replayVoiceTapped" destination="XcV-np-0bR" id="InG-yz-1mC"/>
+                            </connections>
+                        </button>
+                        <button title="History" id="JoH-za-2nD-translation">
+                            <connections>
+                                <action selector="viewHistoryTapped" destination="XcV-np-0bR" id="KpI-ab-3oE-translation"/>
+                            </connections>
+                        </button>
+                        <connections>
+                            <outlet property="inputLabel" destination="BgZ-rs-4fV" id="LqJ-bc-4pF"/>
+                            <outlet property="translationLabel" destination="ChA-st-5gW" id="MrK-cd-5qG"/>
+                            <outlet property="statusLabel" destination="AfY-qr-3eU" id="NsL-de-6rH"/>
+                        </connections>
+                    </items>
+                </controller>
+            </objects>
+            <point key="canvasLocation" x="246" y="138"/>
+        </scene>
+        <!--History Interface Controller-->
+        <scene sceneID="YdW-oq-1cS-history">
+            <objects>
+                <controller identifier="HistoryInterfaceController" customClass="HistoryInterfaceController" id="YdW-oq-1cS">
+                    <items>
+                        <label text="History" alignment="center" id="ZeX-pq-2dT-history">
+                            <fontDescription key="font" style="UICTFontTextStyleTitle2"/>
+                        </label>
+                        <table id="FkD-vw-8jZ-history">
+                            <items>
+                                <rowController id="GlE-wx-9kA-history" customClass="HistoryRowController">
+                                    <items>
+                                        <label text="Input" id="HmF-xy-0lB-history">
+                                            <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
+                                        </label>
+                                        <label text="Translation" id="JoH-za-2nD-history">
+                                            <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                        </label>
+                                        <connections>
+                                            <outlet property="inputLabel" destination="HmF-xy-0lB-history" id="KpI-ab-3oE-history"/>
+                                            <outlet property="translationLabel" destination="JoH-za-2nD-history" id="LqJ-bc-4pF-history"/>
+                                        </connections>
+                                    </items>
+                                </rowController>
+                            </items>
+                            <connections>
+                                <outlet property="table" destination="FkD-vw-8jZ-history" id="MrK-cd-5qG-history"/>
+                            </connections>
+                        </table>
+                    </items>
+                    <connections>
+                        <outlet property="table" destination="FkD-vw-8jZ-history" id="NsL-de-6rH-history"/>
+                    </connections>
+                </controller>
+            </objects>
+            <point key="canvasLocation" x="738" y="138"/>
+        </scene>
+    </scenes>
+</document>
