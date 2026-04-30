@@ -26,7 +26,7 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
         let entitlement = EntitlementManager.shared
 
         Publishers.CombineLatest3(entitlement.$isPremium, entitlement.$isTrialActive, entitlement.$subscriptionTier)
-            .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 && $0.2 == $1.2 }
+            .removeDuplicates { $0 == $1 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPremium, isTrialActive, tier in
                 self?.sendEntitlementContext(isPremium: isPremium, isTrialActive: isTrialActive, tier: tier)
@@ -39,12 +39,18 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
         let context: [String: Any] = [
             "isPremium": isPremium,
             "isTrialActive": isTrialActive,
-            "subscriptionTier": tier,
+            "subscriptionTier": tier
         ]
         do {
             try session.updateApplicationContext(context)
         } catch {
             print("[WatchSync] Failed to update context: \(error)")
+        }
+
+        // Also send last translation if available
+        if let lastTranslation = UserDefaults.standard.string(forKey: "lastTranslation") {
+            let userInfo: [String: Any] = ["lastTranslation": lastTranslation]
+            session.transferUserInfo(userInfo)
         }
     }
 

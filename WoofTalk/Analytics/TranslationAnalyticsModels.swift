@@ -31,14 +31,11 @@ enum AnalyticsQualityTier: String, Codable {
     case veryLow = "Very Low"
     
     static func from(confidence: Double) -> AnalyticsQualityTier {
-        if confidence >= 0.8 {
-            return .high
-        } else if confidence >= 0.6 {
-            return .medium
-        } else if confidence >= 0.4 {
-            return .low
-        } else {
-            return .veryLow
+        switch confidence {
+        case 0.8...: return .high
+        case 0.6..<0.8: return .medium
+        case 0.4..<0.6: return .low
+        default: return .veryLow
         }
     }
 }
@@ -71,19 +68,11 @@ struct TranslationQualityMetrics: Codable {
     let qualityTier: String
     let modelVersion: String
     let timestamp: Date
-    
-    init(from confidence: Double, estimatedAccuracy: Double, modelVersion: String) {
+
+    init(confidence: Double, estimatedAccuracy: Double, modelVersion: String, qualityTier: String? = nil) {
         self.confidence = confidence
         self.estimatedAccuracy = estimatedAccuracy
-        self.qualityTier = AnalyticsQualityTier.from(confidence: confidence).rawValue
-        self.modelVersion = modelVersion
-        self.timestamp = Date()
-    }
-    
-    init(confidence: Double, estimatedAccuracy: Double, qualityTier: String, modelVersion: String) {
-        self.confidence = confidence
-        self.estimatedAccuracy = estimatedAccuracy
-        self.qualityTier = qualityTier
+        self.qualityTier = qualityTier ?? AnalyticsQualityTier.from(confidence: confidence).rawValue
         self.modelVersion = modelVersion
         self.timestamp = Date()
     }
@@ -116,18 +105,6 @@ struct TranslationPerformanceMetrics: Codable {
     let languageDirection: String
     let timestamp: Date
     
-    init(
-        latencyMs: Double,
-        success: Bool,
-        translationType: TranslationType,
-        languageDirection: String
-    ) {
-        self.latencyMs = latencyMs
-        self.success = success
-        self.translationType = translationType
-        self.languageDirection = languageDirection
-        self.timestamp = Date()
-    }
 }
 
 struct PerformanceStatistics: Codable {

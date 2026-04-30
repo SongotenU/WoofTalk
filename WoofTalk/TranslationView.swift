@@ -1,177 +1,119 @@
 import UIKit
 
-// MARK: - TranslationViewDelegate
-
 protocol TranslationViewDelegate: AnyObject {
     func translationViewDidTapTranslate(_ view: TranslationView)
     func translationViewDidTapClear(_ view: TranslationView)
     func translationViewDidTapHistory(_ view: TranslationView)
 }
 
-// MARK: - TranslationView
-
 final class TranslationView: UIView {
-    
+
     weak var delegate: TranslationViewDelegate?
-    
+
     private let inputLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 18)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 18))
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Input text"
+        label.accessibilityTraits = .staticText
         return label
     }()
-    
+
     private let translatedLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 24, weight: .semibold)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 24, weight: .semibold))
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Translated text"
+        label.accessibilityTraits = .staticText
         return label
     }()
-    
+
     private let statusLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        label.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 14))
         label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.text = "Ready to translate"
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityLabel = "Status"
+        label.accessibilityTraits = .staticText
         return label
     }()
-    
+
     private let translateButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Translate", for: .normal)
         button.backgroundColor = .systemBlue
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
+        button.accessibilityLabel = "Translate"
+        button.accessibilityHint = "Double tap to translate your input"
+        button.accessibilityTraits = .button
         return button
     }()
-    
+
     private let clearButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Clear", for: .normal)
         button.backgroundColor = .systemGray
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
+        button.accessibilityLabel = "Clear"
+        button.accessibilityHint = "Double tap to clear input and translation"
+        button.accessibilityTraits = .button
         return button
     }()
-    
+
     private let historyButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "clock.arrow.circlepath"), for: .normal)
-        button.tintColor = .systemBlue
+        button.setTitle("History", for: .normal)
+        button.backgroundColor = .systemGreen
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        button.accessibilityLabel = "History"
+        button.accessibilityHint = "Double tap to view translation history"
+        button.accessibilityTraits = .button
         return button
     }()
-    
-    private let audioLevelView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemBlue
-        view.layer.cornerRadius = 2
-        view.alpha = 0.3
-        return view
-    }()
-    
-    private let qualityScoreLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        label.textAlignment = .center
-        label.isHidden = true
-        return label
-    }()
-    
-    // MARK: - Initialization
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        setupView()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // MARK: - UI Setup
-    
-    private func setupUI() {
+
+    private func setupView() {
         backgroundColor = .systemBackground
-        
-        translateButton.addTarget(self, action: #selector(translateTapped), for: .touchUpInside)
-        clearButton.addTarget(self, action: #selector(clearTapped), for: .touchUpInside)
-        historyButton.addTarget(self, action: #selector(historyTapped), for: .touchUpInside)
-        
-        let verticalStack = UIStackView(arrangedSubviews: [inputLabel, translatedLabel, qualityScoreLabel, statusLabel])
-        verticalStack.axis = .vertical
-        verticalStack.spacing = 8
-        verticalStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        let buttonStack = UIStackView(arrangedSubviews: [translateButton, clearButton, historyButton])
-        buttonStack.axis = .horizontal
-        buttonStack.spacing = 12
-        buttonStack.distribution = .fillEqually
-        buttonStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        addSubview(verticalStack)
-        addSubview(buttonStack)
-        addSubview(audioLevelView)
-        
+
+        let stackView = UIStackView(arrangedSubviews: [inputLabel, translatedLabel, statusLabel, translateButton, clearButton, historyButton])
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stackView)
+
         NSLayoutConstraint.activate([
-            verticalStack.topAnchor.constraint(equalTo: topAnchor, constant: 20),
-            verticalStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            verticalStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            
-            audioLevelView.topAnchor.constraint(equalTo: verticalStack.bottomAnchor, constant: 10),
-            audioLevelView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            audioLevelView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            audioLevelView.heightAnchor.constraint(equalToConstant: 6),
-            
-            buttonStack.topAnchor.constraint(equalTo: audioLevelView.bottomAnchor, constant: 20),
-            buttonStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            buttonStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            buttonStack.heightAnchor.constraint(equalToConstant: 44)
+            stackView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20)
         ])
+
+        translateButton.addTarget(self, action: #selector(didTapTranslate), for: .touchUpInside)
+        clearButton.addTarget(self, action: #selector(didTapClear), for: .touchUpInside)
+        historyButton.addTarget(self, action: #selector(didTapHistory), for: .touchUpInside)
     }
-    
-    // MARK: - Actions
-    
-    @objc private func translateTapped() {
-        delegate?.translationViewDidTapTranslate(self)
-    }
-    
-    @objc private func clearTapped() {
-        delegate?.translationViewDidTapClear(self)
-    }
-    
-    @objc private func historyTapped() {
-        delegate?.translationViewDidTapHistory(self)
-    }
-    
-    // MARK: - Public Methods
-    
-    func addTranslation(human: String, dog: String) {
-        inputLabel.text = human
-        translatedLabel.text = dog
-    }
-    
-    func clearTranslations() {
-        inputLabel.text = ""
-        translatedLabel.text = ""
-        statusLabel.text = "Ready to translate"
-        qualityScoreLabel.isHidden = true
-    }
-    
-    func showPartialRecognition(_ text: String) {
-        statusLabel.text = "Recognizing: \(text)"
-    }
-    
-    func updateAudioLevel(_ level: Float) {
-        // Map level (0-1) to alpha or width
-        audioLevelView.alpha = CGFloat(level)
-    }
-    
-    func showQualityScore(_ score: TranslationQualityScore) {
-        qualityScoreLabel.text = "Quality: \(Int(score.confidence * 100))% (\(score.qualityTier.rawValue))"
-        qualityScoreLabel.isHidden = false
-    }
+
+    func updateInputText(_ text: String) { inputLabel.text = text }
+    func updateTranslatedText(_ text: String) { translatedLabel.text = text }
+    func updateStatus(_ text: String) { statusLabel.text = text }
+
+    @objc private func didTapTranslate() { delegate?.translationViewDidTapTranslate(self) }
+    @objc private func didTapClear() { delegate?.translationViewDidTapClear(self) }
+    @objc private func didTapHistory() { delegate?.translationViewDidTapHistory(self) }
 }

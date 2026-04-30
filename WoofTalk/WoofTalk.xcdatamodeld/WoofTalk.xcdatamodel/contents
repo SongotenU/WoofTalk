@@ -19,5 +19,16 @@
     <elements>
         <element name="Item" positionX="-63" positionY="-18" width="128" height="88"/>
         <element name="Translation" positionX="100" positionY="100" width="200" height="150"/>
+        <element name="TranslationCorrection" positionX="350" positionY="100" width="250" height="200"/>
     </elements>
+    <entity name="TranslationCorrection" representedClassName="TranslationCorrection" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="originalInput" optional="YES" attributeType="String"/>
+        <attribute name="originalTranslation" optional="YES" attributeType="String"/>
+        <attribute name="correctedTranslation" optional="YES" attributeType="String"/>
+        <attribute name="direction" optional="YES" attributeType="String"/>
+        <attribute name="confidence" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="usedInTraining" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+    </entity>
 </model>

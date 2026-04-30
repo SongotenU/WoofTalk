@@ -4,7 +4,7 @@
 
 - ✅ **v0.1.0 M007 AR/VR Mixed Reality** — Phases 23-27 (shipped 2026-04-04)
 - ✅ **v0.2.0 M008 Production Hardening** — Phases 43-49 (shipped 2026-04-07)
-- 🚧 **v1.0.0 M009 Subscription & Payments** — Phases 50-54 (in progress)
+- ✅ **v1.0.0 M009 Subscription & Payments** — Phases 50-54 (shipped 2026-04-29)
 
 ## Phases
 
@@ -85,11 +85,13 @@ Plans:
   3. EntitlementManager wrapper provides isPremium, isTrialActive, and dailyTranslationsUsed on all platforms
   4. After the 3rd translation, free users see a non-blocking upgrade prompt linking to paywall; premium features display lock icons when user is on free tier
   5. Watch app inherits phone subscription status with no separate purchase required
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 4 plans
 
 Plans:
-- [ ] 53-01: [TBD]
+- [x] 53-01: iOS — Feature gating with EntitlementManager wrapper
+- [x] 53-02: Android — Feature gating with EntitlementManager wrapper
+- [x] 53-03: Web — Feature gating with useEntitlement hook
+- [x] 53-04: Cross-platform — Watch inherits phone subscription status
 
 ### Phase 54: Cross-Platform Sync & Admin
 **Goal**: Subscriptions purchased on one platform activate entitlements on all others, and admins can monitor subscription health across the user base
@@ -100,11 +102,12 @@ Plans:
   2. On every app launch, logIn(auth.uid) is called to ensure correct RevenueCat identity, and restore purchases flow is available on all platforms
   3. Subscription management links to platform-native settings (iOS: App Store, Android: Play Store, Web: Stripe portal)
   4. Admin dashboard shows subscription tier, trial status, and cancellation date per user; RevenueCat analytics dashboard is enabled
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 3 plans
 
 Plans:
-- [ ] 54-01: [TBD]
+- [x] 54-01: iOS/Watch — Cross-platform sync with WatchSyncManager
+- [x] 54-02: Android — Cross-platform sync with entitlement listener
+- [x] 54-03: Web + Admin — Entitlement sync hook + admin dashboard
 
 ## Progress
 
@@ -114,7 +117,7 @@ Phases execute in numeric order: 50 → 51 → 52 → 53 → 54
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 50. RevenueCat SDK Integration | 3/3 | Complete | 2026-04-15 |
-| 51. Subscription Backend | 3/3 | Complete    | 2026-04-16 |
-| 52. Paywall UI | 0/3 | Not started | - |
-| 53. Feature Gating & Soft Paywall | 0/? | Not started | - |
-| 54. Cross-Platform Sync & Admin | 0/? | Not started | - |
+| 51. Subscription Backend | 3/3 | Complete | 2026-04-16 |
+| 52. Paywall UI | 3/3 | Complete | 2026-04-23 |
+| 53. Feature Gating & Soft Paywall | 4/4 | Complete | 2026-04-23 |
+| 54. Cross-Platform Sync & Admin | 3/3 | Complete | 2026-04-29 |

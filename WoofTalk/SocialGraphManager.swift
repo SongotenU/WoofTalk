@@ -1,5 +1,3 @@
-// MARK: - SocialGraphManager
-
 import Foundation
 import CoreData
 import Combine
@@ -11,8 +9,7 @@ enum SocialGraphError: LocalizedError {
     case alreadyFollowing
     case notFollowing
     case saveFailed
-    case blocked
-    
+
     var errorDescription: String? {
         switch self {
         case .userNotFound:
@@ -25,113 +22,69 @@ enum SocialGraphError: LocalizedError {
             return "Not following this user"
         case .saveFailed:
             return "Failed to save social graph changes"
-        case .blocked:
-            return "Cannot interact with blocked user"
         }
-    }
-}
-
-/// Follow relationship between two users
-final class FollowRelationship: NSObject {
-    let followerID: UUID
-    let followingID: UUID
-    let timestamp: Date
-    
-    init(followerID: UUID, followingID: UUID, timestamp: Date = Date()) {
-        self.followerID = followerID
-        self.followingID = followingID
-        self.timestamp = timestamp
-    }
-}
-
-/// Block relationship between two users
-final class BlockRelationship: NSObject {
-    let blockerID: UUID
-    let blockedID: UUID
-    let timestamp: Date
-    
-    init(blockerID: UUID, blockedID: UUID, timestamp: Date = Date()) {
-        self.blockerID = blockerID
-        self.blockedID = blockedID
-        self.timestamp = timestamp
     }
 }
 
 /// Manages social graph (followers/following) relationships
 final class SocialGraphManager: ObservableObject {
-    
+
     // MARK: - Dependencies
-    
+
     private let coreDataContext: NSManagedObjectContext
-    
+
     // MARK: - Published Properties
-    
+
     @Published private(set) var followerCount: [UUID: Int] = [:]
     @Published private(set) var followingCount: [UUID: Int] = [:]
-    
+
     // MARK: - Static
-    
+
     static let shared = SocialGraphManager(
         coreDataContext: PersistenceController.shared.container.viewContext
     )
-    
+
     // MARK: - Initialization
-    
+
     init(coreDataContext: NSManagedObjectContext) {
         self.coreDataContext = coreDataContext
-        loadFollowerCounts()
     }
     
     // MARK: - Follow Operations
-    
-    /// Follows a user
-    /// - Parameters:
-    ///   - userToFollow: The user to follow
-    ///   - follower: The user who is following (defaults to current user)
-    /// - Throws: SocialGraphError if operation fails
+
     func follow(user userToFollow: User, follower: User? = nil) throws {
         guard let currentUser = follower ?? UserProfileManager.currentUser else {
             throw SocialGraphError.userNotFound
         }
-        
+
         guard let currentUserID = currentUser.id, let targetUserID = userToFollow.id else {
             throw SocialGraphError.userNotFound
         }
-        
+
         guard currentUserID != targetUserID else {
             throw SocialGraphError.cannotFollowSelf
         }
-        
+
         if isBlocked(userID: targetUserID, blockerID: currentUserID) {
             throw SocialGraphError.blocked
         }
-        
+
         if isFollowing(userID: targetUserID, followerID: currentUserID) {
             throw SocialGraphError.alreadyFollowing
         }
-        
-        let relationship = FollowRelationship(followerID: currentUserID, followingID: targetUserID)
-        
+
         do {
-            try saveFollowRelationship(relationship)
+            try saveFollowRelationship(followerID: currentUserID, followingID: targetUserID)
             updateFollowingCount(for: currentUserID, delta: 1)
             updateFollowerCount(for: targetUserID, delta: 1)
-            
-            // Post activity event
+
             ActivityEventManager.shared.post(.newFollower(targetUser: userToFollow))
-            
-            // Send notification
             NotificationManager.shared.sendFollowNotification(to: userToFollow, from: currentUser)
         } catch {
             throw SocialGraphError.saveFailed
         }
     }
     
-    /// Unfollows a user
-    /// - Parameters:
-    ///   - userToUnfollow: The user to unfollow
-    ///   - follower: The user who is unfollowing (defaults to current user)
-    /// - Throws: SocialGraphError if operation fails
     func unfollow(user userToUnfollow: User, follower: User? = nil) throws {
         guard let currentUser = follower ?? UserProfileManager.currentUser else {
             throw SocialGraphError.userNotFound
@@ -154,47 +107,36 @@ final class SocialGraphManager: ObservableObject {
         }
     }
     
-    // MARK: - Block Operations
-    
-    /// Blocks a user
-    /// - Parameters:
-    ///   - userToBlock: The user to block
-    ///   - blocker: The user who is blocking (defaults to current user)
-    /// - Throws: SocialGraphError if operation fails
+    // MARK: - Block
+
     func block(user userToBlock: User, blocker: User? = nil) throws {
         guard let currentUser = blocker ?? UserProfileManager.currentUser else {
             throw SocialGraphError.userNotFound
         }
-        
+
         guard let currentUserID = currentUser.id, let targetUserID = userToBlock.id else {
             throw SocialGraphError.userNotFound
         }
-        
+
         guard currentUserID != targetUserID else {
             throw SocialGraphError.cannotFollowSelf
         }
-        
-        // If currently following, unfollow first
+
         if isFollowing(userID: targetUserID, followerID: currentUserID) {
             try? removeFollowRelationship(followerID: currentUserID, followingID: targetUserID)
             updateFollowingCount(for: currentUserID, delta: -1)
             updateFollowerCount(for: targetUserID, delta: -1)
         }
-        
-        let blockRelationship = BlockRelationship(blockerID: currentUserID, blockedID: targetUserID)
-        
+
         do {
-            try saveBlockRelationship(blockRelationship)
+            try saveBlockRelationship(blockerID: currentUserID, blockedID: targetUserID)
         } catch {
             throw SocialGraphError.saveFailed
         }
     }
     
-    /// Unblocks a user
-    /// - Parameters:
-    ///   - userToUnblock: The user to unblock
-    ///   - blocker: The user who is unblocking (defaults to current user)
-    /// - Throws: SocialGraphError if operation fails
+    // MARK: - Unblock
+
     func unblock(user userToUnblock: User, blocker: User? = nil) throws {
         guard let currentUser = blocker ?? UserProfileManager.currentUser else {
             throw SocialGraphError.userNotFound
@@ -211,55 +153,20 @@ final class SocialGraphManager: ObservableObject {
         }
     }
     
-    // MARK: - Query Methods
-    
-    /// Checks if one user is following another
-    /// - Parameters:
-    ///   - userID: The user being followed
-    ///   - followerID: The potential follower
-    /// - Returns: True if follower is following userID
+    // MARK: - Query
+
     func isFollowing(userID: UUID, followerID: UUID) -> Bool {
-        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "FollowRelationship")
-        fetchRequest.predicate = NSPredicate(
-            format: "followerID == %@ AND followingID == %@",
-            followerID as CVarArg,
-            userID as CVarArg
-        )
-        fetchRequest.resultType = .countResultType
-        
-        do {
-            let count = try coreDataContext.count(for: fetchRequest)
-            return count > 0
-        } catch {
-            return false
-        }
+        let key = "following_\(followerID.uuidString)"
+        guard let following = UserDefaults.standard.array(forKey: key) as? [String] else { return false }
+        return following.contains(userID.uuidString)
     }
     
-    /// Checks if a user is blocked
-    /// - Parameters:
-    ///   - userID: The blocked user
-    ///   - blockerID: The blocking user
-    /// - Returns: True if userID is blocked by blockerID
     func isBlocked(userID: UUID, blockerID: UUID) -> Bool {
-        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "BlockRelationship")
-        fetchRequest.predicate = NSPredicate(
-            format: "blockerID == %@ AND blockedID == %@",
-            blockerID as CVarArg,
-            userID as CVarArg
-        )
-        fetchRequest.resultType = .countResultType
-        
-        do {
-            let count = try coreDataContext.count(for: fetchRequest)
-            return count > 0
-        } catch {
-            return false
-        }
+        let key = "blocked_\(blockerID.uuidString)"
+        guard let blocked = UserDefaults.standard.array(forKey: key) as? [String] else { return false }
+        return blocked.contains(userID.uuidString)
     }
     
-    /// Gets followers for a user
-    /// - Parameter user: The user to get followers for
-    /// - Returns: Array of follower users
     func getFollowers(for user: User) -> [User] {
         guard let userID = user.id else { return [] }
         
@@ -273,9 +180,6 @@ final class SocialGraphManager: ObservableObject {
         }
     }
     
-    /// Gets users that a user is following
-    /// - Parameter user: The user to get following for
-    /// - Returns: Array of users being followed
     func getFollowing(for user: User) -> [User] {
         guard let userID = user.id else { return [] }
         
@@ -289,100 +193,64 @@ final class SocialGraphManager: ObservableObject {
         }
     }
     
-    /// Gets follower count for a user
-    /// - Parameter user: The user to get count for
-    /// - Returns: Number of followers
     func getFollowerCount(for user: User) -> Int {
         guard let userID = user.id else { return 0 }
         return followerCount[userID] ?? 0
     }
     
-    /// Gets following count for a user
-    /// - Parameter user: The user to get count for
-    /// - Returns: Number of users being followed
     func getFollowingCount(for user: User) -> Int {
         guard let userID = user.id else { return 0 }
         return followingCount[userID] ?? 0
     }
     
-    // MARK: - Private Methods
-    
+    // MARK: - Private
+
     private func getFollowerIDs(for userID: UUID) -> [UUID] {
-        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "FollowRelationship")
-        fetchRequest.predicate = NSPredicate(format: "followingID == %@", userID as CVarArg)
-        fetchRequest.resultType = .dictionaryResultType
-        fetchRequest.propertiesToFetch = ["followerID"]
-        
-        do {
-            let results = try coreDataContext.fetch(fetchRequest)
-            return results.compactMap { $0["followerID"] as? UUID }
-        } catch {
-            return []
-        }
+        UserDefaults.standard.dictionaryRepresentation()
+            .filter { $0.key.hasPrefix("following_") && ($0.value as? [String])?.contains(userID.uuidString) == true }
+            .compactMap { UUID(uuidString: $0.key.replacingOccurrences(of: "following_", with: "")) }
     }
-    
+
     private func getFollowingIDs(for userID: UUID) -> [UUID] {
-        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "FollowRelationship")
-        fetchRequest.predicate = NSPredicate(format: "followerID == %@", userID as CVarArg)
-        fetchRequest.resultType = .dictionaryResultType
-        fetchRequest.propertiesToFetch = ["followingID"]
-        
-        do {
-            let results = try coreDataContext.fetch(fetchRequest)
-            return results.compactMap { $0["followingID"] as? UUID }
-        } catch {
-            return []
-        }
+        let key = "following_\(userID.uuidString)"
+        guard let following = UserDefaults.standard.array(forKey: key) as? [String] else { return [] }
+        return following.compactMap { UUID(uuidString: $0) }
     }
     
-    private func saveFollowRelationship(_ relationship: FollowRelationship) throws {
-        guard let userID = UserProfileManager.currentUser?.id else { return }
-        
-        let followingKey = "following_\(userID.uuidString)"
-        if var currentFollowing = UserDefaults.standard.array(forKey: "following_\(userID.uuidString)") as? [String] {
-            currentFollowing.append(relationship.followingID.uuidString)
-            UserDefaults.standard.set(currentFollowing, forKey: "following_\(userID.uuidString)")
-        } else {
-            UserDefaults.standard.set([relationship.followingID.uuidString], forKey: "following_\(userID.uuidString)")
-        }
+    private func saveFollowRelationship(followerID: UUID, followingID: UUID) throws {
+        let key = "following_\(followerID.uuidString)"
+        var current = UserDefaults.standard.array(forKey: key) as? [String] ?? []
+        current.append(followingID.uuidString)
+        UserDefaults.standard.set(current, forKey: key)
     }
-    
+
     private func removeFollowRelationship(followerID: UUID, followingID: UUID) throws {
-        if var following = UserDefaults.standard.array(forKey: "following_\(followerID.uuidString)") as? [String] {
-            following.removeAll { $0 == followingID.uuidString }
-            UserDefaults.standard.set(following, forKey: "following_\(followerID.uuidString)")
-        }
+        let key = "following_\(followerID.uuidString)"
+        guard var current = UserDefaults.standard.array(forKey: key) as? [String] else { return }
+        current.removeAll { $0 == followingID.uuidString }
+        UserDefaults.standard.set(current, forKey: key)
     }
-    
-    private func saveBlockRelationship(_ relationship: BlockRelationship) throws {
-        if var blocked = UserDefaults.standard.array(forKey: "blocked_\(relationship.blockerID.uuidString)") as? [String] {
-            blocked.append(relationship.blockedID.uuidString)
-            UserDefaults.standard.set(blocked, forKey: "blocked_\(relationship.blockerID.uuidString)")
-        } else {
-            UserDefaults.standard.set([relationship.blockedID.uuidString], forKey: "blocked_\(relationship.blockerID.uuidString)")
-        }
+
+    private func saveBlockRelationship(blockerID: UUID, blockedID: UUID) throws {
+        let key = "blocked_\(blockerID.uuidString)"
+        var current = UserDefaults.standard.array(forKey: key) as? [String] ?? []
+        current.append(blockedID.uuidString)
+        UserDefaults.standard.set(current, forKey: key)
     }
-    
+
     private func removeBlockRelationship(blockerID: UUID, blockedID: UUID) throws {
-        if var blocked = UserDefaults.standard.array(forKey: "blocked_\(blockerID.uuidString)") as? [String] {
-            blocked.removeAll { $0 == blockedID.uuidString }
-            UserDefaults.standard.set(blocked, forKey: "blocked_\(blockerID.uuidString)")
-        }
+        let key = "blocked_\(blockerID.uuidString)"
+        guard var current = UserDefaults.standard.array(forKey: key) as? [String] else { return }
+        current.removeAll { $0 == blockedID.uuidString }
+        UserDefaults.standard.set(current, forKey: key)
     }
-    
-    private func loadFollowerCounts() {
-        // Load counts from UserDefaults or calculate from relationships
-        // This is a simplified implementation
-    }
-    
+
     private func updateFollowerCount(for userID: UUID, delta: Int) {
-        let currentCount = followerCount[userID] ?? 0
-        followerCount[userID] = max(0, currentCount + delta)
+        followerCount[userID] = max(0, (followerCount[userID] ?? 0) + delta)
     }
-    
+
     private func updateFollowingCount(for userID: UUID, delta: Int) {
-        let currentCount = followingCount[userID] ?? 0
-        followingCount[userID] = max(0, currentCount + delta)
+        followingCount[userID] = max(0, (followingCount[userID] ?? 0) + delta)
     }
 }
 

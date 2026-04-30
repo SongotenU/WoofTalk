@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Purchases from "@revenuecat/purchases-js";
 import { useEntitlementStore } from "@/lib/entitlement-store";
-import { isRevenueCatInitialized } from "@/lib/revenuecat";
+import { purchases } from "@/lib/revenuecat";
+import { supabase } from "@/lib/supabase";
+
+interface RcbillingProduct {
+  identifier: string;
+  currentPrice: { formattedPrice: string };
+  title: string;
+  description: string | null;
+}
 
 interface PlanOffering {
   identifier: string;
-  product: {
-    identifier: string;
-    priceString: string;
-    title: string;
-    description: string;
-  };
+  rcBillingProduct: RcbillingProduct;
 }
 
 export default function SubscribePage() {
@@ -28,46 +29,59 @@ export default function SubscribePage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState("");
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralApplied, setReferralApplied] = useState(false);
+
+  // Paywall gate: if user already has access or isn't ready yet, redirect
+  useEffect(() => {
+    if (isPremium || !isReadyToAccessPaywall) {
+      router.push("/translate");
+    }
+  }, [isPremium, isReadyToAccessPaywall, router]);
 
   // Fetch offerings on mount (PAY-09)
   useEffect(() => {
     async function loadOfferings() {
-      if (!isRevenueCatInitialized()) {
+      if (!purchases.getSharedInstance) {
         setOfferingsError(true);
         return;
       }
       try {
-        const offerings = await Purchases.getSharedInstance().getOfferings();
+        const offerings = await purchases.getSharedInstance().getOfferings();
         const current = offerings.current;
         if (!current) {
           setOfferingsError(true);
           return;
         }
         const monthlyOffer = current.availablePackages.find(
-          (p) => p.product.identifier === "wooftalk_monthly"
+          (p) => p.rcBillingProduct.identifier === "wooftalk_monthly"
         );
         const annualOffer = current.availablePackages.find(
-          (p) => p.product.identifier === "wooftalk_annual"
+          (p) => p.rcBillingProduct.identifier === "wooftalk_annual"
         );
         if (monthlyOffer) {
           setMonthly({
             identifier: monthlyOffer.identifier,
-            product: {
-              identifier: monthlyOffer.product.identifier,
-              priceString: monthlyOffer.product.priceString,
-              title: monthlyOffer.product.title,
-              description: monthlyOffer.product.description,
+            rcBillingProduct: {
+              identifier: monthlyOffer.rcBillingProduct.identifier,
+              currentPrice: {
+                formattedPrice: monthlyOffer.rcBillingProduct.currentPrice.formattedPrice,
+              },
+              title: monthlyOffer.rcBillingProduct.title as string,
+              description: monthlyOffer.rcBillingProduct.description,
             },
           });
         }
         if (annualOffer) {
           setAnnual({
             identifier: annualOffer.identifier,
-            product: {
-              identifier: annualOffer.product.identifier,
-              priceString: annualOffer.product.priceString,
-              title: annualOffer.product.title,
-              description: annualOffer.product.description,
+            rcBillingProduct: {
+              identifier: annualOffer.rcBillingProduct.identifier,
+              currentPrice: {
+                formattedPrice: annualOffer.rcBillingProduct.currentPrice.formattedPrice,
+              },
+              title: annualOffer.rcBillingProduct.title as string,
+              description: annualOffer.rcBillingProduct.description,
             },
           });
         }
@@ -81,227 +95,247 @@ export default function SubscribePage() {
     loadOfferings();
   }, []);
 
-  // Poll entitlement after checkout (D-06)
+  // Set loading state for paywall
   useEffect(() => {
-    if (!checkoutOpen) return;
-    const interval = setInterval(() => {
-      if (useEntitlementStore.getState().isPremium) {
-        clearInterval(interval);
-        setCheckoutOpen(false);
-        router.push("/settings");
-      }
-    }, 3000);
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      setCheckoutOpen(false);
-    }, 120000);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [checkoutOpen, router]);
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
 
-  // Redirect if already premium
+  // Apply referral code
   useEffect(() => {
-    if (isPremium && !checkoutOpen) {
-      router.push("/settings");
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+      localStorage.setItem("wooftalk_referral", ref);
+      setReferralApplied(true);
     }
-  }, [isPremium, checkoutOpen, router]);
+  }, []);
 
-  const handleSubscribe = useCallback(async () => {
-    if (!selectedPlan || !isReadyToAccessPaywall) return;
-    setPurchaseError("");
-    setLoading(true);
+  const handleSubscribe = async (packageId: string) => {
+    if (!checkoutOpen) return;
+    const rcOffer = await purchases.getSharedInstance().getOfferings();
+    const packageToPurchase = rcOffer.current?.availablePackages.find(
+      (p) => p.identifier === packageId
+    );
+    if (!packageToPurchase) {
+      setPurchaseError("Selected plan not found");
+      return;
+    }
 
     try {
-      const offerings = await Purchases.getSharedInstance().getOfferings();
-      const current = offerings.current;
-      if (!current) {
-        setPurchaseError("Subscription options unavailable. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const pkg = selectedPlan === "monthly"
-        ? current.availablePackages.find((p) => p.product.identifier === "wooftalk_monthly")
-        : current.availablePackages.find((p) => p.product.identifier === "wooftalk_annual");
-
-      if (!pkg) {
-        setPurchaseError("Plan not found. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      // D-06: RevenueCat hosted checkout (Stripe) opens in new tab
-      const { url } = await Purchases.getSharedInstance().getWebPurchaseURL(pkg);
-      if (url) {
-        window.open(url, "_blank");
-        setCheckoutOpen(true);
-      } else {
-        setPurchaseError("Purchase couldn't be completed. Please try again or restore purchases.");
-      }
-    } catch {
-      setPurchaseError("Purchase couldn't be completed. Please try again or restore purchases.");
+      setLoading(true);
+      await purchases.getSharedInstance().purchasePackage(packageToPurchase);
+      router.push("/translate");
+    } catch (err: any) {
+      setPurchaseError(err.message || "Purchase failed");
     } finally {
       setLoading(false);
     }
-  }, [selectedPlan, isReadyToAccessPaywall, setLoading]);
+  };
 
-  const handleRestore = useCallback(async () => {
+  const handleRestore = async () => {
     setRestoring(true);
     setRestoreMessage("");
     try {
-      const customerInfo = await Purchases.getSharedInstance().restorePurchases();
-      const proEntitlement = customerInfo.entitlements.all["pro"];
-      if (proEntitlement?.isActive) {
-        useEntitlementStore.getState().fromCustomerInfo(customerInfo);
-        setRestoreMessage("Subscription restored!");
-        setTimeout(() => router.push("/settings"), 1500);
-      } else {
-        setRestoreMessage("No previous subscription found for this account.");
-      }
+      const { restorePurchases } = await import("@/lib/purchases-web");
+      await restorePurchases();
+      setRestoreMessage("Purchases restored successfully!");
     } catch {
-      setRestoreMessage("No previous subscription found for this account.");
+      setRestoreMessage("Failed to restore purchases. Please try again.");
     } finally {
       setRestoring(false);
     }
-  }, [router]);
-
-  // Auth gate
-  if (!isReadyToAccessPaywall) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center p-8">
-          <h1 className="text-xl font-semibold mb-4">Sign In Required</h1>
-          <p className="text-muted-foreground mb-4">Please sign in to manage your subscription.</p>
-          <Link href="/settings" className="text-primary hover:underline">Back to Settings</Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Empty state (PAY-09)
-  if (offeringsError) {
-    return (
-      <div className="min-h-screen bg-background">
-        <nav className="border-b">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">🐾 WoofTalk</Link>
-          </div>
-        </nav>
-        <div className="container mx-auto px-4 py-16 max-w-3xl text-center">
-          <h1 className="text-xl font-semibold mb-2">Subscription Unavailable</h1>
-          <p className="text-muted-foreground mb-6">We couldn&apos;t load subscription options. Check your connection and try again.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Checkout open state (D-06)
-  if (checkoutOpen) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <h1 className="text-xl font-semibold mb-2">Complete your purchase in the other tab</h1>
-          <p className="text-muted-foreground">This page will update automatically.</p>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-primary">🐾 WoofTalk</Link>
-        </div>
-      </nav>
-
-      <main className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="text-center mb-8">
-          <h1 className="text-[28px] font-semibold leading-tight">Choose Your Plan</h1>
-          <p className="text-sm text-muted-foreground mt-2">7-day free trial on all plans</p>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
-          {/* Monthly Card */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-primary">WoofTalk</h1>
+          </div>
           <button
-            onClick={() => setSelectedPlan("monthly")}
-            className={`flex-1 p-6 bg-card rounded-lg border-2 text-left transition-colors ${
-              selectedPlan === "monthly" ? "border-primary" : "border-transparent"
-            }`}
+            onClick={() => router.push("/settings")}
+            className="text-muted-foreground hover:text-foreground"
           >
-            <h2 className="text-xl font-semibold mb-4">Monthly</h2>
-            <p className="text-[28px] font-semibold leading-tight">
-              {monthly?.product.priceString ?? "$4.99"}/month
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">7-day free trial</p>
-            <p className="text-sm text-muted-foreground">then {monthly?.product.priceString ?? "$4.99"}/month</p>
-          </button>
-
-          {/* Annual Card */}
-          <button
-            onClick={() => setSelectedPlan("annual")}
-            className={`flex-1 p-5 bg-card rounded-lg border-2 text-left transition-colors relative ${
-              selectedPlan === "annual" ? "border-primary" : "border-transparent"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Annual</h2>
-              <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-sm">
-                Save 33%
-              </span>
-            </div>
-            <p className="text-[28px] font-semibold leading-tight">
-              {annual?.product.priceString ?? "$39.99"}/year
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">7-day free trial</p>
-            <p className="text-sm text-muted-foreground">then {annual?.product.priceString ?? "$39.99"}/year</p>
+            Settings
           </button>
         </div>
+      </header>
 
-        {selectedPlan && (
-          <div className="mb-6">
-            <button
-              onClick={handleSubscribe}
-              disabled={isLoading}
-              className="w-full h-12 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                  Verifying subscription...
-                </>
-              ) : (
-                "Start Free Trial"
-              )}
-            </button>
-            {purchaseError && (
-              <p className="text-sm text-destructive mt-2">{purchaseError}</p>
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        {!isReadyToAccessPaywall ? (
+          <div className="text-center py-20 space-y-6">
+            {offeringsError ? (
+              <>
+                <div className="text-6xl">🐕</div>
+                <h1 className="text-3xl font-bold text-gray-900">Unable to load plans</h1>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  We couldn't load subscription plans. Please check your connection and try again.
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-primary text-primary-foreground px-8 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  Try Again
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-6xl">🐕</div>
+                <h1 className="text-3xl font-bold text-gray-900">Upgrade to Pro</h1>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Unlock premium translation features with our subscription plan.
+                </p>
+                <div className="flex gap-4 justify-center mt-8">
+                  {monthly && (
+                    <button
+                      onClick={() => {
+                        setSelectedPlan("monthly");
+                        setCheckoutOpen(true);
+                      }}
+                      className="bg-primary text-primary-foreground px-8 py-3 rounded-xl hover:bg-primary/90 transition-colors min-w-[160px]"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Loading..." : monthly.rcBillingProduct.currentPrice.formattedPrice}
+                    </button>
+                  )}
+                  {annual && (
+                    <button
+                      onClick={() => {
+                        setSelectedPlan("annual");
+                        setCheckoutOpen(true);
+                      }}
+                      className="border-2 border-primary text-primary px-8 py-3 rounded-xl hover:bg-primary/5 transition-colors min-w-[160px]"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Loading..." : annual.rcBillingProduct.currentPrice.formattedPrice}
+                    </button>
+                  )}
+                </div>
+                {purchaseError && (
+                  <p className="text-red-500 text-sm mt-4">{purchaseError}</p>
+                )}
+              </>
             )}
+
+            <div className="mt-8">
+              <button
+                onClick={handleRestore}
+                disabled={restoring}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {restoring ? "Restoring..." : "Restore Purchases"}
+              </button>
+              {restoreMessage && (
+                <p className="text-sm mt-2 text-green-600">{restoreMessage}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🎉</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              You already have Pro access!
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Your subscription is active. Enjoy all premium features.
+            </p>
+            <button
+              onClick={() => router.push("/translate")}
+              className="bg-primary text-primary-foreground px-8 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              Start Translating
+            </button>
           </div>
         )}
-
-        <div className="text-center">
-          <button
-            onClick={handleRestore}
-            disabled={restoring}
-            className="text-sm text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50"
-          >
-            {restoring ? "Restoring..." : "Restore Purchases"}
-          </button>
-          {restoreMessage && (
-            <p className="text-sm text-muted-foreground mt-1">{restoreMessage}</p>
-          )}
-        </div>
       </main>
+
+      {/* Checkout Modal */}
+      {checkoutOpen && selectedPlan && monthly && annual && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Subscribe to Pro</h2>
+              <button
+                onClick={() => setCheckoutOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-purple-50 rounded-xl p-4 mb-4">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">
+                    {selectedPlan === "monthly" ? "Monthly Plan" : "Annual Plan"}
+                  </span>
+                  <span className="text-primary font-bold">
+                    {selectedPlan === "monthly"
+                      ? monthly.rcBillingProduct.currentPrice.formattedPrice
+                      : annual.rcBillingProduct.currentPrice.formattedPrice}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {selectedPlan === "monthly"
+                    ? monthly.rcBillingProduct.description
+                    : annual.rcBillingProduct.description}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedPlan("monthly")}
+                  className={`flex-1 py-2 rounded-lg transition-colors ${
+                    selectedPlan === "monthly"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setSelectedPlan("annual")}
+                  className={`flex-1 py-2 rounded-lg transition-colors ${
+                    selectedPlan === "annual"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                >
+                  Annual
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() =>
+                handleSubscribe(
+                  selectedPlan === "monthly"
+                    ? monthly.identifier
+                    : annual.identifier
+                )
+              }
+              disabled={isLoading}
+              className="w-full bg-primary text-primary-foreground py-3 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isLoading
+                ? "Processing..."
+                : `Subscribe - ${
+                    selectedPlan === "monthly"
+                      ? monthly.rcBillingProduct.currentPrice.formattedPrice
+                      : annual.rcBillingProduct.currentPrice.formattedPrice
+                  }`}
+            </button>
+
+            {purchaseError && (
+              <p className="text-red-500 text-center mt-2 text-sm">
+                {purchaseError}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

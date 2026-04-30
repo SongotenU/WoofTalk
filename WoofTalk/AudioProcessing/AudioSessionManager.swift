@@ -1,92 +1,143 @@
-// MARK: - AudioSessionManager
-
 import AVFoundation
 
-/// Manages audio session configuration for optimal audio processing
 final class AudioSessionManager {
-    
-    // MARK: Properties
-    private var audioSession = AVAudioSession.sharedInstance()
-    
-    // MARK: Public Methods
+    private let audioSession = AVAudioSession.sharedInstance()
+
     func configureSession() throws {
         do {
-            // Configure for low-latency audio processing
-            try audioSession.setCategory(.playAndRecord, 
+            try audioSession.setCategory(.playAndRecord,
                                           options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers])
-            try audioSession.setMode(.measurement)
+            try audioSession.setMode(.voiceChat)
             try audioSession.setActive(true)
-            
-            // Set preferred sample rate and buffer duration
-            let preferredSampleRate = AudioFormats.preferredSampleRate
-            let preferredIOBufferDuration = AudioFormats.preferredBufferDuration
-            
-            try audioSession.setPreferredSampleRate(preferredSampleRate)
-            try audioSession.setPreferredIOBufferDuration(preferredIOBufferDuration)
-            
+            try audioSession.setPreferredSampleRate(AudioFormats.standardSampleRate)
+            try audioSession.setPreferredIOBufferDuration(0.005)
         } catch {
             throw AudioEngineError.audioSessionConfigurationFailed
         }
     }
-    
+
+    /// Configure session for background audio recording
+    func configureForBackgroundAudio() throws {
+        do {
+            try audioSession.setCategory(.playAndRecord,
+                                          options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers])
+            try audioSession.setMode(.voiceChat)
+            try audioSession.setActive(true, options: [])
+        } catch {
+            throw AudioEngineError.audioSessionConfigurationFailed
+        }
+    }
+
+    /// Handle audio session interruption
+    func handleInterruption(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+
+        switch type {
+        case .began:
+            // Interruption began, audio session deactivated
+            break
+        case .ended:
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                try? audioSession.setActive(true)
+            }
+        @unknown default:
+            break
+        }
+    }
+
     func deactivateSession() {
         try? audioSession.setActive(false)
     }
-    
-    // MARK: State Monitoring
-    var currentSampleRate: Double {
-        return audioSession.sampleRate
-    }
-    
-    var currentBufferDuration: Double {
-        return audioSession.ioBufferDuration
-    }
-    
-    var isAudioInputAvailable: Bool {
-        return audioSession.isInputAvailable
-    }
-    
-    var availableInputs: [AVAudioSession.Port] {
-        return audioSession.availableInputs?.map { $0.portType } ?? []
-    }
-    
-    // MARK: Permission Handling
+
+    var currentSampleRate: Double { audioSession.sampleRate }
+    var currentBufferDuration: Double { audioSession.ioBufferDuration }
+    var isAudioInputAvailable: Bool { audioSession.isInputAvailable }
+
     func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            DispatchQueue.main.async {
-                completion(granted)
-            }
+        audioSession.requestRecordPermission { granted in
+            DispatchQueue.main.async { completion(granted) }
         }
     }
-    
+
     var microphonePermissionStatus: AVAudioSession.RecordPermission {
-        return audioSession.recordPermission
+        audioSession.recordPermission
+    }
+
+    // MARK: - Audio Input Source Selection
+
+    /// Get available audio input sources
+    var availableInputSources: [AudioInputSource] {
+        let inputs = audioSession.availableInputs ?? []
+        return inputs.map { input in
+            AudioInputSource(
+                uid: input.uid,
+                portType: input.portType.rawValue,
+                portName: input.portName,
+                isCurrentlySelected: audioSession.currentRoute.inputs.contains { $0.uid == input.uid }
+            )
+        }
+    }
+
+    /// Get current input source
+    var currentInputSource: AudioInputSource? {
+        audioSession.currentRoute.inputs.first.map {
+            AudioInputSource(
+                uid: $0.uid,
+                portType: $0.portType.rawValue,
+                portName: $0.portName,
+                isCurrentlySelected: true
+            )
+        }
+    }
+
+    /// Select audio input source by UID
+    func selectInputSource(uid: String) throws {
+        guard let input = audioSession.availableInputs?.first(where: { $0.uid == uid }) else {
+            throw AudioSessionError.inputSourceNotFound
+        }
+        do {
+            try audioSession.setPreferredInput(input)
+        } catch {
+            throw AudioSessionError.failedToSelectInputSource
+        }
+    }
+
+    /// Get input source type description
+    func inputSourceDescription(for portType: String) -> String {
+        switch portType {
+        case AVAudioSession.Port.builtInMic.rawValue: return "Built-in Microphone"
+        case AVAudioSession.Port.bluetoothHFP.rawValue: return "Bluetooth Headset"
+        case AVAudioSession.Port.bluetoothLE.rawValue: return "Bluetooth LE"
+        case AVAudioSession.Port.airPods.rawValue: return "AirPods"
+        case AVAudioSession.Port.headsetMic.rawValue: return "Wired Headset"
+        case AVAudioSession.Port.lineIn.rawValue: return "Line In"
+        default: return portType
+        }
     }
 }
 
-// MARK: - AudioSessionManagerDelegate
+struct AudioInputSource: Identifiable {
+    let uid: String
+    let portType: String
+    let portName: String
+    let isCurrentlySelected: Bool
 
-protocol AudioSessionManagerDelegate: AnyObject {
-    func audioSessionManager(_ manager: AudioSessionManager, didChangeInputAvailability available: Bool)
-    func audioSessionManager(_ manager: AudioSessionManager, didChangeSampleRate sampleRate: Double)
-    func audioSessionManager(_ manager: AudioSessionManager, didChangeBufferDuration bufferDuration: Double)
+    var id: String { uid }
+    var displayName: String { portName }
 }
 
-// MARK: - AudioSession Errors
-
 enum AudioSessionError: Error, LocalizedError {
-    case microphonePermissionDenied
-    case audioInputUnavailable
-    case audioSessionActivationFailed
-    
+    case inputSourceNotFound
+    case failedToSelectInputSource
+
     var errorDescription: String? {
         switch self {
-        case .microphonePermissionDenied:
-            return "Microphone permission denied"
-        case .audioInputUnavailable:
-            return "Audio input unavailable"
-        case .audioSessionActivationFailed:
-            return "Audio session activation failed"
+        case .inputSourceNotFound: return "Audio input source not found"
+        case .failedToSelectInputSource: return "Failed to select audio input source"
         }
     }
 }

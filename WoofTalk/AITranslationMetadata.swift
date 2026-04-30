@@ -1,5 +1,4 @@
 import Foundation
-import CoreData
 
 struct AITranslationMetadata: Codable {
     let translationMode: String
@@ -8,7 +7,7 @@ struct AITranslationMetadata: Codable {
     let modelVersion: String
     let inferenceTimeMs: Double
     let timestamp: Date
-    
+
     init(mode: TranslationMode, qualityScore: TranslationQualityScore, inferenceTime: TimeInterval) {
         self.translationMode = mode.rawValue
         self.confidence = qualityScore.confidence
@@ -17,41 +16,58 @@ struct AITranslationMetadata: Codable {
         self.inferenceTimeMs = inferenceTime * 1000
         self.timestamp = Date()
     }
+
+    var confidencePercentage: Int { Int(confidence * 100) }
+
+    var confidenceDescription: String {
+        switch confidence {
+        case 0.8...: return "High"
+        case 0.6..<0.8: return "Medium"
+        case 0.4..<0.6: return "Low"
+        default: return "Very Low"
+        }
+    }
+}
+
+struct TranslationConfidence {
+    let score: Double
+    let tier: TranslationQualityScore.QualityTier
+    let description: String
+
+    init(confidence: Double) {
+        self.score = confidence
+        self.tier = TranslationQualityScore(confidence: confidence).qualityTier
+        switch tier {
+        case .high: self.description = "High confidence translation"
+        case .medium: self.description = "Medium confidence - may need verification"
+        case .low: self.description = "Low confidence - please verify"
+        case .veryLow: self.description = "Very low confidence - review needed"
+        }
+    }
+
+    var percentage: Int { Int(score * 100) }
+    var colorName: String { tier.color }
 }
 
 extension UserDefaults {
-    private enum Keys {
-        static let translationMode = "com.wooftalk.translationMode"
-        static let aiModelEnabled = "com.wooftalk.aiModelEnabled"
-        static let lastTranslationMetadata = "com.wooftalk.lastTranslationMetadata"
-    }
-    
     var translationMode: TranslationMode {
-        get {
-            guard let rawValue = string(forKey: Keys.translationMode),
-                  let mode = TranslationMode(rawValue: rawValue) else {
-                return .ruleBased
-            }
-            return mode
-        }
-        set {
-            set(newValue.rawValue, forKey: Keys.translationMode)
-        }
+        get { TranslationMode(rawValue: string(forKey: "com.wooftalk.translationMode") ?? "") ?? .ruleBased }
+        set { set(newValue.rawValue, forKey: "com.wooftalk.translationMode") }
     }
-    
+
     var aiModelEnabled: Bool {
-        get { bool(forKey: Keys.aiModelEnabled) }
-        set { set(newValue, forKey: Keys.aiModelEnabled) }
+        get { bool(forKey: "com.wooftalk.aiModelEnabled") }
+        set { set(newValue, forKey: "com.wooftalk.aiModelEnabled") }
     }
-    
+
     func saveTranslationMetadata(_ metadata: AITranslationMetadata) {
         if let encoded = try? JSONEncoder().encode(metadata) {
-            set(encoded, forKey: Keys.lastTranslationMetadata)
+            set(encoded, forKey: "com.wooftalk.lastTranslationMetadata")
         }
     }
-    
+
     func getLastTranslationMetadata() -> AITranslationMetadata? {
-        guard let data = data(forKey: Keys.lastTranslationMetadata),
+        guard let data = data(forKey: "com.wooftalk.lastTranslationMetadata"),
               let metadata = try? JSONDecoder().decode(AITranslationMetadata.self, from: data) else {
             return nil
         }

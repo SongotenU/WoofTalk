@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.WoofTalk" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Base theme for Material You dynamic color support -->
+    <style name="Theme.WoofTalk" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Enable Material You dynamic color (API 31+) -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Foldable-aware theme extensions -->
+    <style name="Theme.WoofTalk.Foldable" parent="Theme.WoofTalk">
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
 </resources>

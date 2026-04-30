@@ -1,4 +1,4 @@
-import Purchases from '@revenuecat/purchases-js';
+import { Purchases, PurchasesConfig } from '@revenuecat/purchases-js';
 import { supabase } from './supabase';
 
 const API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY ?? '';
@@ -14,33 +14,41 @@ export async function initRevenueCat() {
   if (initialized) return;
   if (!API_KEY) return; // Skip if no key configured (e.g. local dev without RevenueCat)
 
-  Purchases.configure({ apiKey: API_KEY, appUserID: undefined });
+  const config: PurchasesConfig = {
+    apiKey: API_KEY,
+    appUserId: Purchases.generateRevenueCatAnonymousAppUserId(),
+  };
+  Purchases.configure(config);
   initialized = true;
 
   // D-02: Link identity on auth change
   supabase.auth.onAuthStateChange(async (event, session) => {
     if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-      await loginRevenueCat(session.user.id);
+      await identifyUserRevenueCat(session.user.id);
     } else if (event === 'SIGNED_OUT') {
-      await logoutRevenueCat();
+      await closeRevenueCat();
     }
   });
 }
 
 // D-02: Log in with Supabase auth.uid
-export async function loginRevenueCat(userId: string) {
+export async function identifyUserRevenueCat(userId: string | undefined) {
   try {
-    await Purchases.getSharedInstance().logIn(userId);
+    if (userId) {
+      await Purchases.getSharedInstance().identifyUser(userId);
+    } else {
+      await closeRevenueCat();
+    }
   } catch {
     // D-05: Trust cached CustomerInfo when offline
   }
 }
 
-export async function logoutRevenueCat() {
+export async function closeRevenueCat() {
   try {
-    await Purchases.getSharedInstance().logOut();
+    Purchases.getSharedInstance().close();
   } catch {
-    // D-05
+    // Ignore
   }
 }
 
@@ -52,3 +60,8 @@ export async function refreshEntitlements() {
     return null;
   }
 }
+
+export { Purchases };
+
+// Re-export for convenience and type safety
+export const purchases = Purchases;

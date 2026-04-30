@@ -1,405 +1,239 @@
-// MARK: - Analytics View Controller
-
 import UIKit
 
 final class AnalyticsViewController: UIViewController {
-    
-    // MARK: - Properties
-    
     private let analyticsService = TranslationAnalyticsService.shared
-    
     private var summary: AnalyticsDashboardSummary?
-    private var performanceStats: PerformanceStatistics?
-    private var qualityStats: QualityStatistics?
-    
-    // MARK: - UI Elements
-    
+
     private lazy var scrollView: UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.showsVerticalScrollIndicator = true
-        return scrollView
+        let sv = UIScrollView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        return sv
     }()
-    
-    private lazy var contentStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.axis = .vertical
-        stackView.spacing = 20
-        stackView.alignment = .fill
-        return stackView
+
+    private lazy var contentStack: UIStackView = {
+        let sv = UIStackView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        sv.axis = .vertical
+        sv.spacing = 20
+        return sv
     }()
-    
-    private lazy var headerLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Analytics Dashboard"
-        label.font = .systemFont(ofSize: 28, weight: .bold)
-        label.textAlignment = .center
-        return label
+
+    private let headerLabel: UILabel = {
+        let l = UILabel()
+        l.text = "Analytics Dashboard"
+        l.font = .systemFont(ofSize: 28, weight: .bold)
+        l.textAlignment = .center
+        return l
     }()
-    
-    private lazy var translationsCard = createMetricCard(title: "Total Translations", icon: "text.bubble")
-    private lazy var qualityCard = createMetricCard(title: "Quality Score", icon: "star.fill")
-    private lazy var latencyCard = createMetricCard(title: "Avg Latency", icon: "speedometer")
-    private lazy var successRateCard = createMetricCard(title: "Success Rate", icon: "checkmark.circle.fill")
-    
+
+    private lazy var translationsCard = metricCard(title: "Total Translations", icon: "text.bubble")
+    private lazy var qualityCard = metricCard(title: "Quality Score", icon: "star.fill")
+    private lazy var latencyCard = metricCard(title: "Avg Latency", icon: "speedometer")
+    private lazy var successRateCard = metricCard(title: "Success Rate", icon: "checkmark.circle.fill")
+
     private lazy var refreshButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Refresh", for: .normal)
-        button.addTarget(self, action: #selector(refreshTapped), for: .touchUpInside)
-        return button
+        let b = UIButton(type: .system)
+        b.setTitle("Refresh", for: .normal)
+        b.addTarget(self, action: #selector(refresh), for: .touchUpInside)
+        return b
     }()
-    
+
     private lazy var exportButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Export Report", for: .normal)
-        button.addTarget(self, action: #selector(exportTapped), for: .touchUpInside)
-        return button
+        let b = UIButton(type: .system)
+        b.setTitle("Export", for: .normal)
+        b.addTarget(self, action: #selector(exportReport), for: .touchUpInside)
+        return b
     }()
-    
-    // MARK: - Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-        loadData()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        loadData()
-    }
-    
-    // MARK: - Setup
-    
-    private func setupUI() {
         view.backgroundColor = .systemBackground
         title = "Analytics"
-        
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(customView: exportButton),
             UIBarButtonItem(customView: refreshButton)
         ]
-        
         view.addSubview(scrollView)
-        scrollView.addSubview(contentStackView)
-        
+        scrollView.addSubview(contentStack)
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
-            contentStackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
-            contentStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
-            contentStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
-            contentStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
-            contentStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
+            contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
+            contentStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
+            contentStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
+            contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
+            contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
-        
-        contentStackView.addArrangedSubview(headerLabel)
-        
-        let metricsGrid = createMetricsGrid()
-        contentStackView.addArrangedSubview(metricsGrid)
-        
-        let performanceSection = createPerformanceSection()
-        contentStackView.addArrangedSubview(performanceSection)
-        
-        let qualitySection = createQualitySection()
-        contentStackView.addArrangedSubview(qualitySection)
+        contentStack.addArrangedSubview(headerLabel)
+        contentStack.addArrangedSubview(metricsGrid())
+        contentStack.addArrangedSubview(performanceSection())
+        contentStack.addArrangedSubview(qualitySection())
+        loadData()
     }
-    
-    private func createMetricsGrid() -> UIView {
-        let gridStack = UIStackView()
-        gridStack.axis = .vertical
-        gridStack.spacing = 16
-        
-        let topRow = UIStackView(arrangedSubviews: [translationsCard, qualityCard])
-        topRow.axis = .horizontal
-        topRow.spacing = 16
-        topRow.distribution = .fillEqually
-        
-        let bottomRow = UIStackView(arrangedSubviews: [latencyCard, successRateCard])
-        bottomRow.axis = .horizontal
-        bottomRow.spacing = 16
-        bottomRow.distribution = .fillEqually
-        
-        gridStack.addArrangedSubview(topRow)
-        gridStack.addArrangedSubview(bottomRow)
-        
-        return gridStack
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadData()
     }
-    
-    private func createMetricCard(title: String, icon: String) -> UIView {
+
+    private func metricsGrid() -> UIStackView {
+        let grid = UIStackView()
+        grid.axis = .vertical
+        grid.spacing = 16
+        let top = UIStackView(arrangedSubviews: [translationsCard, qualityCard])
+        top.axis = .horizontal; top.spacing = 16; top.distribution = .fillEqually
+        let bottom = UIStackView(arrangedSubviews: [latencyCard, successRateCard])
+        bottom.axis = .horizontal; bottom.spacing = 16; bottom.distribution = .fillEqually
+        grid.addArrangedSubview(top)
+        grid.addArrangedSubview(bottom)
+        return grid
+    }
+
+    private func metricCard(title: String, icon: String) -> UIView {
         let card = UIView()
         card.backgroundColor = .secondarySystemBackground
         card.layer.cornerRadius = 12
-        
-        let iconView = UIImageView(image: UIImage(systemName: icon))
-        iconView.tintColor = .systemBlue
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let valueLabel = UILabel()
-        valueLabel.font = .systemFont(ofSize: 24, weight: .bold)
-        valueLabel.text = "--"
-        valueLabel.translatesAutoresizingMaskIntoConstraints = false
-        valueLabel.tag = 100
-        
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 14)
-        titleLabel.textColor = .secondaryLabel
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        card.addSubview(iconView)
-        card.addSubview(valueLabel)
-        card.addSubview(titleLabel)
-        
+        let iv = UIImageView(image: UIImage(systemName: icon))
+        iv.tintColor = .systemBlue
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        let value = UILabel()
+        value.font = .systemFont(ofSize: 24, weight: .bold)
+        value.text = "--"
+        value.translatesAutoresizingMaskIntoConstraints = false
+        let label = UILabel()
+        label.text = title
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(iv); card.addSubview(value); card.addSubview(label)
         NSLayoutConstraint.activate([
             card.heightAnchor.constraint(equalToConstant: 100),
-            
-            iconView.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            iconView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            iconView.widthAnchor.constraint(equalToConstant: 24),
-            iconView.heightAnchor.constraint(equalToConstant: 24),
-            
-            valueLabel.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            valueLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            
-            titleLabel.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
-            titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12)
+            iv.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            iv.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            iv.widthAnchor.constraint(equalToConstant: 24), iv.heightAnchor.constraint(equalToConstant: 24),
+            value.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            value.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            label.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
+            label.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12)
         ])
-        
         return card
     }
-    
-    private func createPerformanceSection() -> UIView {
+
+    private func performanceSection() -> UIView {
+        sectionView(title: "Performance", rows: [
+            ("Min Latency", nil), ("Max Latency", nil), ("Average", nil), ("P95", nil), ("P99", nil)
+        ])
+    }
+
+    private func qualitySection() -> UIView {
+        sectionView(title: "Translation Quality", rows: [
+            ("High Quality", UIColor.systemGreen), ("Medium Quality", UIColor.systemYellow),
+            ("Low Quality", UIColor.systemOrange), ("Very Low", UIColor.systemRed)
+        ])
+    }
+
+    private func sectionView(title: String, rows: [(String, UIColor?)]) -> UIView {
         let section = UIView()
         section.backgroundColor = .secondarySystemBackground
         section.layer.cornerRadius = 12
-        
         let titleLabel = UILabel()
-        titleLabel.text = "Performance"
+        titleLabel.text = title
         titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 8
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        stackView.addArrangedSubview(createStatRow(label: "Min Latency", valueTag: 201))
-        stackView.addArrangedSubview(createStatRow(label: "Max Latency", valueTag: 202))
-        stackView.addArrangedSubview(createStatRow(label: "Average", valueTag: 203))
-        stackView.addArrangedSubview(createStatRow(label: "P95", valueTag: 204))
-        stackView.addArrangedSubview(createStatRow(label: "P99", valueTag: 205))
-        
-        section.addSubview(titleLabel)
-        section.addSubview(stackView)
-        
+        let stack = UIStackView()
+        stack.axis = .vertical; stack.spacing = 8; stack.translatesAutoresizingMaskIntoConstraints = false
+        for (label, color) in rows {
+            stack.addArrangedSubview(color != nil ? qualityRow(label: label, color: color!) : statRow(label: label))
+        }
+        section.addSubview(titleLabel); section.addSubview(stack)
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: section.topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: section.leadingAnchor, constant: 16),
-            
-            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
-            stackView.leadingAnchor.constraint(equalTo: section.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: section.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: section.bottomAnchor, constant: -16)
+            stack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
+            stack.leadingAnchor.constraint(equalTo: section.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: section.trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: section.bottomAnchor, constant: -16)
         ])
-        
         return section
     }
-    
-    private func createQualitySection() -> UIView {
-        let section = UIView()
-        section.backgroundColor = .secondarySystemBackground
-        section.layer.cornerRadius = 12
-        
-        let titleLabel = UILabel()
-        titleLabel.text = "Translation Quality"
-        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 8
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        stackView.addArrangedSubview(createQualityRow(label: "High Quality", color: .systemGreen, valueTag: 301))
-        stackView.addArrangedSubview(createQualityRow(label: "Medium Quality", color: .systemYellow, valueTag: 302))
-        stackView.addArrangedSubview(createQualityRow(label: "Low Quality", color: .systemOrange, valueTag: 303))
-        stackView.addArrangedSubview(createQualityRow(label: "Very Low", color: .systemRed, valueTag: 304))
-        
-        section.addSubview(titleLabel)
-        section.addSubview(stackView)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: section.topAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: section.leadingAnchor, constant: 16),
-            
-            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
-            stackView.leadingAnchor.constraint(equalTo: section.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: section.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: section.bottomAnchor, constant: -16)
-        ])
-        
-        return section
-    }
-    
-    private func createStatRow(label: String, valueTag: Int) -> UIView {
+
+    private func statRow(label: String) -> UIStackView {
         let row = UIStackView()
-        row.axis = .horizontal
-        row.distribution = .equalSpacing
-        
-        let labelView = UILabel()
-        labelView.text = label
-        labelView.textColor = .secondaryLabel
-        
-        let valueView = UILabel()
-        valueView.text = "--"
-        valueView.tag = valueTag
-        
-        row.addArrangedSubview(labelView)
-        row.addArrangedSubview(valueView)
-        
+        row.axis = .horizontal; row.distribution = .equalSpacing
+        row.addArrangedSubview(UILabel().withText(label, color: .secondaryLabel))
+        row.addArrangedSubview(UILabel().withText("--"))
         return row
     }
-    
-    private func createQualityRow(label: String, color: UIColor, valueTag: Int) -> UIView {
+
+    private func qualityRow(label: String, color: UIColor) -> UIStackView {
         let row = UIStackView()
-        row.axis = .horizontal
-        row.spacing = 8
-        
+        row.axis = .horizontal; row.spacing = 8
         let dot = UIView()
         dot.backgroundColor = color
         dot.layer.cornerRadius = 4
         dot.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            dot.widthAnchor.constraint(equalToConstant: 8),
-            dot.heightAnchor.constraint(equalToConstant: 8)
-        ])
-        
-        let labelView = UILabel()
-        labelView.text = label
-        labelView.textColor = .secondaryLabel
-        
-        let valueView = UILabel()
-        valueView.text = "0"
-        valueView.tag = valueTag
-        
+        dot.widthAnchor.constraint(equalToConstant: 8).isActive = true
+        dot.heightAnchor.constraint(equalToConstant: 8).isActive = true
         row.addArrangedSubview(dot)
-        row.addArrangedSubview(labelView)
-        
-        let spacer = UIView()
-        row.addArrangedSubview(spacer)
-        
-        row.addArrangedSubview(valueView)
-        
+        row.addArrangedSubview(UILabel().withText(label, color: .secondaryLabel))
+        row.addArrangedSubview(UIView())
+        row.addArrangedSubview(UILabel().withText("0"))
         return row
     }
-    
-    // MARK: - Data Loading
-    
+
     private func loadData() {
         summary = analyticsService.getDashboardSummary()
-        
-        let aggregator = analyticsService.aggregator
-        performanceStats = aggregator.getPerformanceReport().statistics
-        qualityStats = aggregator.getQualityReport().statistics
-        
         updateUI()
     }
-    
+
     private func updateUI() {
-        if let valueLabel = translationsCard.viewWithTag(100) as? UILabel {
-            valueLabel.text = "\(summary?.translationCount ?? 0)"
-        }
-        
-        if let valueLabel = qualityCard.viewWithTag(100) as? UILabel {
-            valueLabel.text = String(format: "%.0f%%", (summary?.averageQualityScore ?? 0) * 100)
-        }
-        
-        if let valueLabel = latencyCard.viewWithTag(100) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", summary?.averageLatencyMs ?? 0)
-        }
-        
-        if let valueLabel = successRateCard.viewWithTag(100) as? UILabel {
-            valueLabel.text = String(format: "%.1f%%", summary?.successRate ?? 0)
-        }
-        
-        if let valueLabel = contentStackView.viewWithTag(201) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", performanceStats?.minLatencyMs ?? 0)
-        }
-        if let valueLabel = contentStackView.viewWithTag(202) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", performanceStats?.maxLatencyMs ?? 0)
-        }
-        if let valueLabel = contentStackView.viewWithTag(203) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", performanceStats?.averageLatencyMs ?? 0)
-        }
-        if let valueLabel = contentStackView.viewWithTag(204) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", performanceStats?.p95LatencyMs ?? 0)
-        }
-        if let valueLabel = contentStackView.viewWithTag(205) as? UILabel {
-            valueLabel.text = String(format: "%.0fms", performanceStats?.p99LatencyMs ?? 0)
-        }
-        
-        if let valueLabel = contentStackView.viewWithTag(301) as? UILabel {
-            valueLabel.text = "\(qualityStats?.highQualityCount ?? 0)"
-        }
-        if let valueLabel = contentStackView.viewWithTag(302) as? UILabel {
-            valueLabel.text = "\(qualityStats?.mediumQualityCount ?? 0)"
-        }
-        if let valueLabel = contentStackView.viewWithTag(303) as? UILabel {
-            valueLabel.text = "\(qualityStats?.lowQualityCount ?? 0)"
-        }
-        if let valueLabel = contentStackView.viewWithTag(304) as? UILabel {
-            valueLabel.text = "\(qualityStats?.veryLowQualityCount ?? 0)"
+        let agg = analyticsService.aggregator
+        let perf = agg.getPerformanceReport().statistics
+        let qual = agg.getQualityReport().statistics
+
+        let cards = [translationsCard, qualityCard, latencyCard, successRateCard]
+        let values: [String] = [
+            "\(summary?.translationCount ?? 0)",
+            String(format: "%.0f%%", (summary?.averageQualityScore ?? 0) * 100),
+            String(format: "%.0fms", summary?.averageLatencyMs ?? 0),
+            String(format: "%.1f%%", summary?.successRate ?? 0)
+        ]
+        for (card, val) in zip(cards, values) {
+            (card.subviews.compactMap { $0 as? UILabel }.first)?.text = val
         }
     }
-    
-    // MARK: - Actions
-    
-    @objc private func refreshTapped() {
-        loadData()
-    }
-    
-    @objc private func exportTapped() {
-        let alert = UIAlertController(title: "Export Report", message: "Choose report format", preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: "JSON", style: .default) { [weak self] _ in
-            self?.exportReport(format: .json)
-        })
-        
-        alert.addAction(UIAlertAction(title: "CSV", style: .default) { [weak self] _ in
-            self?.exportReport(format: .csv)
-        })
-        
+
+    @objc private func refresh() { loadData() }
+
+    @objc private func exportReport() {
+        let alert = UIAlertController(title: "Export Report", message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "JSON", style: .default) { [weak self] _ in self?.doExport(.json) })
+        alert.addAction(UIAlertAction(title: "CSV", style: .default) { [weak self] _ in self?.doExport(.csv) })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        if let popover = alert.popoverPresentationController {
-            popover.sourceView = exportButton
-            popover.sourceRect = exportButton.bounds
-        }
-        
+        if let pop = alert.popoverPresentationController { pop.sourceView = exportButton; pop.sourceRect = exportButton.bounds }
         present(alert, animated: true)
     }
-    
-    private func exportReport(format: ReportFormat) {
+
+    private func doExport(_ format: ReportFormat) {
         do {
             let url = try analyticsService.generateReportURL(format: format, period: .daily)
-            
-            let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-            
-            if let popover = activityVC.popoverPresentationController {
-                popover.sourceView = exportButton
-                popover.sourceRect = exportButton.bounds
-            }
-            
-            present(activityVC, animated: true)
+            let vc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            if let pop = vc.popoverPresentationController { pop.sourceView = exportButton; pop.sourceRect = exportButton.bounds }
+            present(vc, animated: true)
         } catch {
-            let alert = UIAlertController(title: "Error", message: "Failed to export report: \(error.localizedDescription)", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Error", message: "Export failed: \(error.localizedDescription)", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
         }
+    }
+}
+
+extension UILabel {
+    func withText(_ text: String, color: UIColor? = nil) -> UILabel {
+        self.text = text
+        if let color = color { self.textColor = color }
+        return self
     }
 }

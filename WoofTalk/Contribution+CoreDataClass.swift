@@ -16,10 +16,4 @@ public class Contribution: NSManagedObject {
     @NSManaged public var validationWarnings: [String]
     @NSManaged public var user: User?
     @NSManaged public var id: UUID?
-    
-    // Transient properties (not persisted)
-    @transient public var displayStatus: ContributionStatus {
-        get { return ContributionStatus(rawValue: status ?? "validated") ?? .validated }
-        set { status = newValue.rawValue }
-    }
 }

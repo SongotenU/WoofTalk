@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WoofTalk</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_translate_dog">Translate Dog</string>
+    <string name="shortcut_translate_dog_long">Quick Translate to Dog</string>
+    <string name="shortcut_translate_cat">Translate Cat</string>
+    <string name="shortcut_translate_cat_long">Quick Translate to Cat</string>
+    <string name="shortcut_history">History</string>
+    <string name="shortcut_history_long">Translation History</string>
+    <string name="shortcut_disabled">Shortcut disabled</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_start_translation">Start Translation</string>
+    <string name="tile_stop_translation">Stop Translation</string>
 </resources>

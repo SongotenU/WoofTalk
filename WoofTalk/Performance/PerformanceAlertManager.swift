@@ -106,21 +106,21 @@ final class PerformanceAlertManager {
             } else if metric.value > Double(thresholds.memoryWarningMB) {
                 triggerAlert(.memoryWarning, details: ["memoryMB": metric.value])
             }
-            
+
         case .latency:
             if metric.value > Double(thresholds.latencyCriticalMs) {
                 triggerAlert(.latencyCritical, details: ["latencyMs": metric.value])
             } else if metric.value > Double(thresholds.latencyWarningMs) {
                 triggerAlert(.latencyWarning, details: ["latencyMs": metric.value])
             }
-            
+
         case .networkLatency:
             if metric.value > Double(thresholds.networkLatencyCriticalMs) {
                 triggerAlert(.networkLatencyCritical, details: ["latencyMs": metric.value])
             } else if metric.value > Double(thresholds.networkLatencyWarningMs) {
                 triggerAlert(.networkLatencyWarning, details: ["latencyMs": metric.value])
             }
-            
+
         default:
             break
         }
@@ -137,8 +137,7 @@ final class PerformanceAlertManager {
     }
     
     func getRecentMetrics(limit: Int = 10) -> [PerformanceMetric] {
-        let count = min(limit, performanceHistory.count)
-        return Array(performanceHistory.suffix(count))
+        Array(performanceHistory.suffix(min(limit, performanceHistory.count)))
     }
     
     func getMetricsSummary() -> MetricsSummary {
@@ -160,12 +159,11 @@ final class PerformanceAlertManager {
     
     private func average(of metrics: [PerformanceMetric]) -> Double {
         guard !metrics.isEmpty else { return 0 }
-        let sum = metrics.reduce(0.0) { $0 + $1.value }
-        return sum / Double(metrics.count)
+        return metrics.reduce(0) { $0 + $1.value } / Double(metrics.count)
     }
-    
+
     private func maxValue(of metrics: [PerformanceMetric]) -> Double {
-        return metrics.map { $0.value }.max() ?? 0
+        return metrics.max(by: { $0.value < $1.value })?.value ?? 0
     }
 }
 

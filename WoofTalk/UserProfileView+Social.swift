@@ -3,61 +3,32 @@
 import SwiftUI
 
 extension UserProfileView {
-    
     struct SocialStatsSection: View {
         let user: User
         @StateObject private var socialGraph = SocialGraphManager.shared
-        
+
         var body: some View {
             HStack(spacing: 0) {
-                // Followers
-                SocialStatButton(
-                    count: socialGraph.getFollowerCount(for: user),
-                    label: "Followers",
-                    action: { /* Navigate to followers list */ }
-                )
-                
-                Divider()
-                    .frame(height: 30)
-                
-                // Following
-                SocialStatButton(
-                    count: socialGraph.getFollowingCount(for: user),
-                    label: "Following",
-                    action: { /* Navigate to following list */ }
-                )
-                
-                Divider()
-                    .frame(height: 30)
-                
-                // Contributions
-                SocialStatButton(
-                    count: user.contributionCount,
-                    label: "Contributions",
-                    action: { /* Navigate to contributions */ }
-                )
+                SocialStatButton(count: socialGraph.getFollowerCount(for: user), label: "Followers")
+                Divider().frame(height: 30)
+                SocialStatButton(count: socialGraph.getFollowingCount(for: user), label: "Following")
+                Divider().frame(height: 30)
+                SocialStatButton(count: user.contributionCount, label: "Contributions")
             }
             .padding(.vertical, 8)
         }
     }
-    
+
     struct SocialStatButton: View {
         let count: Int
         let label: String
-        let action: () -> Void
-        
+
         var body: some View {
-            Button(action: action) {
-                VStack(spacing: 4) {
-                    Text("\(count)")
-                        .font(.title2.bold())
-                    Text(label)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+            VStack(spacing: 4) {
+                Text("\(count)").font(.title2.bold())
+                Text(label).font(.caption).foregroundColor(.secondary)
             }
-            .buttonStyle(PlainButtonStyle())
+            .frame(maxWidth: .infinity)
         }
     }
 }
@@ -69,18 +40,15 @@ struct UserProfileSocialView: View {
     @StateObject private var socialGraph = SocialGraphManager.shared
     @State private var showingFollowers = false
     @State private var showingFollowing = false
-    
+
     private var isFollowing: Bool {
-        guard let currentUserID = UserProfileManager.currentUser?.id,
-              let targetUserID = user.id else { return false }
+        guard let currentUserID = UserProfileManager.currentUser?.id, let targetUserID = user.id else { return false }
         return socialGraph.isFollowing(userID: targetUserID, followerID: currentUserID)
     }
-    
+
     var body: some View {
         VStack(spacing: 20) {
-            // Profile header
             VStack(spacing: 12) {
-                // Avatar placeholder
                 Circle()
                     .fill(Color(.systemGray4))
                     .frame(width: 80, height: 80)
@@ -89,10 +57,9 @@ struct UserProfileSocialView: View {
                             .font(.title.bold())
                             .foregroundColor(.secondary)
                     )
-                
-                Text(user.username ?? "Anonymous")
-                    .font(.title2.bold())
-                
+
+                Text(user.username ?? "Anonymous").font(.title2.bold())
+
                 if user.isModerator {
                     Text("Moderator")
                         .font(.caption)
@@ -103,11 +70,9 @@ struct UserProfileSocialView: View {
                         .cornerRadius(4)
                 }
             }
-            
-            // Social stats
+
             UserProfileView.SocialStatsSection(user: user)
-            
-            // Follow button (only if not current user)
+
             if user.id != UserProfileManager.currentUser?.id {
                 FollowUserView(user: user)
             }
@@ -122,15 +87,13 @@ struct FollowersListView: View {
     let user: User
     @StateObject private var socialGraph = SocialGraphManager.shared
     @State private var followers: [User] = []
-    
+
     var body: some View {
         List(followers, id: \.id) { follower in
             UserListRow(user: follower)
         }
         .navigationTitle("Followers")
-        .onAppear {
-            followers = socialGraph.getFollowers(for: user)
-        }
+        .onAppear { followers = socialGraph.getFollowers(for: user) }
     }
 }
 
@@ -138,21 +101,19 @@ struct FollowingListView: View {
     let user: User
     @StateObject private var socialGraph = SocialGraphManager.shared
     @State private var following: [User] = []
-    
+
     var body: some View {
         List(following, id: \.id) { followedUser in
             UserListRow(user: followedUser)
         }
         .navigationTitle("Following")
-        .onAppear {
-            following = socialGraph.getFollowing(for: user)
-        }
+        .onAppear { following = socialGraph.getFollowing(for: user) }
     }
 }
 
 struct UserListRow: View {
     let user: User
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Circle()
@@ -163,27 +124,21 @@ struct UserListRow: View {
                         .font(.headline)
                         .foregroundColor(.secondary)
                 )
-            
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(user.username ?? "Anonymous")
-                    .font(.headline)
-                
+                Text(user.username ?? "Anonymous").font(.headline)
                 if user.isModerator {
-                    Text("Moderator")
-                        .font(.caption)
-                        .foregroundColor(.purple)
+                    Text("Moderator").font(.caption).foregroundColor(.purple)
                 }
             }
-            
+
             Spacer()
-            
+
             FollowUserView(user: user)
         }
         .padding(.vertical, 4)
     }
 }
-
-// MARK: - Preview
 
 #if DEBUG
 struct UserProfileSocialView_Previews: PreviewProvider {
@@ -192,10 +147,7 @@ struct UserProfileSocialView_Previews: PreviewProvider {
         let user = User(context: context)
         user.id = UUID()
         user.username = "Test User"
-        
-        return NavigationView {
-            UserProfileSocialView(user: user)
-        }
+        return NavigationView { UserProfileSocialView(user: user) }
     }
 }
 #endif

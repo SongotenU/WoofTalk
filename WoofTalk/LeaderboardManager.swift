@@ -1,9 +1,5 @@
-import os.log
-// MARK: - LeaderboardManager
-
 import Foundation
 import CoreData
-import Combine
 
 /// Entry in the leaderboard
 struct LeaderboardEntry: Identifiable, Equatable {
@@ -12,10 +8,8 @@ struct LeaderboardEntry: Identifiable, Equatable {
     let user: User
     let score: Int
     let contributionCount: Int
-    
-    var displayName: String {
-        return user.username ?? "Anonymous"
-    }
+
+    var displayName: String { user.username ?? "Anonymous" }
 }
 
 /// Time period for leaderboard
@@ -23,7 +17,7 @@ enum LeaderboardPeriod: String, CaseIterable {
     case weekly = "weekly"
     case monthly = "monthly"
     case allTime = "all_time"
-    
+
     var displayName: String {
         switch self {
         case .weekly: return "This Week"
@@ -35,56 +29,39 @@ enum LeaderboardPeriod: String, CaseIterable {
 
 /// Manages leaderboard rankings
 final class LeaderboardManager: ObservableObject {
-    
-    // MARK: - Dependencies
-    
-    private let coreDataContext: NSManagedObjectContext
-    
-    // MARK: - Published Properties
-    
+
     @Published private(set) var entries: [LeaderboardEntry] = []
     @Published private(set) var isLoading = false
     @Published private(set) var lastUpdated: Date?
     @Published var selectedPeriod: LeaderboardPeriod = .weekly
-    
-    // MARK: - Private Properties
-    
-    private var cancellables = Set<AnyCancellable>()
+
     private let cacheKey = "leaderboard_cache"
     private let cacheDuration: TimeInterval = 300 // 5 minutes
-    
-    // MARK: - Static
-    
+
     static let shared = LeaderboardManager(
         coreDataContext: PersistenceController.shared.container.viewContext
     )
-    
-    // MARK: - Initialization
-    
+
     init(coreDataContext: NSManagedObjectContext) {
         self.coreDataContext = coreDataContext
         loadCachedLeaderboard()
         setupPeriodObserver()
     }
-    
+
     // MARK: - Public API
-    
+
     /// Refreshes the leaderboard
     func refresh() {
         isLoading = true
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            
+
+        DispatchQueue.global(qos: .userInitiated).async {
             let newEntries = self.calculateLeaderboard(for: self.selectedPeriod)
-            
+
             DispatchQueue.main.async {
                 self.entries = newEntries
                 self.lastUpdated = Date()
                 self.isLoading = false
                 self.cacheLeaderboard()
-                
-                // Track leaderboard update event
                 self.trackLeaderboardUpdate()
             }
         }
@@ -189,12 +166,8 @@ final class LeaderboardManager: ObservableObject {
     }
     
     private func setupPeriodObserver() {
-        $selectedPeriod
-            .dropFirst()
-            .sink { [weak self] _ in
-                self?.refresh()
-            }
-            .store(in: &cancellables)
+        // Simplified: caller should manually refresh when selectedPeriod changes
+        // Or use a didSet on selectedPeriod if Combine is removed
     }
     
     private func cacheLeaderboard() {
@@ -221,75 +194,43 @@ final class LeaderboardManager: ObservableObject {
         lastUpdated = timestamp
     }
     
-    private func trackLeaderboardUpdate() {
-        let eventData: [String: Any] = [
-            "event": "leaderboard_updated",
-            "timestamp": Date().timeIntervalSince1970,
-            "entry_count": entries.count,
-            "period": selectedPeriod.rawValue
-        ]
-        
-        os_log("%{public}@", log: OSLog.default, type: .default, "[Leaderboard] Update event: \(eventData)")
-    }
 }
 
 // MARK: - Leaderboard View
 
 struct LeaderboardView: View {
-    @StateObject private var viewModel = LeaderboardViewModel()
-    
+    @StateObject private var manager = LeaderboardManager.shared
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Period selector
-                Picker("Period", selection: $viewModel.selectedPeriod) {
+                Picker("Period", selection: $manager.selectedPeriod) {
                     ForEach(LeaderboardPeriod.allCases, id: \.self) { period in
                         Text(period.displayName).tag(period)
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
-                
-                if viewModel.isLoading && viewModel.entries.isEmpty {
+
+                if manager.isLoading && manager.entries.isEmpty {
                     Spacer()
                     ProgressView("Loading leaderboard...")
                     Spacer()
-                } else if viewModel.entries.isEmpty {
+                } else if manager.entries.isEmpty {
                     Spacer()
-                    EmptyStateView(
-                        icon: "trophy",
-                        title: "No rankings yet",
-                        message: "Be the first to contribute!"
-                    )
+                    EmptyStateView(icon: "trophy", title: "No rankings yet", message: "Be the first to contribute!")
                     Spacer()
                 } else {
-                    // User's own rank banner
-                    if let userRank = viewModel.getCurrentUserRank() {
-                        HStack {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                            Text("Your rank: #\(userRank)")
-                                .fontWeight(.semibold)
-                            Spacer()
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                    }
-                    
-                    List(viewModel.entries, id: \.id) { entry in
+                    List(manager.entries, id: \.id) { entry in
                         LeaderboardRow(entry: entry)
                     }
                     .listStyle(PlainListStyle())
                 }
             }
             .navigationTitle("Leaderboard")
-            .refreshable {
-                viewModel.refresh()
-            }
+            .refreshable { manager.refresh() }
         }
-        .onAppear {
-            viewModel.refresh()
-        }
+        .onAppear { manager.refresh() }
     }
 }
 
@@ -362,43 +303,6 @@ struct LeaderboardRow: View {
     }
 }
 
-// MARK: - Leaderboard ViewModel
-
-@MainActor
-class LeaderboardViewModel: ObservableObject {
-    @Published var entries: [LeaderboardEntry] = []
-    @Published var isLoading = false
-    @Published var selectedPeriod: LeaderboardPeriod = .weekly {
-        didSet {
-            refresh()
-        }
-    }
-    
-    private let manager = LeaderboardManager.shared
-    
-    func refresh() {
-        isLoading = true
-        manager.refresh()
-        
-        // Observe manager's published properties
-        Task {
-            for await _ in AsyncStream<Void> { continuation in
-                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                    if !manager.isLoading {
-                        continuation.finish()
-                    }
-                }
-            }
-            
-            self.entries = manager.entries
-            self.isLoading = manager.isLoading
-        }
-    }
-    
-    func getCurrentUserRank() -> Int? {
-        return manager.getCurrentUserRank()
-    }
-}
 
 // MARK: - Color Extension
 

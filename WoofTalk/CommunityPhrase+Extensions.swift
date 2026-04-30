@@ -3,6 +3,12 @@
 import Foundation
 import SwiftUI
 
+enum SortOption: String, CaseIterable {
+    case quality = "Quality"
+    case date = "Date"
+    case relevance = "Relevance"
+}
+
 /// Display extensions for CommunityPhrase
 extension CommunityPhrase {
     
@@ -47,65 +53,50 @@ extension CommunityPhrase {
         }
     }
     
+    /// Shared quality color for UI (used by QualityBadge, DetailView, etc.)
+    var qualityColor: Color {
+        return qualityTier.color
+    }
+
     /// Display text for submitter
     var contributorDisplay: String {
         return submitter?.username ?? "Anonymous"
     }
     
-    /// Human-readable age string
+    /// Human-readable age string (e.g., "3 days ago", "2 hours ago")
     var ageDisplayString: String {
-        guard let timestamp = timestamp else { return "Unknown" }
-        
-        let calendar = Calendar.current
-        let now = Date()
-        
-        if let days = calendar.dateComponents([.day], from: timestamp, to: now).day {
+        guard let timestamp else { return "Unknown" }
+        let components = Calendar.current.dateComponents([.day, .hour, .minute], from: timestamp, to: Date())
+        if let days = components.day {
             if days > 30 { return ">1 month ago" }
             if days > 0 { return "\(days) day\(days == 1 ? "" : "s") ago" }
         }
-        
-        if let hours = calendar.dateComponents([.hour], from: timestamp, to: now).hour {
-            if hours > 0 { return "\(hours) hour\(hours == 1 ? "" : "s") ago" }
-        }
-        
-        if let minutes = calendar.dateComponents([.minute], from: timestamp, to: now).minute {
-            return "\(minutes) min ago"
-        }
-        
-        return "Just now"
+        if let hours = components.hour, hours > 0 { return "\(hours) hour\(hours == 1 ? "" : "s") ago" }
+        return "\(components.minute ?? 0) min ago"
     }
     
-    /// Relevance score for search ranking
-    /// - Parameter query: The search query
-    /// - Returns: A score combining quality and text match relevance
+    /// Relevance score combining quality and text match for search ranking
     func relevanceScore(for query: String) -> Double {
         guard !query.isEmpty else { return qualityScore }
-        
-        var score = qualityScore * 0.6 // Base weight on quality
-        
-        // Boost if query matches human text exactly
+
+        var score = qualityScore * 0.6
+
         if let humanText = humanText {
             let lowercasedQuery = query.lowercased()
             let lowercasedText = humanText.lowercased()
-            
+
             if lowercasedText == lowercasedQuery {
-                score += 0.4 // Exact match bonus
+                score += 0.4
             } else if lowercasedText.hasPrefix(lowercasedQuery) {
-                score += 0.3 // Prefix match bonus
+                score += 0.3
             } else if lowercasedText.contains(lowercasedQuery) {
-                score += 0.2 // Contains match bonus
+                score += 0.2
             }
         }
-        
-        // Boost recent phrases slightly
-        if let timestamp = timestamp {
-            let ageInDays = Calendar.current.dateComponents([.day], from: timestamp, to: Date()).day ?? 0
-            if ageInDays < 7 {
-                score += 0.05 // Recent content boost
-            }
-        }
-        
-        return min(score, 1.0) // Cap at 1.0
+
+        if ageInDays < 7 { score += 0.05 }
+
+        return min(score, 1.0)
     }
     
     /// Preview text for list/grid cells

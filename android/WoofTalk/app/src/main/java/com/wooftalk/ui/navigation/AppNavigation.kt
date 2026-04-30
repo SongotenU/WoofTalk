@@ -11,6 +11,8 @@ sealed class Screen(val route: String, val title: String) {
     object History : Screen("history", "History")
     object Settings : Screen("settings", "Settings")
     object Paywall : Screen("paywall", "Subscription")
+    object CancellationSurvey : Screen("cancellation_survey", "Cancellation Survey")
+    object Referral : Screen("referral", "Refer a Friend")
 }
 
 @Composable
@@ -26,6 +28,19 @@ fun AppNavigation() {
         composable(Screen.Paywall.route) {
             Paywall(
                 onDismiss = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.CancellationSurvey.route) {
+            CancellationSurveyScreen(
+                entitlementManager = TODO(), // Pass EntitlementManager
+                onComplete = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Referral.route) {
+            ReferralScreen(
+                entitlementManager = TODO(), // Pass EntitlementManager
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

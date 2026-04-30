@@ -34,14 +34,11 @@ struct DogSynthesisMetrics {
     let overallQuality: Double // 0.0 to 1.0
     
     var qualityDescription: String {
-        if overallQuality >= 0.9 {
-            return "Excellent - Highly realistic dog vocalizations"
-        } else if overallQuality >= 0.8 {
-            return "Good - Natural-sounding dog vocalizations"
-        } else if overallQuality >= 0.7 {
-            return "Fair - Recognizable but synthetic dog sounds"
-        } else {
-            return "Poor - Needs improvement in vocalization quality"
+        switch overallQuality {
+        case 0.9...: return "Excellent - Highly realistic dog vocalizations"
+        case 0.8..<0.9: return "Good - Natural-sounding dog vocalizations"
+        case 0.7..<0.8: return "Fair - Recognizable but synthetic dog sounds"
+        default: return "Poor - Needs improvement in vocalization quality"
         }
     }
 }
@@ -59,29 +56,22 @@ enum AudioEffect {
 
 /// Dog vocalization audio models and patterns
 struct DogVocalizationModels {
-    /// Common dog sound patterns
     static let commonPatterns: [String: [Double]] = [
-        "bark": [200.0, 250.0, 300.0, 280.0, 260.0, 240.0], // Bark frequencies
-        "whine": [500.0, 480.0, 460.0, 440.0, 420.0, 400.0], // Whine frequencies
-        "growl": [150.0, 160.0, 170.0, 180.0, 190.0, 200.0], // Growl frequencies
-        "howl": [110.0, 120.0, 130.0, 140.0, 150.0, 160.0] // Howl frequencies
+        "bark": [200, 250, 300, 280, 260, 240],
+        "whine": [500, 480, 460, 440, 420, 400],
+        "growl": [150, 160, 170, 180, 190, 200],
+        "howl": [110, 120, 130, 140, 150, 160]
     ]
-    
-    /// Dog vocalization duration patterns
+
     static let durationPatterns: [String: ClosedRange<Double>] = [
-        "short_bark": 0.3...0.6,
-        "medium_bark": 0.6...1.2,
-        "long_bark": 1.2...2.5,
-        "whine_sequence": 0.2...0.8,
-        "growl_sequence": 0.8...1.8,
-        "howl_sequence": 2.0...4.0
+        "short_bark": 0.3...0.6, "medium_bark": 0.6...1.2, "long_bark": 1.2...2.5,
+        "whine_sequence": 0.2...0.8, "growl_sequence": 0.8...1.8, "howl_sequence": 2.0...4.0
     ]
-    
-    /// Natural dog sound characteristics
+
     static let naturalCharacteristics: [String: [Double]] = [
-        "pitch_variation": [0.0, 50.0, 100.0, 75.0, 25.0, 0.0], // Pitch variation over time
-        "amplitude_envelope": [0.1, 0.3, 0.6, 0.8, 0.6, 0.3, 0.1], // ADSR envelope
-        "formant_modulation": [0.6, 0.55, 0.5, 0.52, 0.58, 0.62, 0.6] // Formant modulation
+        "pitch_variation": [0, 50, 100, 75, 25, 0],
+        "amplitude_envelope": [0.1, 0.3, 0.6, 0.8, 0.6, 0.3, 0.1],
+        "formant_modulation": [0.6, 0.55, 0.5, 0.52, 0.58, 0.62, 0.6]
     ]
 }
 

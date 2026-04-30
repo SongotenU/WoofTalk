@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.0.0 M009 - Subscription & Payments (Shipped: 2026-04-29)
+
+**Phases completed:** 5 phases, 17 plans
+
+**Key accomplishments:**
+
+- Phase 50: RevenueCat SDK Integration — SDK initialized on all platforms, users identified by Supabase auth.uid, entitlements readable and reactive
+- Phase 51: Subscription Backend — Server-side subscription authority, webhooks update status, RLS enforces free tier limits, Edge Functions verify entitlement
+- Phase 52: Paywall UI — Users can view offerings, complete purchases through native payment flow, see entitlement confirmed on all platforms
+- Phase 53: Feature Gating & Soft Paywall — Free users have clear limits (3 translations/day, last 10 history, locked premium), premium users unrestricted
+- Phase 54: Cross-Platform Sync & Admin — Subscriptions activate entitlements across all platforms, admin dashboard monitors subscription health
+
+**Key technical deliverables:**
+
+- PostgreSQL migration with subscription_status table, tier-aware RLS policy enforcing 3/day free limit, shared subscription utility module
+- RevenueCat webhook Edge Function with Bearer token auth, 14-event-type switch handler, event_id idempotency, always-200 response pattern
+- Server-side entitlement verification with RevenueCat REST API, 5-minute DB-backed caching, translate Edge Function tier gate blocking free-user overages
+- iOS/Watch sync via WatchSyncManager (WCSessionDelegate), Android sync with entitlement listener in MainActivity
+- Web sync with useEntitlementSync hook + Supabase real-time, admin dashboard at /admin/subscriptions with Stripe portal link
+- 120+ files modified across iOS, Android, Web, Backend, and Watch platforms
+
+---
+
 ## v0.2.0 Production Hardening (Shipped: 2026-04-07)
 
 **Phases completed:** 7 phases, 7 plans, 0 tasks

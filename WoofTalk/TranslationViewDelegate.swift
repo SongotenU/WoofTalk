@@ -1,7 +1,3 @@
 // MARK: - TranslationViewDelegate
-
-protocol TranslationViewDelegate: AnyObject {
-    func translationViewDidTapTranslate(_ view: TranslationView)
-    func translationViewDidTapClear(_ view: TranslationView)
-    func translationViewDidTapHistory(_ view: TranslationView)
-}
+// Protocol defined in TranslationView.swift (line 3)
+// This file is kept for reference only

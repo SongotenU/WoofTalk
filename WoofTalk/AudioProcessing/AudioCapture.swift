@@ -1,142 +1,149 @@
-import os.log
-// MARK: - AudioCapture
-
 import AVFoundation
+import Accelerate
 
 /// Handles real-time audio capture from microphone with proper buffer management
 final class AudioCapture {
-    
-    // MARK: Properties
     private let audioEngine = AVAudioEngine()
-    private let audioFormat = AudioFormats.pcmFormat
     private var isCapturing = false
-    private var bufferCount = 0
-    private var totalProcessingTime: TimeInterval = 0
-    
-    // MARK: Delegates
+    private let noiseProcessor = NoiseCancellationProcessor()
+    private let barkDetector = BarkDetector()
+
     weak var delegate: AudioCaptureDelegate?
-    
-    // MARK: Initialization
+
     init() {
         setupAudioEngine()
     }
-    
-    // MARK: Public Methods
+
     func startCapture() throws {
         guard !isCapturing else { return }
-        
-        // Check microphone permission
-        let permissionStatus = AVAudioSession.sharedInstance().recordPermission
-        guard permissionStatus == .granted else {
+
+        guard AVAudioSession.sharedInstance().recordPermission == .granted else {
             throw AudioEngineError.microphonePermissionDenied
         }
-        
-        // Start audio engine
+
         try audioEngine.start()
         isCapturing = true
-        
-        // Notify delegate
         delegate?.audioCaptureDidStart(self)
     }
-    
+
     func stopCapture() {
         guard isCapturing else { return }
-        
         audioEngine.stop()
         isCapturing = false
-        
-        // Notify delegate
         delegate?.audioCaptureDidStop(self)
-        
-        // Log performance metrics
-        let averageProcessingTime = bufferCount > 0 ? totalProcessingTime / Double(bufferCount) : 0
-        os_log("%{public}@", log: OSLog.default, type: .default, "AudioCapture: Processed \(bufferCount) buffers, avg processing time: \(averageProcessingTime * 1000)ms")
     }
-    
-    // MARK: Private Methods
+
+    var currentInputFormat: AVAudioFormat? {
+        audioEngine.inputNode?.outputFormat(forBus: 0)
+    }
+
+    var currentSampleRate: Double {
+        currentInputFormat?.sampleRate ?? AudioFormats.standardSampleRate
+    }
+
+    var currentChannelCount: UInt32 {
+        currentInputFormat?.channelCount ?? 1
+    }
+
+    var isMicrophoneAvailable: Bool {
+        AVAudioSession.sharedInstance().isInputAvailable
+    }
+
+    /// Audio level for quality indicator display
+    var currentAudioLevel: Float {
+        guard let buffer = currentInputFormat.flatMap({
+            AVAudioPCMBuffer(pcmFormat: $0, frameCapacity: 512)
+        }) else { return 0 }
+        audioEngine.inputNode?.render(to: buffer, frameCount: 512, time: nil)
+        return computeRMS(buffer)
+    }
+
+    /// Import audio file (MP3, WAV, M4A) and return PCM buffer
+    func importAudioFile(from url: URL) throws -> AVAudioPCMBuffer {
+        let asset = AVAsset(url: url)
+        guard let track = asset.tracks(withMediaType: .audio).first else {
+            throw AudioCaptureError.fileImportFailed
+        }
+
+        let reader = try AVAssetReader(asset: asset)
+        let outputSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVSampleRateKey: AudioFormats.standardSampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVLinearPCMBitDepthKey: 32,
+            AVLinearPCMIsFloatKey: true,
+            AVLinearPCMIsNonInterleaved: true
+        ]
+
+        let readerOutput = AVAssetReaderTrackOutput(track: track, outputSettings: outputSettings)
+        reader.add(readerOutput)
+        reader.startReading()
+
+        var samples: [Float] = []
+        while let sampleBuffer = readerOutput.copyNextSampleBuffer() {
+            if let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) {
+                let length = CMBlockBufferGetDataLength(blockBuffer)
+                var data = [UInt8](repeating: 0, count: length)
+                CMBlockBufferCopyDataBytes(blockBuffer, atOffset: 0, dataLength: length, destination: &data)
+                let floatCount = length / MemoryLayout<Float>.size
+                data.withUnsafeBytes { ptr in
+                    if let floatPtr = ptr.bindMemory(to: Float.self).baseAddress {
+                        samples.append(contentsOf: Array(UnsafeBufferPointer(start: floatPtr, count: floatCount)))
+                    }
+                }
+            }
+            CMSampleBufferInvalidate(sampleBuffer)
+        }
+
+        guard reader.status == .completed, !samples.isEmpty else {
+            throw AudioCaptureError.fileImportFailed
+        }
+
+        let format = AVAudioFormat(
+            standardFormatWithSampleRate: AudioFormats.standardSampleRate,
+            channels: 1
+        )!
+        let frameCount = AVAudioFrameCount(samples.count)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            throw AudioCaptureError.bufferCreationFailed
+        }
+        buffer.frameLength = frameCount
+        samples.withUnsafeBufferPointer { ptr in
+            buffer.floatChannelData?[0].update(from: ptr.baseAddress!, count: samples.count)
+        }
+
+        return buffer
+    }
+
+    // MARK: - Private
+
     private func setupAudioEngine() {
-        // Configure input node
         guard let inputNode = audioEngine.inputNode else {
             return
         }
-        
-        // Install tap for real-time audio capture
+
         let inputFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 5120, format: inputFormat) { [weak self] (buffer, time) in
-            self?.processAudioBuffer(buffer, at: time)
+        inputNode.installTap(onBus: 0, bufferSize: 5120, format: inputFormat) { [weak self] buffer, time in
+            guard let self else { return }
+            let level = self.computeRMS(buffer)
+            self.delegate?.audioCapture(self, didUpdateAudioLevel: level)
+            let filtered = self.noiseProcessor.process(buffer: buffer)
+            let barkResult = self.barkDetector.processBuffer(filtered, at: time)
+            guard barkResult.shouldTranslate else { return }
+            self.delegate?.audioCapture(self, didReceiveBuffer: filtered, at: time)
         }
-        
-        // Connect input to main mixer for monitoring
+
         audioEngine.connect(inputNode, to: audioEngine.mainMixerNode, format: inputFormat)
     }
-    
-    private func processAudioBuffer(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {
-        // Measure processing time
-        let startTime = CACurrentMediaTime()
-        
-        // Notify delegate for processing
-        delegate?.audioCapture(self, didReceiveBuffer: buffer, at: time)
-        
-        // Calculate processing time
-        let processingTime = CACurrentMediaTime() - startTime
-        totalProcessingTime += processingTime
-        bufferCount += 1
-        
-        // Log buffer statistics periodically
-        if bufferCount % 100 == 0 {
-            os_log("%{public}@", log: OSLog.default, type: .default, "AudioCapture: Buffer #\(bufferCount), size: \(buffer.frameLength), processing: \(processingTime * 1000)ms")
-        }
-    }
-    
-    // MARK: Audio Information
-    var currentInputFormat: AVAudioFormat? {
-        return audioEngine.inputNode?.outputFormat(forBus: 0)
-    }
-    
-    var currentSampleRate: Double {
-        return currentInputFormat?.sampleRate ?? AudioFormats.standardSampleRate
-    }
-    
-    var currentChannelCount: UInt32 {
-        return currentInputFormat?.channelCount ?? 1
-    }
-    
-    var isMicrophoneAvailable: Bool {
-        return AVAudioSession.sharedInstance().isInputAvailable
-    }
-    
-    // MARK: Audio Visualization
-    func getAudioLevel() -> Float {
-        guard let inputNode = audioEngine.inputNode,
-              let format = currentInputFormat else {
-            return 0.0
-        }
-        
-        // Calculate RMS (Root Mean Square) level
-        let channelCount = Int(format.channelCount)
-        let frameLength = Int(inputNode.inputFormat(forBus: 0).sampleRate)
-        
-        var level: Float = 0.0
-        
-        for channel in 0..<channelCount {
-            guard let channelData = inputNode.inputFormat(forBus: 0).channelData?[channel] else {
-                continue
-            }
-            
-            var sum: Float = 0.0
-            for frame in 0..<frameLength {
-                sum += channelData[frame] * channelData[frame]
-            }
-            
-            let rms = sqrt(sum / Float(frameLength))
-            level = max(level, rms)
-        }
-        
-        return level
+
+    private func computeRMS(_ buffer: AVAudioPCMBuffer) -> Float {
+        guard let floatData = buffer.floatChannelData else { return 0 }
+        let frameCount = Int(buffer.frameLength)
+        var sum: Float = 0
+        vDSP_svesq(floatData[0], 1, &sum, vDSP_Length(frameCount))
+        return sqrt(sum / Float(frameCount))
     }
 }
-
-// MARK: - AudioCaptureDelegate
 
 protocol AudioCaptureDelegate: AnyObject {
     func audioCaptureDidStart(_ capture: AudioCapture)
@@ -146,13 +153,13 @@ protocol AudioCaptureDelegate: AnyObject {
     func audioCapture(_ capture: AudioCapture, didUpdateAudioLevel level: Float)
 }
 
-// MARK: - AudioCapture Errors
-
 enum AudioCaptureError: Error, LocalizedError {
     case microphonePermissionDenied
     case audioEngineConfigurationFailed
     case bufferProcessingFailed
-    
+    case fileImportFailed
+    case bufferCreationFailed
+
     var errorDescription: String? {
         switch self {
         case .microphonePermissionDenied:
@@ -161,29 +168,10 @@ enum AudioCaptureError: Error, LocalizedError {
             return "Audio engine configuration failed"
         case .bufferProcessingFailed:
             return "Audio buffer processing failed"
+        case .fileImportFailed:
+            return "Failed to import audio file"
+        case .bufferCreationFailed:
+            return "Audio buffer creation failed"
         }
-    }
-}
-
-// MARK: - AudioCapture Extensions
-
-extension AudioCapture {
-    /// Get buffer statistics
-    var bufferStatistics: (count: Int, totalProcessingTime: TimeInterval, averageProcessingTime: TimeInterval) {
-        let averageTime = bufferCount > 0 ? totalProcessingTime / Double(bufferCount) : 0
-        return (bufferCount, totalProcessingTime, averageTime)
-    }
-    
-    /// Check if capture is running
-    var isRunning: Bool {
-        return isCapturing
-    }
-    
-    /// Get current audio format description
-    var audioFormatDescription: String {
-        let format = currentInputFormat
-        let sampleRate = format?.sampleRate ?? AudioFormats.standardSampleRate
-        let channels = format?.channelCount ?? 1
-        return String(format: "%.0f kHz, %d channels", sampleRate / 1000.0, channels)
     }
 }

@@ -3,11 +3,30 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { sendInviteEmail } from '@/lib/email/invite';
 
-export async function POST(req: NextRequest) {
+// Helper to get authenticated user from request
+async function getAuthenticatedUser(req: NextRequest) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  
+  const token = authHeader.substring(7);
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+  
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return null;
+  return { user, supabase };
+}
+
+export async function POST(req: NextRequest) {
+  // Check authentication
+  const auth = await getAuthenticatedUser(req);
+  if (!auth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  const { supabase, user } = auth;
 
   try {
     const { email, role } = await req.json();
@@ -16,10 +35,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email required' }, { status: 400 });
     }
 
-    // Get user's org
+    // Get user's org - verify the authenticated user belongs to an org
     const { data: userOrg, error: orgError } = await supabase
       .from('organization_members')
       .select('org_id, organizations(name)')
+      .eq('user_id', user.id)
       .eq('status', 'active')
       .limit(1)
       .single();
@@ -49,7 +69,7 @@ export async function POST(req: NextRequest) {
     // Send email invite
     const emailResult = await sendInviteEmail({
       to: email,
-      orgName: userOrg.organizations?.name || 'the organization',
+      orgName: (userOrg.organizations as any)?.[0]?.name || 'the organization',
       inviterName: 'WoofTalk Admin',
       inviteToken,
       expiresAt: expiresAt.toISOString(),

@@ -31,23 +31,12 @@ final class PerformanceOptimizer {
     }
     
     private func setupAlertHandlers() {
-        alertManager.registerHandler(for: .memoryWarning) { type, details in
-            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
-            self.handleMemoryWarning()
+        alertManager.registerHandler(for: .memoryWarning) { [weak self] _, _ in
+            self?.handleMemoryWarning()
         }
-        
-        alertManager.registerHandler(for: .memoryCritical) { type, details in
-            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
-            self.handleMemoryCritical()
-        }
-        
-        alertManager.registerHandler(for: .latencyWarning) { type, details in
-            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
-        }
-        
-        alertManager.registerHandler(for: .batteryWarning) { type, details in
-            os_log("%{public}@", log: OSLog.default, type: .default, "Performance Alert: \(type.rawValue) - \(details)")
-            self.adjustForLowBattery()
+
+        alertManager.registerHandler(for: .memoryCritical) { [weak self] _, _ in
+            self?.handleMemoryCritical()
         }
     }
     
@@ -72,11 +61,7 @@ final class PerformanceOptimizer {
         memoryManager.clearAllCaches()
         resourceManager.clearNonEssentialCaches()
     }
-    
-    private func adjustForLowBattery() {
-        // Already handled by BatteryOptimizer
-    }
-    
+
     // MARK: - Integration Points
     
     func optimizeTranslationRequest(_ request: inout TranslationOptimizationRequest) {
@@ -92,10 +77,9 @@ final class PerformanceOptimizer {
     }
     
     func optimizeNetworkRequest(_ request: URLRequest) -> URLRequest? {
-        if let cachedData = networkOptimizer.cachedResponse(for: request) {
+        if networkOptimizer.cachedResponse(for: request) != nil {
             return nil
         }
-        
         return networkOptimizer.conditionalRequest(for: request)
     }
     
@@ -106,16 +90,7 @@ final class PerformanceOptimizer {
             prefetchEnabled: batteryOptimizer.shouldPrefetch(userActive: true)
         )
     }
-    
-    func optimizeAnalyticsUpload() {
-        batteryOptimizer.coalesceAnalyticsUpload { [weak self] in
-            self?.flushAnalytics()
-        }
-    }
-    
-    private func flushAnalytics() {
-    }
-    
+
     // MARK: - Status
     
     func getPerformanceStatus() -> PerformanceStatus {
@@ -123,7 +98,7 @@ final class PerformanceOptimizer {
             memoryUsageMB: Int(memoryManager.currentMemoryUsage / (1024 * 1024)),
             cacheSize: memoryManager.cacheMemorySize,
             networkCacheSize: networkOptimizer.cacheSize,
-            resourceCacheSize: resourceManager.totalCacheSize,
+            resourceCacheSize: resourceManager.paginationState.count,
             batteryState: batteryOptimizer.currentState,
             metricsSummary: alertManager.getMetricsSummary()
         )
@@ -135,15 +110,12 @@ struct TranslationOptimizationRequest {
     let text: String
     let sourceLanguage: String
     let targetLanguage: String
-    
+
     var qualityThreshold: Double = 0.7
     var maxRetries: Int = 3
-    
+
     var cacheKey: String {
         return "\(sourceLanguage):\(targetLanguage):\(text)"
-    }
-    
-    func useCachedResult(_ result: CachedTranslation) {
     }
 }
 

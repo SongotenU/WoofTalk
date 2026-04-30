@@ -17,32 +17,7 @@ final class QualityMetricsCollector {
     }
     
     // MARK: - Recording Methods
-    
-    func recordQualityMetrics(_ metrics: TranslationQualityMetrics, sessionId: String) {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        recentMetrics.append(metrics)
-        
-        if recentMetrics.count > maxStoredMetrics {
-            recentMetrics = Array(recentMetrics.suffix(maxStoredMetrics))
-        }
-        
-        saveMetrics()
-        
-        let event = TranslationAnalyticsEvent(
-            eventType: .qualityScoreRecorded,
-            sessionId: sessionId,
-            metadata: [
-                "confidence": String(metrics.confidence),
-                "estimatedAccuracy": String(metrics.estimatedAccuracy),
-                "qualityTier": metrics.qualityTier,
-                "modelVersion": metrics.modelVersion
-            ]
-        )
-        eventStore.recordEvent(event)
-    }
-    
+
     func recordTranslationQuality(
         confidence: Double,
         estimatedAccuracy: Double,
@@ -54,7 +29,29 @@ final class QualityMetricsCollector {
             estimatedAccuracy: estimatedAccuracy,
             modelVersion: modelVersion
         )
-        recordQualityMetrics(metrics, sessionId: sessionId)
+
+        lock.lock()
+        defer { lock.unlock() }
+
+        recentMetrics.append(metrics)
+
+        if recentMetrics.count > maxStoredMetrics {
+            recentMetrics = Array(recentMetrics.suffix(maxStoredMetrics))
+        }
+
+        saveMetrics()
+
+        let event = TranslationAnalyticsEvent(
+            eventType: .qualityScoreRecorded,
+            sessionId: sessionId,
+            metadata: [
+                "confidence": String(confidence),
+                "estimatedAccuracy": String(estimatedAccuracy),
+                "qualityTier": metrics.qualityTier,
+                "modelVersion": modelVersion
+            ]
+        )
+        eventStore.recordEvent(event)
     }
     
     // MARK: - Query Methods
@@ -62,13 +59,13 @@ final class QualityMetricsCollector {
     func getQualityStatistics(since date: Date? = nil) -> QualityStatistics {
         lock.lock()
         defer { lock.unlock() }
-        
+
         var metrics = loadMetrics()
-        
+
         if let date = date {
             metrics = metrics.filter { $0.timestamp >= date }
         }
-        
+
         guard !metrics.isEmpty else {
             return QualityStatistics(
                 totalTranslations: 0,
@@ -83,25 +80,29 @@ final class QualityMetricsCollector {
                 periodEnd: Date()
             )
         }
-        
+
         let confidences = metrics.map { $0.confidence }.sorted()
         let totalCount = metrics.count
-        
-        let highCount = metrics.filter { AnalyticsQualityTier.from(confidence: $0.confidence) == .high }.count
-        let mediumCount = metrics.filter { AnalyticsQualityTier.from(confidence: $0.confidence) == .medium }.count
-        let lowCount = metrics.filter { AnalyticsQualityTier.from(confidence: $0.confidence) == .low }.count
-        let veryLowCount = metrics.filter { AnalyticsQualityTier.from(confidence: $0.confidence) == .veryLow }.count
-        
+
+        let tierCounts = metrics.reduce(into: (high: 0, medium: 0, low: 0, veryLow: 0)) { result, metric in
+            switch AnalyticsQualityTier.from(confidence: metric.confidence) {
+            case .high: result.high += 1
+            case .medium: result.medium += 1
+            case .low: result.low += 1
+            case .veryLow: result.veryLow += 1
+            }
+        }
+
         return QualityStatistics(
             totalTranslations: totalCount,
-            averageConfidence: metrics.reduce(0, { $0 + $1.confidence }) / Double(totalCount),
+            averageConfidence: metrics.reduce(0) { $0 + $1.confidence } / Double(totalCount),
             medianConfidence: confidences[confidences.count / 2],
-            averageAccuracy: metrics.reduce(0, { $0 + $1.estimatedAccuracy }) / Double(totalCount),
-            highQualityCount: highCount,
-            mediumQualityCount: mediumCount,
-            lowQualityCount: lowCount,
-            veryLowQualityCount: veryLowCount,
-            periodStart: date ?? Date().addingTimeInterval(-86400),
+            averageAccuracy: metrics.reduce(0) { $0 + $1.estimatedAccuracy } / Double(totalCount),
+            highQualityCount: tierCounts.high,
+            mediumQualityCount: tierCounts.medium,
+            lowQualityCount: tierCounts.low,
+            veryLowQualityCount: tierCounts.veryLow,
+            periodStart: date ?? Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
             periodEnd: Date()
         )
     }
@@ -111,18 +112,10 @@ final class QualityMetricsCollector {
     }
     
     func getQualityTrend(days: Int = 7) -> [QualityStatistics] {
-        var trends: [QualityStatistics] = []
-        let calendar = Calendar.current
-        
-        for dayOffset in (0..<days).reversed() {
-            let startOfDay = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -dayOffset, to: Date()) ?? Date())
-            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
-            
-            let stats = getQualityStatistics(since: startOfDay)
-            trends.append(stats)
+        (0..<days).reversed().compactMap { dayOffset in
+            guard let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: Date()) else { return nil }
+            return getQualityStatistics(since: Calendar.current.startOfDay(for: date))
         }
-        
-        return trends
     }
     
     // MARK: - Storage
@@ -142,9 +135,6 @@ final class QualityMetricsCollector {
     }
     
     private func loadMetrics() -> [TranslationQualityMetrics] {
-        guard let metrics: [TranslationQualityMetrics] = try? storage.load(forKey: AnalyticsStorageKey.qualityMetrics.rawValue) else {
-            return []
-        }
-        return metrics
+        (try? storage.load(forKey: AnalyticsStorageKey.qualityMetrics.rawValue)) ?? []
     }
 }
