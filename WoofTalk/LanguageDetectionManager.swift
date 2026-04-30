@@ -5,6 +5,16 @@ final class LanguageDetectionManager {
     static let shared = LanguageDetectionManager()
 
     private var isEnabled = false
+    private let frequencyToLanguageCache: [(range: ClosedRange<Double>, language: AnimalLanguage)]
+
+    init() {
+        // Pre-compute frequency range to language mapping for O(n) lookup instead of O(n*m)
+        var cache: [(range: ClosedRange<Double>, language: AnimalLanguage)] = []
+        for language in AnimalLanguage.allCases {
+            cache.append((range: language.frequencyRange, language: language))
+        }
+        self.frequencyToLanguageCache = cache
+    }
 
     func startDetection() { isEnabled = true }
     func stopDetection() { isEnabled = false }
@@ -43,7 +53,7 @@ final class LanguageDetectionManager {
     private func performLanguageDetection(frequencies: [Double: Double]) -> (language: AnimalLanguage, confidence: Double) {
         var scores: [AnimalLanguage: Double] = [:]
         for (freq, mag) in frequencies {
-            for language in AnimalLanguage.allCases where language.frequencyRange.contains(freq) {
+            for (range, language) in frequencyToLanguageCache where range.contains(freq) {
                 scores[language, default: 0] += mag
             }
         }
