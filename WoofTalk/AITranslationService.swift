@@ -123,16 +123,21 @@ final class AITranslationService: AITranslationServiceProtocol {
             } catch {
                 lastError = error
                 let action = errorHandler.handleError(error, context: context)
+
+                // On deterministic failure (show error to user), fail immediately
                 if case .showErrorToUser = action {
                     circuitBreaker.onFailure()
                     throw error
                 }
+
+                // For retryable errors, continue to next attempt with backoff
                 if attempt < 2 {
                     try await Task.sleep(nanoseconds: UInt64(250 * (1 << attempt) * 1_000_000))
                 }
             }
         }
 
+        // All retries exhausted - record failure and use fallback
         circuitBreaker.onFailure()
         os_log("Retry exhausted, using fallback: %{public}@",
                log: OSLog.default, type: .info,

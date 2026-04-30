@@ -14,6 +14,8 @@ final class CircuitBreaker {
     private let lock = NSLock()
 
     var currentState: CircuitState {
+        lock.lock()
+        defer { lock.unlock() }
         guard case .open(let reopenedAt) = state,
               Date().timeIntervalSince(reopenedAt) >= resetTimeout
         else { return state }
