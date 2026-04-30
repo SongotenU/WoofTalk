@@ -83,8 +83,13 @@ final class SocialSharingManager {
     
     /// Presents the share sheet for a community phrase
     func share(phrase: CommunityPhrase, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
-        guard EntitlementManager.shared.isPremium else {
-            showUpgradePrompt(from: viewController)
+        let entitlement = EntitlementManager.shared
+        guard entitlement.isPremium else {
+            if entitlement.isReadyToAccessPaywall {
+                showUpgradePrompt(from: viewController)
+            } else {
+                showSignInRequired(from: viewController)
+            }
             completion(.failure(.shareFailed))
             return
         }
@@ -102,8 +107,13 @@ final class SocialSharingManager {
     
     /// Presents the share sheet for translation
     func shareTranslation(humanText: String, dogTranslation: String, from viewController: UIViewController, completion: @escaping (Result<Void, SocialSharingError>) -> Void) {
-        guard EntitlementManager.shared.isPremium else {
-            showUpgradePrompt(from: viewController)
+        let entitlement = EntitlementManager.shared
+        guard entitlement.isPremium else {
+            if entitlement.isReadyToAccessPaywall {
+                showUpgradePrompt(from: viewController)
+            } else {
+                showSignInRequired(from: viewController)
+            }
             completion(.failure(.shareFailed))
             return
         }
@@ -231,6 +241,16 @@ final class SocialSharingManager {
                 }
             }
         }
+    }
+
+    private func showSignInRequired(from viewController: UIViewController) {
+        let alert = UIAlertController(
+            title: "Sign In Required",
+            message: "Please sign in to access premium features.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        viewController.present(alert, animated: true)
     }
 }
 
