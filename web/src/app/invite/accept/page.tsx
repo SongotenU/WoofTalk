@@ -4,17 +4,27 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function InviteAcceptPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [status, setStatus] = useState<"loading" | "success" | "error" | "expired">("loading");
   const [message, setMessage] = useState("");
+  const { user, loading } = useAuth();
 
   useEffect(() => {
+    if (loading) return; // Wait for auth state to load
+    
     if (!token) {
       setStatus("error");
       setMessage("Invalid invite link — no token found");
+      return;
+    }
+
+    if (!user) {
+      setStatus("error");
+      setMessage("You must be logged in to accept an invitation. Please sign in and try again.");
       return;
     }
 
@@ -45,10 +55,11 @@ export default function InviteAcceptPage() {
           return;
         }
 
-        // Accept invite: update status to active
+        // Accept invite: link to accepting user and update status to active
         const { error: updateError } = await supabase
           .from("organization_members")
           .update({
+            user_id: user.id,  // Link the invite to the accepting user
             status: "active",
             joined_at: new Date().toISOString(),
             invite_token: null,
@@ -63,7 +74,7 @@ export default function InviteAcceptPage() {
         }
 
         setStatus("success");
-        setMessage(`Welcome to ${member.organizations?.name || "the organization"}!`);
+        setMessage(`Welcome to ${member.organizations?.[0]?.name || "the organization"}!`);
       } catch {
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
@@ -71,7 +82,7 @@ export default function InviteAcceptPage() {
     };
 
     acceptInvite();
-  }, [token]);
+  }, [token, user, loading]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
