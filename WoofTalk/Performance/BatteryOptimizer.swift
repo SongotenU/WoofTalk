@@ -80,6 +80,11 @@ final class BatteryOptimizer {
     }
 }
 
+deinit {
+    displayLink?.invalidate()
+    NotificationCenter.default.removeObserver(self)
+}
+
 enum PowerStrategy {
     case normal
     case reduced

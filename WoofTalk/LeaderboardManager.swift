@@ -53,9 +53,11 @@ final class LeaderboardManager: ObservableObject {
     /// Refreshes the leaderboard
     func refresh() {
         isLoading = true
+        let period = selectedPeriod  // Capture on main thread
 
-        DispatchQueue.global(qos: .userInitiated).async {
-            let newEntries = self.calculateLeaderboard(for: self.selectedPeriod)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let newEntries = self.calculateLeaderboard(for: period)
 
             DispatchQueue.main.async {
                 self.entries = newEntries
@@ -189,11 +191,15 @@ final class LeaderboardManager: ObservableObject {
         guard let data = UserDefaults.standard.data(forKey: cacheKey),
               let timestamp = UserDefaults.standard.object(forKey: "\(cacheKey)_timestamp") as? Date,
               Date().timeIntervalSince(timestamp) < cacheDuration else { return }
-        
+
         // Cache loading is simplified - in production would reconstruct User objects
         lastUpdated = timestamp
     }
-    
+
+    private func trackLeaderboardUpdate() {
+        // Analytics tracking stub - to be implemented
+    }
+
 }
 
 // MARK: - Leaderboard View
