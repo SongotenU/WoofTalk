@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="translate_dog"
+        android:enabled="true"
+        android:icon="@drawable/ic_mic"
+        android:shortcutShortLabel="@string/shortcut_translate_dog"
+        android:shortcutLongLabel="@string/shortcut_translate_dog_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.wooftalk"
+            android:targetClass="com.wooftalk.MainActivity">
+            <extra
+                android:name="navigate_to"
+                android:value="translate" />
+            <extra
+                android:name="target_language"
+                android:value="Dog" />
+        </intent>
+
+        <categories android:name="android.shortcut.conversation" />
+        <rank android:value="1" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="translate_cat"
+        android:enabled="true"
+        android:icon="@drawable/ic_mic"
+        android:shortcutShortLabel="@string/shortcut_translate_cat"
+        android:shortcutLongLabel="@string/shortcut_translate_cat_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.wooftalk"
+            android:targetClass="com.wooftalk.MainActivity">
+            <extra
+                android:name="navigate_to"
+                android:value="translate" />
+            <extra
+                android:name="target_language"
+                android:value="Cat" />
+        </intent>
+
+        <categories android:name="android.shortcut.conversation" />
+        <rank android:value="2" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="history"
+        android:enabled="true"
+        android:icon="@drawable/ic_mic"
+        android:shortcutShortLabel="@string/shortcut_history"
+        android:shortcutLongLabel="@string/shortcut_history_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled">
+
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.wooftalk"
+            android:targetClass="com.wooftalk.MainActivity">
+            <extra
+                android:name="navigate_to"
+                android:value="history" />
+        </intent>
+
+        <categories android:name="android.shortcut.conversation" />
+        <rank android:value="3" />
+    </shortcut>
+
+</shortcuts>
