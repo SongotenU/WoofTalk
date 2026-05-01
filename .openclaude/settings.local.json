@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls WoofTalk/*.swift)",
+      "Bash(swiftc -parse \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/CircuitBreaker.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/AITranslationErrorHandler.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/AITranslationMetadata.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/LanguageRoutingService.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/TranslationCache.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/Backend/SupabaseManager.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/Backend/AuthManager.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/Backend/DataSource.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/AITranslationService.swift\" \"/Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/OfflineTranslationManager.swift\")",
+      "Bash(cd:*)",
+      "Bash(python3:*)",
+      "Bash(swiftc -typecheck /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/Contribution+Extensions.swift)",
+      "Bash(swiftc -typecheck /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/WatchSyncManager.swift)",
+      "Bash(xargs kill:*)",
+      "Read(//Users/vandopha/.claude/**)",
+      "Bash(swiftc -typecheck /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/LatencyMonitor.swift)",
+      "Bash(git -C /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk status --short)",
+      "Bash(git checkout:*)",
+      "Bash(/tmp/contribution_manager_simple.swift:*)",
+      "Bash(cp /tmp/contribution_manager_simple.swift /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/ContributionManager.swift)",
+      "Bash(swiftc -parse /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/UserProfileManager.swift)",
+      "Bash(wc:*)",
+      "Bash(git -C /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk diff --stat)",
+      "Bash(swiftc -parse /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/DogVocalizationSynthesizer.swift)",
+      "Bash(swiftc -parse /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/LatencyMonitor.swift)",
+      "Bash(swiftc -typecheck /Users/vandopha/Downloads/PersonalSideProjects/WoofTalk/WoofTalk/Contribution*.swift)",
+      "Bash(killall -9 claude)",
+      "Bash(killall -9 node)"
+    ]
+  }
+}

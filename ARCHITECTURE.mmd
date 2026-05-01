@@ -1,0 +1,52 @@
+graph LR
+    subgraph Platforms
+        iOS[iOS]
+        Android[Android]
+        Web[Web]
+        WearOS[Wear OS]
+    end
+
+    subgraph Translation
+        TE[Translation Engine]
+        Adapters[Language Adapters]
+        Fallback[Fallback Chain]
+    end
+
+    subgraph Backend
+        SB[Supabase]
+        DB[(PostgreSQL)]
+        Auth[Auth]
+        RT[Realtime]
+        EF[Edge Functions]
+    end
+
+    subgraph Offline
+        OS[Offline Storage]
+        WQ[Write Queue]
+        CR[Conflict Resolution]
+        RC[Real-time Channels]
+    end
+
+    %% Connections
+    iOS --> TE
+    Android --> TE
+    Web --> TE
+    WearOS --> TE
+
+    TE --> Adapters
+    TE --> Fallback
+    Adapters --> Dog[Dog]
+    Adapters --> Cat[Cat]
+    Adapters --> Bird[Bird]
+
+    TE --> SB
+    SB --> DB
+    SB --> Auth
+    SB --> RT
+    SB --> EF
+
+    TE --> OS
+    OS --> WQ
+    OS --> CR
+    OS --> RC
+    RC --> RT
