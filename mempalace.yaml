@@ -1,0 +1,46 @@
+wing: wooftalk
+rooms:
+- name: frontend
+  description: Files from ui/
+- name: offline_manager
+  description: Files from offline_manager/
+- name: testing
+  description: Files from test/
+- name: wooftalkar
+  description: Files from WoofTalkAR/
+- name: wooftalkuitests
+  description: Files from WoofTalkUITests/
+- name: web
+  description: Files from web/
+- name: training
+  description: Files from Training/
+- name: wooftalk.xcodeproj
+  description: Files from WoofTalk.xcodeproj/
+- name: supabase
+  description: Files from supabase/
+- name: vr_quest
+  description: Files from vr-quest/
+- name: appstorescreenshots
+  description: Files from AppStoreScreenshots/
+- name: android
+  description: Files from android/
+- name: scripts
+  description: Files from scripts/
+- name: wooftalkar.xcodeproj
+  description: Files from WoofTalkAR.xcodeproj/
+- name: wooftalk
+  description: Files from WoofTalk/
+- name: offline_storage
+  description: Files from offline_storage/
+- name: wooftalktests
+  description: Files from WoofTalkTests/
+- name: configuration
+  description: Files from Config/
+- name: backend
+  description: Files from Models/
+- name: design
+  description: Files from Assets/
+- name: research
+  description: Files from research/
+- name: general
+  description: Files that don't fit other rooms
