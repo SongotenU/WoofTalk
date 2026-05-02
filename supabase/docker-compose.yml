@@ -1,6 +1,6 @@
 services:
   db:
-    image: supabase/postgres:15.4.0.57
+    image: postgres:15-alpine
     container_name: supabase_db
     environment:
       POSTGRES_DB: postgres
@@ -16,49 +16,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    command: >
-      postgres
-      -c config_file=/etc/postgresql/postgresql.conf
-      -c shared_preload_libraries='pg_stat_statements' # for RLS policies
-      -c max_connections=200
-      -c shared_buffers=256MB
-      -c effective_cache_size=1GB
-      -c maintenance_work_mem=64MB
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c work_mem=2097kB
-      -c min_wal_size=1GB
-      -c max_wal_size=4GB
-    networks:
-      - supabase
-
-  auth-db-init:
-    image: supabase/postgres:15.4.0.57
-    container_name: auth_db_initializer
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      PGPASSWORD: postgres
-      POSTGRES_HOST: db
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-    volumes:
-      - ./scripts/init-auth.sh:/docker-entrypoint-initdb.d/init-auth.sh:ro
-    command: >
-      sh -c "
-      export PGPASSWORD=postgres &&
-      sleep 5 &&
-      psql -h db -U postgres -d postgres -c \"CREATE ROLE anon NOINHERIT LOGIN PASSWORD '\''ANON_KEY'\'';\" || true &&
-      psql -h db -U postgres -d postgres -c \"CREATE ROLE authenticator NOINHERIT LOGIN PASSWORD '\''postgres'\'';\" || true &&
-      psql -h db -U postgres -d postgres -c \"GRANT anon TO authenticator;\" || true &&
-      psql -h db -U postgres -d postgres -c \"CREATE DATABASE postgres;\" || true &&
-      psql -h db -U postgres -d postgres -c \"ALTER USER postgres WITH PASSWORD '\''postgres'\'';\" || true &&
-      echo 'Auth database initialized successfully'
-      "
     networks:
       - supabase
 
@@ -79,15 +36,13 @@ services:
     ports:
       - "8000:8000"
       - "8001:8001"
-      - "8443:8443"
-      - "8444:8444"
     volumes:
       - ./config/kong.yml:/kong.yml:ro
     networks:
       - supabase
 
   inbucket:
-    image: inbucket/inbox:1.10.1
+    image: inbucket/inbucket:latest
     container_name: supabase_inbucket
     ports:
       - "9000:9000"
