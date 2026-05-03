@@ -1,0 +1,16 @@
+_format_version: "3.0"
+
+services:
+  - name: api-gateway
+    url: http://localhost:8080
+    routes:
+      - name: api-gateway-route
+        paths:
+          - /api
+          - /v1
+        strip_path: true
+
+upstreams:
+  - name: api-gateway
+    targets:
+      - target: localhost:8080
