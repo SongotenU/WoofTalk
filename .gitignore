@@ -42,3 +42,11 @@ tmp/
 
 .omc/
 *.omc/
+
+# ── Build artifacts (auto-generated) ──
+.build/
+tmp_build/
+*.lock
+
+# ── Worktrees ──
+.claude/worktrees/
