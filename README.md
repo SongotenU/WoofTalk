@@ -232,7 +232,8 @@ npx tsc --noEmit             # Type checking
 | M005 | v3.1 | ✅ | Web + Smartwatch |
 | M006 | v4.0 | ✅ | Enterprise — API access, admin features |
 | M007 | v4.1 | ✅ | AR/VR Mixed Reality |
-| M008 | — | ✅ | Production Hardening — CI/CD, observability, resilience |
+| M008 | v4.1 | ✅ | Production Hardening — CI/CD, observability, resilience |
+| **M009** | **v1.0** | ✅ | **Subscription & Payments — RevenueCat integration** |
 
 ## Tech Stack
 
