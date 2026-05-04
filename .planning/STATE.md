@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0.0
 milestone_name: M009 v1.0.0 - Subscription & Payments
 status: v1.0.0 milestone complete
-last_updated: "2026-04-29T13:24:15.068Z"
+last_updated: "2026-05-04T09:32:00.471Z"
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 3
   total_plans: 17
-  completed_plans: 17
-  percent: 100
+  completed_plans: 11
+  percent: 65
 ---
 
 # WoofTalk Project State
@@ -68,6 +68,18 @@ progress:
 3. **New Milestone**: Plan v1.1 or next feature milestone
 
 ---
-**Last Updated**: 2026-04-29
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-05-04:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gaps | Phase 51-HUMAN-UAT (5 pending scenarios) | partial |
+| verification_gaps | Phase 51-VERIFICATION.md | human_needed |
+
+Known deferred items at close: 6 (see STATE.md Deferred Items)
+---
+**Last Updated**: 2026-05-04
 **Project**: WoofTalk (iOS + Android + Web + Watch)
 **Milestone**: M009 Subscription & Payments — COMPLETE

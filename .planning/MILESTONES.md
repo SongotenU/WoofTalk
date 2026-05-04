@@ -1,5 +1,19 @@
 # Milestones
 
+## v1.0.0 M009 Subscription & Payments (Shipped: 2026-05-04)
+
+**Phases completed:** 5 phases, 17 plans, 5 tasks
+
+**Key accomplishments:**
+
+- Status
+- PostgreSQL migration with subscription_status table, tier-aware RLS policy enforcing 3/day free limit, and shared subscription utility module
+- RevenueCat webhook Edge Function with Bearer token auth, 14-event-type switch handler, event_id idempotency, and always-200 response pattern
+- Server-side entitlement verification with RevenueCat REST API, 5-minute DB-backed caching, and translate Edge Function tier gate blocking free-user overages
+- Completed:
+
+---
+
 ## v1.0.0 M009 - Subscription & Payments (Shipped: 2026-04-29)
 
 **Phases completed:** 5 phases, 17 plans
