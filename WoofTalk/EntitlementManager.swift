@@ -17,18 +17,12 @@ final class EntitlementManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     private init() {
-        // Listen for CustomerInfo updates from RevenueCat
-        Purchases.shared.customerInfo { [weak self] (customerInfo, error) in
-            if let error = error {
-                print("[EntitlementManager] Failed to get initial customer info: \(error)")
-                return
-            }
-            if let customerInfo = customerInfo {
-                self?.update(from: customerInfo)
-            }
+        // Initial fetch using async/await pattern (v5.x)
+        Task {
+            await refreshEntitlements()
         }
 
-        // Listen for ongoing CustomerInfo updates
+        // Listen for ongoing CustomerInfo updates using notification (v5.x compatible)
         NotificationCenter.default.publisher(for: .RCUpdatedCustomerInfo)
             .compactMap { $0.object as? CustomerInfo }
             .sink { [weak self] in self?.update(from: $0) }
@@ -36,31 +30,35 @@ final class EntitlementManager: ObservableObject {
     }
 
     private func update(from customerInfo: CustomerInfo) {
-        let isProActive = customerInfo.entitlements["pro"]?.isActive == true
-        let isTrialActive = customerInfo.entitlements["trial"]?.isActive == true
+        let isProActive = customerInfo.entitlements.all["pro"]?.isActive == true
+        let isPremiumEntActive = customerInfo.entitlements.all["premium"]?.isActive == true
+        let isTrialActive = customerInfo.entitlements.all["premium"]?.isInIntroOfferPeriod == true
 
-        isPremium = isProActive
+        isPremium = isProActive || isPremiumEntActive
         self.isTrialActive = isTrialActive
-        subscriptionTier = isProActive ? "pro" : (isTrialActive ? "trial" : "free")
+        subscriptionTier = isProActive ? "pro" : (isPremiumEntActive || isTrialActive ? "premium" : "free")
     }
 
     func refreshEntitlements() async {
-        isLoading = true
+        await MainActor.run { isLoading = true }
         do {
-            let customerInfo = try await Purchases.shared.customerInfo()
-            update(from: customerInfo)
+            // v5.x uses getCustomerInfo() instead of customerInfo(completion:)
+            let customerInfo = try await RevenueCat.Purchases.shared.getCustomerInfo()
+            await update(from: customerInfo)
         } catch {
-            self.error = error
-            print("[EntitlementManager] Failed to refresh entitlements: \(error)")
+            await MainActor.run {
+                self.error = error
+                print("[EntitlementManager] Failed to refresh entitlements: \(error)")
+            }
         }
-        isLoading = false
+        await MainActor.run { isLoading = false }
     }
 
     func checkEntitlements() {
         Task {
             do {
-                let customerInfo = try await Purchases.shared.customerInfo()
-                update(from: customerInfo)
+                let customerInfo = try await RevenueCat.Purchases.shared.getCustomerInfo()
+                await update(from: customerInfo)
             } catch {
                 print("[EntitlementManager] Failed to check entitlements: \(error)")
             }
@@ -68,12 +66,20 @@ final class EntitlementManager: ObservableObject {
     }
 
     func logIn(appUserId: String) async throws {
-        let (customerInfo, _) = try await Purchases.shared.logIn(appUserId)
-        update(from: customerInfo)
+        // v5.x API - logIn returns CustomerInfo directly
+        let customerInfo = try await RevenueCat.Purchases.shared.logIn(appUserId)
+        await update(from: customerInfo)
     }
 
     func logOut() async throws {
-        let customerInfo = try await Purchases.shared.logOut()
-        update(from: customerInfo)
+        // v5.x API - logOut returns CustomerInfo directly
+        let customerInfo = try await RevenueCat.Purchases.shared.logOut()
+        await update(from: customerInfo)
+    }
+
+    /// Get current customer info
+    /// - Returns: Current CustomerInfo
+    func getCustomerInfo() async throws -> CustomerInfo {
+        try await RevenueCat.Purchases.shared.getCustomerInfo()
     }
 }

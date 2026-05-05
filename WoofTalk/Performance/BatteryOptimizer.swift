@@ -78,11 +78,11 @@ final class BatteryOptimizer {
             applyPowerStrategy(.normal)
         }
     }
-}
 
-deinit {
-    displayLink?.invalidate()
-    NotificationCenter.default.removeObserver(self)
+    deinit {
+        displayLink?.invalidate()
+        NotificationCenter.default.removeObserver(self)
+    }
 }
 
 enum PowerStrategy {
