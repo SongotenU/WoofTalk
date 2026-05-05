@@ -4,11 +4,12 @@ Translate between human and animal languages — on every platform.
 
 **WoofTalk** is a multi-platform app that enables natural communication between humans and their pets through bidirectional translation with voice input/output. Available on iOS, Android, Web, and Wear OS — all synced in real-time via a shared Supabase backend.
 
-[![iOS](https://img.shields.io/badge/iOS-SwiftUI-black)](WoofTalk/)
-[![Android](https://img.shields.io/badge/Android-Kotlin-green)](android/WoofTalk/)
-[![Web](https://img.shields.io/badge/Web-Next.js-blue)](web/)
+[![iOS](https://img.shields.io/badge/iOS-v1.0.0-SwiftUI-black)](https://apps.apple.com/app/wooftalk)
+[![Android](https://img.shields.io/badge/Android-v1.0-Kotlin-green)](https://play.google.com/store/apps/details?id=com.wooftalk.app)
+[![Web](https://img.shields.io/badge/Web-v1.0.0-Next.js-blue)](https://wooftalk.app)
 [![Watch](https://img.shields.io/badge/Watch-Wear_OS-orange)](android/WoofTalk/wear/)
 [![Backend](https://img.shields.io/badge/Backend-Supabase-3ECF8E)](supabase/)
+[![Build](https://img.shields.io/github/actions/workflow/status/wooftalk/wooftalk/ios-build.yml?label=build)](https://github.com/wooftalk/wooftalk/actions)
 
 ## Features
 
@@ -19,15 +20,16 @@ Translate between human and animal languages — on every platform.
 - 📊 **Social Features** — Follow other users, view leaderboards, track activity
 - 📱 **PWA Support** — Install the web app on any device, works offline
 - ⚡ **Real-Time Updates** — Community phrases and translations sync in under 1 second
+- 💎 **Premium Subscription** — Monthly/yearly plans with 3-day free trial via RevenueCat
 
 ## Platforms
 
 | Platform | Tech Stack | Status |
 |----------|-----------|--------|
-| **iOS** | SwiftUI, Core Data, AVFoundation | ✅ v1.0 |
-| **Android** | Kotlin, Jetpack Compose, Room, Hilt | ✅ v3.0 |
-| **Web** | Next.js, React, TypeScript, Tailwind CSS | ✅ v3.1 |
-| **Wear OS** | Kotlin, Compose for Wearables | ✅ v3.1 |
+| **iOS** | SwiftUI, Core Data, AVFoundation | ✅ v1.0.0 (App Store) |
+| **Android** | Kotlin, Jetpack Compose, Room, Hilt | ✅ v1.0 (Play Store) |
+| **Web** | Next.js, React, TypeScript, Tailwind CSS | ✅ v1.0.0 (https://wooftalk.app) |
+| **Wear OS** | Kotlin, Compose for Wearables | ✅ v1.0 (Play Store) |
 
 All platforms share the same **Supabase** (PostgreSQL) backend with real-time synchronization.
 
@@ -235,6 +237,23 @@ npx tsc --noEmit             # Type checking
 | M008 | v4.1 | ✅ | Production Hardening — CI/CD, observability, resilience |
 | **M009** | **v1.0** | ✅ | **Subscription & Payments — RevenueCat integration** |
 
+## Milestones
+
+| Milestone | Version | Status | Description |
+|-----------|---------|--------|-------------|
+| M001 | v1.0 | ✅ | Core Translation Engine — iOS app |
+| M002 | v1.0 | ✅ | Community Features — iOS |
+| M003 | v2.0 | ✅ | Advanced Features — AI, real-time, analytics |
+| M004 | v3.0 | ✅ | Platform Expansion — Android + cross-platform sync |
+| M005 | v3.1 | ✅ | Web + Smartwatch |
+| M006 | v4.0 | ✅ | Enterprise — API access, admin features |
+| M007 | v4.1 | ✅ | AR/VR Mixed Reality |
+| M008 | v4.1 | ✅ | Production Hardening — CI/CD, observability, resilience |
+| **M009** | **v1.0** | ✅ | **Subscription & Payments — RevenueCat integration** |
+| **M010** | **v1.0.0** | 🟡 | **Ship to Production — iOS, Android, Web** |
+
+---
+
 ## Tech Stack
 
 - **iOS**: Swift, SwiftUI, Core Data, AVFoundation
@@ -243,9 +262,29 @@ npx tsc --noEmit             # Type checking
 - **Watch**: Kotlin, Compose for Wearables
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Edge Functions)
 - **Voice**: AVFoundation (iOS), SpeechRecognizer + TextToSpeech (Android), Web Speech API (Web)
+- **Payments**: RevenueCat (subscriptions, in-app purchases)
 - **CI/CD**: GitHub Actions (Supabase + Vercel pipelines, RLS audit)
-- **Monitoring**: Sentry-ready error tracking, GitHub Actions uptime monitor, k6 load testing
+- **Monitoring**: Sentry (iOS/Web), Firebase Crashlytics (Android), GitHub Actions uptime monitor
 - **Deployment**: Vercel (Web), Google Play Store (Android + Wear OS), App Store (iOS)
+
+---
+
+## Production
+
+### Web App
+Deployed to **Vercel** with PWA support — https://wooftalk.app
+
+### Mobile Apps
+- **iOS**: Available on the App Store (v1.0.0)
+- **Android**: Available on Google Play Store (v1.0)
+- **Wear OS**: Available on Google Play Store
+
+### Monitoring
+- **Error Tracking**: Sentry (iOS/Web), Firebase Crashlytics (Android)
+- **Uptime**: GitHub Actions checks every 5 minutes
+- **Analytics**: Supabase Dashboard, RevenueCat Dashboard
+
+---
 
 ## License
 

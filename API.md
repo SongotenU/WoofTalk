@@ -1,305 +1,335 @@
 # WoofTalk API Documentation
 
-Base URL: `https://bzcyllgdetedwrifrgvc.supabase.co/functions/v1/`
+Base URL: `https://your-supabase-project.supabase.co`
 
-All endpoints require authentication via Supabase JWT token in the `Authorization` header:
+All API requests require authentication via Supabase JWT token in the `Authorization` header:
 ```
 Authorization: Bearer <supabase_jwt_token>
 ```
 
-Rate limiting: 100 requests per minute per user.
-
 ---
 
-## Translation API
+## Supabase Edge Functions
 
-### `POST /translate`
+### 1. Translate
+**POST** `/functions/v1/translate`
 
-Translates text or voice input to/from animal sounds. Checks user entitlement for premium features.
+Translates text between human and animal languages with entitlement check for premium features.
 
-**Request:**
+#### Request
 ```json
 {
-  "input": "Hello dog",
-  "inputType": "text",
-  "sourceLanguage": "en",
-  "targetAnimal": "dog",
-  "voiceId": "en-US-Neural2-D",
-  "userId": "user-uuid"
+  "text": "Hello doggy",
+  "sourceLanguage": "human",
+  "targetLanguage": "dog",
+  "voiceInput": false
 }
 ```
 
-**Response (200 OK):**
+#### Response
 ```json
 {
   "translation": "Woof woof!",
-  "audioUrl": "https://supabase.co/storage/v1/object/public/translations/...",
-  "detectedLanguage": "en",
-  "remainingTranslations": 10
+  "confidence": 0.95,
+  "audioUrl": "https://...storage.../audio.mp3",
+  "isPremium": true
 }
 ```
 
-**Error Responses:**
-- `401 Unauthorized` — Invalid or missing JWT
-- `403 Forbidden` — Free user exceeded limit (premium required)
-- `429 Too Many Requests` — Rate limit exceeded
-- `500 Internal Server Error` — Translation service error
+#### Rate Limit
+100 requests per minute per user (enforced via Supabase Edge Function middleware)
 
-**Entitlement Check:**
-- Free users: Last 10 translations accessible
-- Premium users: Unlimited translations + voice input + sharing
+#### Errors
+- `401 Unauthorized` — Invalid/missing JWT
+- `403 Forbidden` — Premium feature, no active subscription
+- `429 Too Many Requests` — Rate limit exceeded
+- `500` — Translation engine error
 
 ---
 
-## Phrase Search API
-
-### `GET /phrases/search`
+### 2. Phrase Search
+**GET** `/functions/v1/phrases/search?q=<query>&limit=20&offset=0`
 
 Full-text search across community phrases.
 
-**Query Parameters:**
-- `q` (required) — Search query
-- `animal` (optional) — Filter by animal type (dog, cat, bird, etc.)
-- `limit` (optional, default=20) — Max results
-- `offset` (optional, default=0) — Pagination offset
+#### Query Parameters
+| Param | Type | Default | Description |
+|--------|------|---------|-------------|
+| q | string | — | Search query |
+| limit | number | 20 | Max results (max 100) |
+| offset | number | 0 | Pagination offset |
+| language | string | "dog" | Filter by language (dog/cat/bird) |
 
-**Request:**
-```
-GET /phrases/search?q=hello&animal=dog&limit=10
-```
-
-**Response (200 OK):**
+#### Response
 ```json
 {
   "phrases": [
     {
-      "id": "phrase-uuid",
-      "text": "Hello dog",
-      "translation": "Woof woof!",
-      "animal": "dog",
-      "language": "en",
-      "contributorId": "user-uuid",
+      "id": "uuid",
+      "text": "Woof woof!",
+      "translation": "Hello!",
+      "language": "dog",
       "upvotes": 42,
-      "downvotes": 3,
-      "createdAt": "2026-05-01T10:00:00Z"
+      "author": { "username": "doglover" },
+      "created_at": "2026-05-05T12:00:00Z"
     }
   ],
-  "total": 1,
-  "limit": 10,
-  "offset": 0
+  "total": 156
 }
 ```
 
-**Error Responses:**
-- `401 Unauthorized` — Invalid or missing JWT
-- `429 Too Many Requests` — Rate limit exceeded
-
 ---
 
-## Leaderboard API
+### 3. Leaderboard
+**GET** `/functions/v1/leaderboard?period=week&limit=50`
 
-### `GET /leaderboard`
+Computed leaderboard of top translators.
 
-Returns computed leaderboard of top contributors.
+#### Query Parameters
+| Param | Type | Default | Description |
+|--------|------|---------|-------------|
+| period | string | "week" | "day", "week", "month", "all" |
+| limit | number | 50 | Max results (max 100) |
 
-**Query Parameters:**
-- `period` (optional) — "daily", "weekly", "monthly", "all" (default: "weekly")
-- `limit` (optional, default=50) — Max results
-
-**Request:**
-```
-GET /leaderboard?period=weekly&limit=10
-```
-
-**Response (200 OK):**
+#### Response
 ```json
 {
   "leaderboard": [
     {
-      "userId": "user-uuid",
-      "displayName": "DogLover123",
-      "avatarUrl": "https://...",
-      "score": 150,
-      "translationsCount": 50,
-      "contributionsCount": 30,
+      "user_id": "uuid",
+      "username": "wooftalker",
+      "translation_count": 89,
+      "recent_translations": 12,
       "rank": 1
-    }
-  ],
-  "period": "weekly",
-  "generatedAt": "2026-05-05T10:00:00Z"
-}
-```
-
-**Error Responses:**
-- `401 Unauthorized` — Invalid or missing JWT
-
----
-
-## Activity Batch API
-
-### `POST /activity/batch`
-
-Creates multiple activity records in a single request (for batch sync).
-
-**Request:**
-```json
-{
-  "activities": [
-    {
-      "type": "translation",
-      "userId": "user-uuid",
-      "timestamp": "2026-05-05T10:00:00Z",
-      "metadata": {
-        "sourceLanguage": "en",
-        "targetAnimal": "dog",
-        "inputType": "text"
-      }
-    },
-    {
-      "type": "contribution",
-      "userId": "user-uuid",
-      "timestamp": "2026-05-05T10:05:00Z",
-      "metadata": {
-        "phraseId": "phrase-uuid"
-      }
     }
   ]
 }
 ```
 
-**Response (201 Created):**
+---
+
+### 4. Activity Batch
+**POST** `/functions/v1/activity/batch`
+
+Batch activity creation for performance optimization.
+
+#### Request
 ```json
 {
-  "created": 2,
-  "failed": 0,
-  "errors": []
+  "activities": [
+    {
+      "type": "translation",
+      "payload": { "sourceLanguage": "human", "targetLanguage": "dog" }
+    }
+  ]
 }
 ```
 
-**Error Responses:**
-- `401 Unauthorized` — Invalid or missing JWT
-- `400 Bad Request` — Invalid activity format
-- `429 Too Many Requests` — Rate limit exceeded
+#### Response
+```json
+{
+  "created": 5,
+  "failed": 0
+}
+```
 
 ---
 
-## Entitlement Check API
+### 5. Send Push Notification
+**POST** `/functions/v1/send-push-notification`
 
-### `POST /entitlement-check`
+Sends FCM push notification to a user (called internally or via webhook).
 
-Checks user's subscription entitlements (used internally by other functions).
-
-**Request:**
+#### Request
 ```json
 {
-  "userId": "user-uuid"
+  "userId": "uuid",
+  "title": "New follower!",
+  "body": "User @doglover started following you",
+  "data": { "type": "follow", "userId": "uuid" }
 }
 ```
 
-**Response (200 OK):**
-```json
-{
-  "isPremium": true,
-  "subscriptionStatus": "active",
-  "expiresAt": "2026-06-05T10:00:00Z",
-  "entitlements": ["premium", "offline_mode", "unlimited_translations"]
-}
-```
-
-**Error Responses:**
-- `401 Unauthorized` — Invalid or missing JWT
-- `404 Not Found` — User not found
-
----
-
-## Webhook APIs
-
-### `POST /revenuecat-webhook`
-
-Receives RevenueCat webhook events for subscription changes.
-
-**Headers:**
-```
-Content-Type: application/json
-X-RevenueCat-Signature: <hmac_signature>
-```
-
-**Payload:**
-```json
-{
-  "event": {
-    "type": "INITIAL_PURCHASE",
-    "app_id": "app-id",
-    "original_app_user_id": "user-uuid",
-    "product_id": "com.wooftalk.premium.monthly",
-    "entitlement_ids": ["premium"],
-    "expiration_at_ms": 1717500000000
-  }
-}
-```
-
-**Response (200 OK):**
+#### Response
 ```json
 {
   "success": true,
-  "message": "Webhook processed"
+  "messageId": "fcm-message-id"
 }
 ```
 
 ---
 
-## Rate Limiting
+## Supabase REST API (Auto-Generated)
 
-All endpoints are rate-limited to 100 requests per minute per user.
+Base URL: `/rest/v1/`
 
-**Headers in Response:**
-- `X-RateLimit-Limit: 100`
-- `X-RateLimit-Remaining: 95`
-- `X-RateLimit-Reset: 1717500060`
+### Tables
 
-When rate limit is exceeded (429):
-```json
-{
-  "error": "Rate limit exceeded",
-  "message": "Too many requests. Please try again in 30 seconds."
-}
+#### `profiles`
+```
+GET /rest/v1/profiles?id=eq.<user_id>
+POST /rest/v1/profiles
+PATCH /rest/v1/profiles?id=eq.<user_id>
+```
+
+#### `translations`
+```
+GET /rest/v1/translations?user_id=eq.<user_id>&order=created_at.desc
+POST /rest/v1/translations
+```
+
+#### `community_phrases`
+```
+GET /rest/v1/community_phrases?language=eq.dog&order=upvotes.desc
+POST /rest/v1/community_phrases
+PATCH /rest/v1/community_phrases?id=eq.<phrase_id>
+```
+
+#### `social_follows`
+```
+GET /rest/v1/social_follows?follower_id=eq.<user_id>
+POST /rest/v1/social_follows
+DELETE /rest/v1/social_follows?follower_id=eq.<user_id>&following_id=eq.<target_id>
+```
+
+#### `activity_logs`
+```
+GET /rest/v1/activity_logs?user_id=eq.<user_id>&order=created_at.desc&limit=50
+POST /rest/v1/activity_logs
 ```
 
 ---
 
 ## Authentication
 
-All API requests require a valid Supabase JWT token:
+### Sign Up
+```
+POST /auth/v1/signup
+{
+  "email": "user@example.com",
+  "password": "secure_password"
+}
+```
 
-```javascript
-// Get token from Supabase client
-const { data: { session } } = await supabase.auth.getSession();
-const token = session?.access_token;
+### Sign In
+```
+POST /auth/v1/token?grant_type=password
+{
+  "email": "user@example.com",
+  "password": "secure_password"
+}
+```
 
-// Use in API request
-const response = await fetch('https://.../translate', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({...})
-});
+### OAuth (Google/Apple)
+```
+GET /auth/v1/authorize?provider=google&redirect_to=https://wooftalk.app/callback
 ```
 
 ---
 
-## Error Codes
+## Rate Limiting
 
-| Code | Message | Description |
-|------|---------|-------------|
-| 401 | Unauthorized | Invalid or missing JWT token |
-| 403 | Forbidden | Insufficient entitlements (free user limit exceeded) |
-| 404 | Not Found | Resource not found |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Server Error | Server error (translation service, database, etc.) |
+| Endpoint Type | Limit | Window |
+|---------------|-------|--------|
+| Edge Functions | 100 req/min | Per user (JWT) |
+| REST API | 200 req/min | Per user (JWT) |
+| Auth endpoints | 10 req/min | Per IP |
+
+Rate limit headers:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1714920000
+```
 
 ---
 
-*Generated: 2026-05-05*
-*Base URL: https://bzcyllgdetedwrifrgvc.supabase.co/functions/v1/*
+## React Hooks (Web)
+
+### `useSupabase()`
+```typescript
+const { supabase, user, loading } = useSupabase()
+```
+
+### `useTranslation()`
+```typescript
+const { translate, result, loading, error } = useTranslation()
+```
+
+### `useCommunityPhrases()`
+```typescript
+const { phrases, search, loading } = useCommunityPhrases()
+```
+
+---
+
+## SDK Usage
+
+### iOS (Swift)
+```swift
+import Supabase
+
+let client = SupabaseClient(
+    supabaseURL: URL(string: "https://...supabase.co")!,
+    anonKey: "your-anon-key"
+)
+
+// Sign in
+try await client.auth.signIn(email: "user@example.com", password: "pass")
+
+// Fetch translations
+let translations: [Translation] = try await client
+    .from("translations")
+    .select()
+    .eq("user_id", userId)
+    .order("created_at", ascending: false)
+    .execute()
+    .value
+```
+
+### Android (Kotlin)
+```kotlin
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
+
+val supabase = SupabaseClient(
+    supabaseUrl = "https://...supabase.co",
+    supabaseKey = "your-anon-key"
+)
+
+// Sign in
+supabase.auth.signInWith(Email) { email = "user@example.com"; password = "pass" }
+
+// Fetch translations
+val translations = supabase.from("translations")
+    .select { eq("user_id", userId) }
+    .decodeList<Translation>()
+```
+
+---
+
+## Status Codes
+
+| Code | Meaning |
+|------|---------|
+| 200 | OK — request successful |
+| 201 | Created — resource created |
+| 400 | Bad Request — invalid parameters |
+| 401 | Unauthorized — invalid/missing JWT |
+| 403 | Forbidden — insufficient permissions (RLS) |
+| 404 | Not Found — resource not found |
+| 429 | Too Many Requests — rate limit exceeded |
+| 500 | Internal Server Error — server error |
+
+---
+
+## Webhooks (RevenueCat → Supabase)
+
+RevenueCat sends subscription events to `/functions/v1/webhooks/revenuecat`:
+- `INITIAL_PURCHASE` — New subscription
+- `RENEWAL` — Subscription renewed
+- `CANCELLATION` — Subscription cancelled
+- `EXPIRATION` — Subscription expired
+
+---
