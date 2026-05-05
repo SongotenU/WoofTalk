@@ -1,3 +1,12 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "id": "e132b09e",
+      "cron": "*/2 * * * *",
+      "prompt": "Check WoofTalk GSD progress: run `/gsd-progress` and report current phase, completion percentage, and any blockers. Format as: \"📊 Progress Update: [Phase X/Y] [XX%] [status]\"",
+      "createdAt": 1777949612365,
+      "lastFiredAt": 1777950437538,
+      "recurring": true
+    }
+  ]
 }

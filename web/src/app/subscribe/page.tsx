@@ -54,10 +54,10 @@ export default function SubscribePage() {
           return;
         }
         const monthlyOffer = current.availablePackages.find(
-          (p) => p.rcBillingProduct.identifier === "wooftalk_monthly"
+          (p: PlanOffering) => p.rcBillingProduct.identifier === "wooftalk_monthly"
         );
         const annualOffer = current.availablePackages.find(
-          (p) => p.rcBillingProduct.identifier === "wooftalk_annual"
+          (p: PlanOffering) => p.rcBillingProduct.identifier === "wooftalk_annual"
         );
         if (monthlyOffer) {
           setMonthly({

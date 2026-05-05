@@ -14,6 +14,13 @@
 			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
 			remoteInfo = WoofTalk;
 		};
+		9F6C975C2FA99990003BF28E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F2C83AE2F61687F00E4A788 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F2C83B52F61687F00E4A788;
+			remoteInfo = WoofTalk;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -26,19 +33,16 @@
 		9F2C83B82F61687F00E4A788 /* WoofTalk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalk;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
 			sourceTree = "<group>";
 		};
 		9F2C83CB2F61688100E4A788 /* WoofTalkTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkTests;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
 			sourceTree = "<group>";
 		};
 		9F2C83D52F61688100E4A788 /* WoofTalkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkUITests;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -103,9 +107,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				9F2C83B82F61687F00E4A788 /* WoofTalk */,
-			);
 			name = WoofTalk;
 			packageProductDependencies = (
 			);
@@ -126,9 +127,6 @@
 			dependencies = (
 				9F2C83CA2F61688100E4A788 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				9F2C83CB2F61688100E4A788 /* WoofTalkTests */,
-			);
 			name = WoofTalkTests;
 			packageProductDependencies = (
 			);
@@ -148,9 +146,6 @@
 			);
 			dependencies = (
 				9F2C83D42F61688100E4A788 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9F2C83D52F61688100E4A788 /* WoofTalkUITests */,
 			);
 			name = WoofTalkUITests;
 			packageProductDependencies = (
@@ -260,7 +255,7 @@
 		9F2C83D42F61688100E4A788 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9F2C83B52F61687F00E4A788 /* WoofTalk */;
-			targetProxy = 9F2C83D32F61688100E4A788 /* PBXContainerItemProxy */;
+			targetProxy = 9F6C975C2FA99990003BF28E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -318,6 +313,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -325,7 +321,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				GENERATE_INFOPLIST_FILE = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -399,7 +394,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "audio";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -432,7 +427,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "audio";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

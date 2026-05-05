@@ -1,10 +1,14 @@
 package com.wooftalk.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.revenuecat.purchases.ui.revenuecatui.Paywall
+import com.wooftalk.EntitlementManager
+import com.wooftalk.ui.screen.CancellationSurveyScreen
+import com.wooftalk.ui.screen.PaywallScreen
+import com.wooftalk.ui.screen.ReferralScreen
 
 sealed class Screen(val route: String, val title: String) {
     object Translate : Screen("translate", "Translate")
@@ -16,7 +20,9 @@ sealed class Screen(val route: String, val title: String) {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    entitlementManager: EntitlementManager
+) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
@@ -26,20 +32,21 @@ fun AppNavigation() {
         composable(Screen.History.route) { /* HistoryScreen */ }
         composable(Screen.Settings.route) { /* SettingsScreen */ }
         composable(Screen.Paywall.route) {
-            Paywall(
+            PaywallScreen(
+                entitlementManager = entitlementManager,
                 onDismiss = { navController.popBackStack() }
             )
         }
         composable(Screen.CancellationSurvey.route) {
             CancellationSurveyScreen(
-                entitlementManager = TODO(), // Pass EntitlementManager
+                entitlementManager = entitlementManager,
                 onComplete = { navController.popBackStack() },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(Screen.Referral.route) {
             ReferralScreen(
-                entitlementManager = TODO(), // Pass EntitlementManager
+                entitlementManager = entitlementManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -42,12 +42,12 @@ declare global {
   }
 }
 
-const SpeechRecognitionAPI =
-  typeof window !== 'undefined'
-    ? window.SpeechRecognition || window.webkitSpeechRecognition
-    : null;
-
 export function useSpeechRecognition(): SpeechRecognitionHook {
+  const SpeechRecognitionAPI =
+    typeof window !== 'undefined'
+      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      : null;
+
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');

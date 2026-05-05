@@ -6,7 +6,13 @@ const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = window.atob(base64);
+  let rawData: string;
+  if (typeof window !== 'undefined' && window.atob) {
+    rawData = window.atob(base64);
+  } else {
+    // Server-side or window.atob not available — use Buffer or manual decode
+    rawData = Buffer.from(base64, 'base64').toString('binary');
+  }
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);

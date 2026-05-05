@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { translate, detectLanguage } from "@/lib/translation/engine";
 import type { TranslationDirection, TranslationResult } from "@/lib/translation/types";
@@ -13,7 +13,7 @@ import { subscribeToPush } from "@/lib/push";
 import { getCachedTranslation, saveTranslationHistory, getTranslationHistory } from "@/lib/translation/indexeddb-history";
 import { Bell } from "lucide-react";
 
-export default function TranslatePage() {
+function TranslateContent() {
   const [inputText, setInputText] = useState("");
   const [result, setResult] = useState<TranslationResult | null>(null);
   const [selectedLang, setSelectedLang] = useState<"dog" | "cat" | "bird">("dog");
@@ -24,7 +24,7 @@ export default function TranslatePage() {
   useKeyboardShortcuts();
 
   useEffect(() => {
-    if ("Notification" in window) {
+    if (typeof window !== 'undefined' && "Notification" in window) {
       setNotificationPerm(Notification.permission);
     }
     // Load history from IndexedDB
@@ -34,7 +34,7 @@ export default function TranslatePage() {
   }, []);
 
   const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) return;
+    if (typeof window === 'undefined' || !("Notification" in window)) return;
     const permission = await Notification.requestPermission();
     setNotificationPerm(permission);
     if (permission === "granted") {
@@ -90,7 +90,7 @@ export default function TranslatePage() {
             <Link href="/translate" className="text-primary font-medium">Translate</Link>
             <Link href="/history" className="text-muted-foreground hover:text-foreground">History</Link>
             <Link href="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
-            {notificationPerm !== "granted" && "Notification" in window && (
+            {notificationPerm !== "granted" && typeof window !== 'undefined' && "Notification" in window && (
               <button onClick={requestNotificationPermission} title="Enable notifications" className="text-muted-foreground hover:text-foreground">
                 <Bell className="w-5 h-5" />
               </button>
@@ -181,5 +181,19 @@ export default function TranslatePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export const dynamic = 'force-dynamic';
+
+export default function TranslatePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <TranslateContent />
+    </Suspense>
   );
 }

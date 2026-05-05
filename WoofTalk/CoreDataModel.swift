@@ -1,7 +1,8 @@
 import Foundation
 import CoreData
 
-enum ContributionStatus: String, CaseIterable, Codable {
+@MainActor
+enum ContributionStatus: String, CaseIterable, Codable, Sendable {
     case validated = "validated"
     case pending = "pending"
     case submitted = "submitted"
@@ -12,6 +13,7 @@ enum ContributionStatus: String, CaseIterable, Codable {
     var displayText: String { rawValue.capitalized }
 }
 
+@MainActor
 struct CoreDataModel {
     static func createContribution(
         in context: NSManagedObjectContext,
