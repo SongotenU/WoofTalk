@@ -1,11 +1,11 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.android") version "2.0.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    id("com.google.firebase.firebase-perf")
 }
 
 android {
@@ -21,6 +21,8 @@ android {
         testInstrumentationRunner = "com.wooftalk.HiltTestRunner"
 
         buildConfigField("String", "REVENUECAT_ANDROID_API_KEY", "\"${System.getenv("REVENUECAT_ANDROID_API_KEY") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${System.getenv("SUPABASE_URL") ?: "https://your-project.supabase.co"}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${System.getenv("SUPABASE_ANON_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -46,14 +48,15 @@ android {
         compose = true
         buildConfig = true
     }
+}
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
-    }
+repositories {
+    google()
+    mavenCentral()
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2026.03.00")
+    val composeBom = platform("androidx.compose:compose-bom:2024.05.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -64,6 +67,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.9")
+
+    // Glance for widgets
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
 
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -82,11 +89,11 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:realtime-kt:3.1.4")
     implementation("io.ktor:ktor-client-android:3.1.2")
 
-    implementation("com.revenuecat.purchases:purchases:9.9.0")
-    implementation("com.revenuecat.purchases:purchases-ui:9.9.0")
+    implementation("com.revenuecat.purchases:purchases:7.5.2")
 
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 

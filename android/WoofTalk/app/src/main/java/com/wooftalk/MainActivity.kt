@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wooftalk.ui.navigation.Screen
 import com.wooftalk.ui.screen.HistoryScreen
 import com.wooftalk.ui.screen.SettingsScreen
@@ -52,7 +54,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             WoofTalkTheme {
-                WoofTalkApp()
+                val entitlementManager: EntitlementManager = hiltViewModel()
+                WoofTalkApp(
+                    entitlementManager = entitlementManager,
+                    onNavigateToPaywall = { /* TODO */ }
+                )
             }
         }
     }
@@ -102,7 +108,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun WoofTalkApp() {
+fun WoofTalkApp(
+    modifier: Modifier = Modifier,
+    entitlementManager: EntitlementManager,
+    onNavigateToPaywall: () -> Unit = {}
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val screens = listOf(Screen.Translate, Screen.History, Screen.Settings)
 
@@ -117,6 +127,7 @@ fun WoofTalkApp() {
                                     Screen.Translate -> Icons.Default.Translate
                                     Screen.History -> Icons.Default.History
                                     Screen.Settings -> Icons.Default.Settings
+                                    else -> Icons.Default.Settings
                                 },
                                 contentDescription = screen.title
                             )
@@ -144,6 +155,8 @@ fun WoofTalkApp() {
                 modifier = Modifier.padding(padding)
             )
             2 -> SettingsScreen(
+                entitlementManager = entitlementManager,
+                onNavigateToPaywall = onNavigateToPaywall,
                 cacheSize = 1000,
                 onCacheSizeChange = {},
                 aiEnabled = false,
@@ -152,6 +165,7 @@ fun WoofTalkApp() {
                 onThemeChange = {},
                 modifier = Modifier.padding(padding)
             )
+            else -> {}
         }
     }
 }

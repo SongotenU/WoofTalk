@@ -18,7 +18,8 @@ import com.wooftalk.domain.model.TranslationResult
 fun HistoryScreen(
     translations: List<TranslationResult>,
     onDelete: (TranslationResult) -> Unit,
-    onToggleFavorite: (TranslationResult) -> Unit
+    onToggleFavorite: (TranslationResult) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showFavoritesOnly by remember { mutableStateOf(false) }
