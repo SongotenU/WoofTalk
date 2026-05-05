@@ -22,7 +22,7 @@ Known deferred items at close: 6 (see STATE.md Deferred Items)
 - Phase 56: Pending (Android build fixes)
 - Phase 57: 57-01 COMPLETE (build fixed), 57-02 to 57-06 pending
 - Phase 58: Workflow files created (ios-build.yml, android-build.yml, pr-test.yml, staging-deploy.yml, release-build.yml)
-- Phase 61: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅ (E2E testing planned, pending Phases 55-60)
+- Phase 61: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅ (BLOCKED — awaiting Phases 59-60)
 - Phase 62: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, Sentry Web ✅ (in progress)
 - Phase 63: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, versions ✅ (in progress)
 - Phase 64: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, API.md ✅ (in progress)
@@ -56,9 +56,14 @@ Known deferred items at close: 6 (see STATE.md Deferred Items)
   - PR test automation ✅
   - Release and staging deployment ✅
   - All documentation ✅
-- Phase 59 — iOS App Store Submission — 🔲 Pending (PLAN.md, CONTEXT.md created 2026-05-05)
+- Phase 59 — iOS App Store Submission — 🔲 IN PROGRESS (Documentation ready 2026-05-05)
+  - App Store metadata ✅
+  - Screenshot instructions ✅
+  - App Store Connect setup ✅
+  - Xcode archive instructions ✅
+  - Manual steps required for submission
 - Phase 60 — Android Play Store Submission — 🔲 Pending (PLAN.md, CONTEXT.md created 2026-05-05)
-- Phase 61 — End-to-End Testing — 🔲 Pending (PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅ 2026-05-05)
+- Phase 61 — End-to-End Testing — 🔴 BLOCKED (awaiting Phases 59-60)
 - Phase 62 — Production Monitoring — ✅ COMPLETE (2026-05-05)
   - Sentry Web ✅, Sentry iOS ✅, Crashlytics Android ✅
   - Uptime Monitor ✅, MONITORING.md ✅
