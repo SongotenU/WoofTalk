@@ -1,16 +1,17 @@
 ---
-
-## Deferred Items
-
-Items acknowledged and deferred at milestone close on 2026-05-04:
-
-| Category | Item | Status |
-|----------|------|--------|
-| uat_gaps | Phase 51-HUMAN-UAT (5 pending scenarios) | partial |
-| verification_gaps | Phase 51-VERIFICATION.md | human_needed |
-
-Known deferred items at close: 6 (see STATE.md Deferred Items)
+gsd_state_version: 1.0
+milestone: v0.1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-05-06T20:06:47.244Z"
+progress:
+  total_phases: 15
+  completed_phases: 3
+  total_plans: 18
+  completed_plans: 11
+  percent: 61
 ---
+
 **Last Updated**: 2026-05-05
 **Project**: WoofTalk (iOS + Android + Web + Watch)
 **Milestone**: M010 Ship to Production — 🟡 IN PROGRESS
@@ -18,12 +19,13 @@ Known deferred items at close: 6 (see STATE.md Deferred Items)
 **Next Phase**: 65 — Post-Launch Operations
 **Blocked**: 0 (Phase 64 unblocked, pending executor-2 for #3/#5)
 **Notes**:
+
 - Phase 55: 7 of 7 plans complete (100%) ✅
 - Phase 56: Pending (Android build fixes)
 - Phase 57: 57-01 COMPLETE (build fixed), 57-02 to 57-06 pending
 - Phase 58: Workflow files created (ios-build.yml, android-build.yml, pr-test.yml, staging-deploy.yml, release-build.yml)
 - Phase 61: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅ (BLOCKED — awaiting Phases 59-60)
-- Phase 62: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, Sentry Web ✅ (in progress)
+- Phase 62: ✅ COMPLETE (Sentry iOS/Web, Crashlytics Android, uptime monitor, MONITORING.md)
 - Phase 63: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, versions ✅ (in progress)
 - Phase 64: PLAN.md ✅, SUMMARY.md ✅, CONTEXT.md ✅, API.md ✅ (in progress)
 - Web app builds successfully with Sentry integration
@@ -31,12 +33,14 @@ Known deferred items at close: 6 (see STATE.md Deferred Items)
 - Web version updated: 1.0.0
 
 ## Quick Stats
+
 - **Phases completed**: 6/64 (9%)
 - **Phases pending**: 58
 - **Total plans (tasks)**: 41
 - **Plans completed**: 23/41 (56%)
 
 ## Phase Completion
+
 - Phase 50 — RevenueCat SDK Integration — ✅ Complete (2026-04-15)
 - Phase 51 — Subscription Backend — ✅ Complete (2026-04-16)
 - Phase 52 — Paywall UI — ✅ Complete (2026-04-23)

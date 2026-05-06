@@ -1,60 +1,49 @@
 {
-  "timestamp": "2026-05-05T08:58:00+07:00",
-  "milestone": {
-    "name": "M010 Ship to Production",
-    "version": "v1.1",
-    "status": "in_progress"
-  },
-  "phase": {
-    "number": 55,
-    "name": "iOS Build Fixes & Production Prep",
-    "status": "in_progress",
-    "progress": {
-      "plans_completed": 5,
-      "plans_total": 7,
-      "percentage": 71.4
-    },
-    "directory": ".planning/phases/55"
-  },
-  "work_context": {
-    "location": ".planning",
-    "type": "phase"
-  },
-  "completed": {
-    "files_modified": [
-      "WoofTalk/EntitlementManager.swift",
-      "WoofTalk/Performance/BatteryOptimizer.swift",
-      ".planning/STATE.md"
-    ],
-    "swift_compilation_errors": {
-      "before": "30+",
-      "after": 0,
-      "status": "resolved"
-    },
-    "revenuecat_migration": {
-      "from_version": "v4.x",
-      "to_version": "v5.70.0",
-      "status": "complete"
-    },
-    "battery_optimizer_fix": {
-      "issue": "invalid top-level deinit",
-      "status": "resolved"
-    }
-  },
-  "remaining": {
-    "phase_55_plans": ["55-06", "55-07"],
-    "upcoming_phases": [56, 57, 58, 59, 60, 61, 62, 63, 64]
-  },
-  "documentation": [
-    ".planning/REQUIREMENTS.md",
-    ".planning/ROADMAP.md",
-    ".planning/STATE.md",
-    ".planning/VERIFICATION-55.md",
-    "PHASE_55_SUMMARY.md"
+  "version": "1.0",
+  "timestamp": "2026-05-06T21:04:39.880Z",
+  "phase": "56",
+  "phase_name": "Android Build Fixes & Production Prep",
+  "phase_dir": "phase-056",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 5,
+  "status": "paused",
+  "completed_tasks": [],
+  "remaining_tasks": [
+    {"id": 1, "name": "Android Gradle Build Fixes", "status": "not_started"},
+    {"id": 2, "name": "Hilt Dependency Injection Setup", "status": "not_started"},
+    {"id": 3, "name": "RevenueCat SDK Integration", "status": "not_started"},
+    {"id": 4, "name": "Feature Parity Verification", "status": "not_started"},
+    {"id": 5, "name": "Production Build Configuration", "status": "not_started"}
   ],
-  "resume": {
-    "command": "git status",
-    "next_task": "Complete Phase 55 plans 6-7",
-    "notes": "Critical code fixes complete. Ready to proceed with database concurrency fixes and final verification."
-  }
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "Hilt version 2.50.0 → 2.48.1", "rationale": "Version mismatch between settings.gradle.kts and app/build.gradle.kts", "phase": "56"},
+    {"decision": "Gradle wrapper URL fix", "rationale": "Download timeout from services.gradle.org, use standard URL", "phase": "56"},
+    {"decision": "Split PLAN.md into 5 individual plans (56-01 to 56-05)", "rationale": "GSD SDK requires individual plan files", "phase": "56"}
+  ],
+  "uncommitted_files": [
+    ".claude/scheduled_tasks.json",
+    ".planning/STATE.md",
+    ".planning/phases/61/SUMMARY.md",
+    "WoofTalk.xcodeproj/project.pbxproj",
+    "android/WoofTalk/app/build.gradle.kts",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/EntitlementManager.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/MainActivity.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/RevenueCatModule.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/WoofTalkApplication.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/data/remote/adapter/AuthInterceptor.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/data/remote/api/WoofTalkApi.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/push/FirebaseMessagingService.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/ui/screen/CommunityPhraseScreen.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/ui/tiles/TranslationTileService.kt",
+    "android/WoofTalk/app/src/main/res/values/strings.xml",
+    "android/WoofTalk/build.gradle",
+    "android/WoofTalk/gradle/wrapper/gradle-wrapper.properties",
+    "android/WoofTalk/settings.gradle.kts",
+    "web/public/sw.js"
+  ],
+  "next_action": "Execute Phase 56 plans (56-01 to 56-05) to fix Android build issues and prepare for production",
+  "context_notes": "M010 Ship to Production milestone - Phase 56 is the current focus. Phase 55 (iOS) completed. Need to fix Android build before proceeding to Phase 57-64."
 }
