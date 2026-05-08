@@ -236,21 +236,7 @@ npx tsc --noEmit             # Type checking
 | M007 | v4.1 | ✅ | AR/VR Mixed Reality |
 | M008 | v4.1 | ✅ | Production Hardening — CI/CD, observability, resilience |
 | **M009** | **v1.0** | ✅ | **Subscription & Payments — RevenueCat integration** |
-
-## Milestones
-
-| Milestone | Version | Status | Description |
-|-----------|---------|--------|-------------|
-| M001 | v1.0 | ✅ | Core Translation Engine — iOS app |
-| M002 | v1.0 | ✅ | Community Features — iOS |
-| M003 | v2.0 | ✅ | Advanced Features — AI, real-time, analytics |
-| M004 | v3.0 | ✅ | Platform Expansion — Android + cross-platform sync |
-| M005 | v3.1 | ✅ | Web + Smartwatch |
-| M006 | v4.0 | ✅ | Enterprise — API access, admin features |
-| M007 | v4.1 | ✅ | AR/VR Mixed Reality |
-| M008 | v4.1 | ✅ | Production Hardening — CI/CD, observability, resilience |
-| **M009** | **v1.0** | ✅ | **Subscription & Payments — RevenueCat integration** |
-| **M010** | **v1.0.0** | 🟡 | **Ship to Production — iOS, Android, Web** |
+| **M010** | **v1.0.0** | ✅ | **Ship to Production — iOS, Android, Web** |
 
 ---
 

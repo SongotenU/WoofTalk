@@ -1,6 +1,6 @@
 # WoofTalk Privacy Policy
 
-**Last Updated:** March 14, 2025
+**Last Updated:** May 8, 2026
 
 WoofTalk ("us", "we", or "our") operates the WoofTalk mobile application (the "App"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our App.
 
