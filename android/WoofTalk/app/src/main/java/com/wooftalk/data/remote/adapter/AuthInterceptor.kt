@@ -1,5 +1,6 @@
 package com.wooftalk.data.remote.adapter
 
+import com.wooftalk.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 

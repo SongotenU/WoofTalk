@@ -1,5 +1,6 @@
 package com.wooftalk.ui.tiles
 
+import android.content.Intent
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.wooftalk.R
@@ -30,14 +31,14 @@ class TranslationTileService : TileService() {
     }
 
     private fun startTranslation() {
-        val intent = VoiceTranslationService.createStartIntent(this).apply {
+        val intent = Intent(this, VoiceTranslationService::class.java).apply {
             action = VoiceTranslationService.ACTION_START
         }
         startForegroundService(intent)
     }
 
     private fun stopTranslation() {
-        val intent = VoiceTranslationService.createStartIntent(this).apply {
+        val intent = Intent(this, VoiceTranslationService::class.java).apply {
             action = VoiceTranslationService.ACTION_STOP
         }
         startService(intent)
@@ -48,7 +49,6 @@ class TranslationTileService : TileService() {
             if (isListening) {
                 state = Tile.STATE_ACTIVE
                 label = getString(R.string.tile_stop_translation)
-                icon
             } else {
                 state = Tile.STATE_INACTIVE
                 label = getString(R.string.tile_start_translation)

@@ -1,7 +1,8 @@
 package com.wooftalk
 
-import com.revenuecat.purchases.PurchasesConfiguration
+import android.content.Context
 import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.PurchasesConfiguration
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,12 +15,11 @@ object RevenueCatModule {
 
     @Provides
     @Singleton
-    fun providePurchases(app: android.app.Application): Purchases {
+    fun providePurchases(application: android.app.Application): Purchases {
         val apiKey = BuildConfig.REVENUECAT_ANDROID_API_KEY
-        val config = PurchasesConfiguration.Builder(app, apiKey)
-            // Don't set appUserID here - will be set later via login
-            .build()
-        Purchases.configure(config)
+        Purchases.configure(
+            PurchasesConfiguration.Builder(application, apiKey).build()
+        )
         return Purchases.sharedInstance
     }
 }

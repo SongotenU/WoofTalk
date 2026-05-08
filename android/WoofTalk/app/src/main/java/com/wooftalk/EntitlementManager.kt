@@ -1,27 +1,25 @@
 package com.wooftalk
 
-import android.util.Log
+import android.app.Activity
+import androidx.compose.runtime.*
+import com.revenuecat.purchases.Entitlement
+import com.revenuecat.purchases.EntitlementInfo
+import com.revenuecat.purchases.Offering
+import com.revenuecat.purchases.Package
 import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
-import com.revenuecat.purchases.models.CustomerInfo
-import com.revenuecat.purchases.models.Offerings
-import com.revenuecat.purchases.models.PeriodType
+import com.revenuecat.purchases.PurchasesError
+import com.revenuecat.purchases.interfaces.PurchaseCallback
+import com.revenuecat.purchases.models.StoreTransaction
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
 @ActivityRetainedScoped
-class EntitlementManager @Inject constructor(
-    private val purchases: Purchases
-) : UpdatedCustomerInfoListener {
+class EntitlementManager @Inject constructor() {
 
     companion object {
-        const val TAG = "EntitlementManager"
-        const val ENTITLEMENT_ID = "premium"
+        private const val TAG = "EntitlementManager"
     }
 
     private val _isPremium = MutableStateFlow(false)
@@ -33,88 +31,96 @@ class EntitlementManager @Inject constructor(
     private val _isReadyToAccessPaywall = MutableStateFlow(false)
     val isReadyToAccessPaywall: StateFlow<Boolean> = _isReadyToAccessPaywall.asStateFlow()
 
-    private val _offerings = MutableStateFlow<Offerings?>(null)
-    val offerings: StateFlow<Offerings?> = _offerings.asStateFlow()
+    private val _offerings = MutableStateFlow<Any?>(null)
+    val offerings: StateFlow<Any?> = _offerings.asStateFlow()
 
     private val _purchaseEvent = Channel<PurchaseEvent>(Channel.BUFFERED)
     val purchaseEvent = _purchaseEvent.receiveAsFlow()
 
-    init {
-        purchases.updatedCustomerInfoListener = this
+    val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
+
+    fun login(userId: String) {
+        Purchases.sharedInstance.logIn(
+            userId,
+            onError = { error ->
+                _purchaseEvent.trySend(PurchaseEvent.Error(error))
+            },
+            onSuccess = { customerInfo, created ->
+                checkEntitlements()
+            }
+        )
     }
 
-    override fun onReceived(customerInfo: CustomerInfo) {
-        Log.d(TAG, "Customer info updated")
-        updateEntitlements(customerInfo)
+    fun logout() {
+        Purchases.sharedInstance.logOut(
+            onError = { error ->
+                _purchaseEvent.trySend(PurchaseEvent.Error(error))
+            },
+            onSuccess = { customerInfo ->
+                checkEntitlements()
+            }
+        )
     }
 
     fun checkEntitlements() {
-        val customerInfo = purchases.customerInfo
-        updateEntitlements(customerInfo)
+        val customerInfo = Purchases.sharedInstance.customerInfo
+        val entitlements = customerInfo.entitlements.active
+        _isPremium.value = entitlements.containsKey("premium")
+        _isTrialActive.value = customerInfo.entitlements.active.values.any { it.isActive }
     }
 
     fun refreshOfferings() {
-        purchases.getOfferings { offerings, error ->
-            if (error != null) {
-                Log.e(TAG, "Error getting offerings: ${error.message}")
-                return@getOfferings
+        Purchases.sharedInstance.getOfferings(
+            onError = { error ->
+                _purchaseEvent.trySend(PurchaseEvent.Error(error))
+                _isReadyToAccessPaywall.value = false
+            },
+            onSuccess = { offerings ->
+                _offerings.value = offerings
+                _isReadyToAccessPaywall.value = true
             }
-            Log.d(TAG, "Offerings loaded")
-            _offerings.value = offerings
-            _isReadyToAccessPaywall.value = true
-        }
+        )
     }
 
     fun purchasePackage(
-        activity: android.app.Activity,
-        rcPackage: com.revenuecat.purchases.models.Package
+        activity: Activity,
+        rcPackage: Package
     ) {
-        val params = com.revenuecat.purchases.PurchaseParams.Builder(activity, rcPackage).build()
-        purchases.purchase(params) { _, customerInfo, error, userCancelled ->
-            if (error != null) {
-                Log.e(TAG, "Purchase error: ${error.message}")
-                _purchaseEvent.trySend(PurchaseEvent.Error(error))
-                return@purchase
+        Purchases.sharedInstance.purchase(
+            activity,
+            rcPackage,
+            object : PurchaseCallback {
+                override fun onCompleted(storeTransaction: StoreTransaction, customerInfo: com.revenuecat.purchases.CustomerInfo) {
+                    checkEntitlements()
+                    _purchaseEvent.trySend(PurchaseEvent.Success)
+                }
+
+                override fun onError(error: PurchasesError, userCancelled: Boolean) {
+                    if (userCancelled) {
+                        _purchaseEvent.trySend(PurchaseEvent.Cancelled)
+                    } else {
+                        _purchaseEvent.trySend(PurchaseEvent.Error(error))
+                    }
+                }
             }
-            if (userCancelled) {
-                Log.d(TAG, "User cancelled purchase")
-                _purchaseEvent.trySend(PurchaseEvent.Cancelled)
-                return@purchase
-            }
-            Log.d(TAG, "Purchase successful")
-            updateEntitlements(customerInfo)
-            _purchaseEvent.trySend(PurchaseEvent.Success)
-        }
+        )
     }
 
     fun restorePurchases() {
-        purchases.restorePurchases { customerInfo, error ->
-            if (error != null) {
-                Log.e(TAG, "Error restoring purchases: ${error.message}")
+        Purchases.sharedInstance.restorePurchases(
+            onError = { error ->
                 _purchaseEvent.trySend(PurchaseEvent.Error(error))
-                return@restorePurchases
+            },
+            onSuccess = { customerInfo ->
+                checkEntitlements()
+                _purchaseEvent.trySend(PurchaseEvent.Restored)
             }
-            Log.d(TAG, "Restored purchases")
-            updateEntitlements(customerInfo)
-            _purchaseEvent.trySend(PurchaseEvent.Restored)
-        }
-    }
-
-    private fun updateEntitlements(customerInfo: CustomerInfo) {
-        val entitlement = customerInfo.entitlements[ENTITLEMENT_ID]
-        val isPremium = entitlement?.isActive == true
-        val isTrial = entitlement?.periodType == PeriodType.TRIAL
-
-        _isPremium.value = isPremium
-        _isTrialActive.value = isTrial
-
-        Log.d(TAG, "Entitlements updated: premium=$isPremium, trial=$isTrial")
+        )
     }
 
     fun getActiveEntitlements(): List<String> {
-        return purchases.customerInfo.entitlements
-            .filterValues { it.isActive }
-            .keys.toList()
+        val customerInfo = Purchases.sharedInstance.customerInfo
+        return customerInfo.entitlements.active.keys.toList()
     }
 }
 
@@ -122,5 +128,5 @@ sealed class PurchaseEvent {
     object Success : PurchaseEvent()
     object Cancelled : PurchaseEvent()
     object Restored : PurchaseEvent()
-    data class Error(val error: com.revenuecat.purchases.PurchasesError) : PurchaseEvent()
+    data class Error(val error: Any?) : PurchaseEvent()
 }

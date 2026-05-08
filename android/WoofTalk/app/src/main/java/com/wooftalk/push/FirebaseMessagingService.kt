@@ -11,12 +11,14 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.wooftalk.BuildConfig
 import com.wooftalk.MainActivity
 import com.wooftalk.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -118,8 +120,8 @@ class WoofTalkFirebaseMessagingService : FirebaseMessagingService() {
                     return@launch
                 }
 
-                val supabaseUrl = getString(R.string.supabase_url)
-                val apiKey = getString(R.string.supabase_anon_key)
+                val supabaseUrl = BuildConfig.SUPABASE_URL
+                val apiKey = BuildConfig.SUPABASE_ANON_KEY
                 val url = "$supabaseUrl/rest/v1/push_tokens"
                 
                 val json = JSONObject().apply {
@@ -128,10 +130,8 @@ class WoofTalkFirebaseMessagingService : FirebaseMessagingService() {
                     put("platform", "android")
                 }
                 
-                val requestBody = RequestBody.create(
-                    MediaType.parse("application/json; charset=utf-8"),
-                    json.toString()
-                )
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val requestBody = RequestBody.create(mediaType, json.toString())
                 
                 val request = Request.Builder()
                     .url(url)
