@@ -1,11 +1,11 @@
 plugins {
-    id("com.android.application")
+    id("com.android.application") version "8.9.1"
     id("org.jetbrains.kotlin.android") version "2.0.21"
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
     id("com.google.devtools.ksp") version "2.0.21-1.0.28"
     id("com.google.dagger.hilt.android") version "2.48.1"
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    id("com.google.gms.google-services") version "4.4.0" apply false
+    id("com.google.firebase.crashlytics") version "3.0.2"
 }
 
 android {
