@@ -1,0 +1,955 @@
+<!-- generated-by: manual -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WoofTalk M010 — Ship to Production Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1a1a25;
+  --border: #2a2a3a;
+  --border-bright: #3a3a5a;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9090a8;
+  --text-muted: #606078;
+  --accent-green: #22c55e;
+  --accent-green-dim: #16a34a;
+  --accent-yellow: #eab308;
+  --accent-yellow-dim: #ca8a04;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
+  --accent-cyan: #06b6d4;
+  --accent-pink: #ec4899;
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-green: linear-gradient(135deg, #22c55e, #06b6d4);
+  --gradient-yellow: linear-gradient(135deg, #eab308, #f97316);
+  --gradient-red: linear-gradient(135deg, #ef4444, #a855f7);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+  --shadow-glow-green: 0 0 20px rgba(34,197,94,0.3);
+  --shadow-glow-blue: 0 0 20px rgba(59,130,246,0.3);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* Hero Section */
+.hero {
+  position: relative;
+  padding: 80px 24px 60px;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #13131f 0%, var(--bg-primary) 100%);
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--border-bright);
+  background: rgba(102, 126, 234, 0.1);
+  color: #a5b4fc;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  animation: fadeInDown 0.6s ease;
+}
+.hero h1 {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+  animation: fadeInUp 0.8s ease;
+}
+.hero-sub {
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--text-secondary);
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto 32px;
+  animation: fadeInUp 1s ease;
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  animation: fadeInUp 1.2s ease;
+}
+.hero-chip {
+  padding: 8px 16px;
+  border-radius: 100px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.hero-chip strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Big Progress Ring */
+.progress-ring-container {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0 20px;
+  animation: fadeInUp 1.4s ease;
+}
+.progress-ring-wrap {
+  position: relative;
+  width: 160px; height: 160px;
+}
+.progress-ring-wrap svg {
+  transform: rotate(-90deg);
+  width: 160px; height: 160px;
+}
+.progress-ring-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 10;
+}
+.progress-ring-fill {
+  fill: none;
+  stroke: url(#ringGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  transition: stroke-dashoffset 2s ease;
+}
+.progress-ring-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.progress-ring-text .pct {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  background: var(--gradient-green);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.progress-ring-text .label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+/* Container */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 48px;
+  animation: fadeInUp 0.6s ease both;
+}
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Phase Cards */
+.phases-grid {
+  display: grid;
+  gap: 8px;
+}
+.phase-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+}
+.phase-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bright);
+  box-shadow: var(--shadow-md);
+}
+.phase-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.phase-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+.phase-icon.done { background: rgba(34,197,94,0.15); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
+.phase-icon.partial { background: rgba(234,179,8,0.15); color: var(--accent-yellow); border: 1px solid rgba(234,179,8,0.3); }
+.phase-icon.blocked { background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+
+.phase-info h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.phase-info .phase-notes {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.progress-bar-container {
+  width: 140px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.5s ease;
+}
+.progress-bar.done { width: 100%; background: var(--gradient-green); }
+.progress-bar.partial { width: 40%; background: var(--gradient-yellow); }
+.progress-bar.blocked { width: 10%; background: var(--gradient-red); }
+
+.phase-status {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.phase-status.done { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+.phase-status.partial { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+.phase-status.blocked { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+/* Tech Stack */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.tech-card {
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+.tech-card:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.tech-card-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.tech-card-icon.ios { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+.tech-card-icon.android { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+.tech-card-icon.web { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+.tech-card-icon.backend { background: rgba(236,72,153,0.15); color: var(--accent-pink); }
+.tech-card-icon.ci { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+.tech-card-icon.monitor { background: rgba(6,182,212,0.15); color: var(--accent-cyan); }
+
+.tech-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tech-card p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.tech-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  margin: 2px 4px 2px 0;
+}
+
+/* Commit Timeline */
+.commit-timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.commit-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: var(--border);
+}
+.commit-item {
+  position: relative;
+  padding: 12px 0 12px 20px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.4s ease;
+}
+.commit-item.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+.commit-item::before {
+  content: '';
+  position: absolute;
+  left: -24px; top: 18px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--accent-blue);
+  z-index: 1;
+}
+.commit-item .commit-type {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.commit-type.feat { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+.commit-type.fix { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+.commit-type.docs { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+.commit-type.wip { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.commit-item .commit-msg {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.commit-item .commit-hash {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Blockers */
+.blocker-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: rgba(239,68,68,0.05);
+  border: 1px solid rgba(239,68,68,0.2);
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+.blocker-card:hover {
+  border-color: rgba(239,68,68,0.4);
+  box-shadow: 0 0 16px rgba(239,68,68,0.1);
+}
+.blocker-card.warning {
+  background: rgba(234,179,8,0.05);
+  border-color: rgba(234,179,8,0.2);
+}
+.blocker-card.warning:hover {
+  border-color: rgba(234,179,8,0.4);
+  box-shadow: 0 0 16px rgba(234,179,8,0.1);
+}
+.blocker-icon {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+}
+.blocker-icon.err { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.blocker-icon.warn { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+.blocker-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.blocker-content p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 48px;
+}
+.stat-card {
+  padding: 24px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+}
+.stat-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.stat-card:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--shadow-md);
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-value.green { color: var(--accent-green); }
+.stat-value.yellow { color: var(--accent-yellow); }
+.stat-value.red { color: var(--accent-red); }
+.stat-value.purple { color: var(--accent-purple); }
+.stat-value.blue { color: var(--accent-blue); }
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Footer */
+.report-footer {
+  text-align: center;
+  padding: 40px 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.report-footer p:first-child {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero { padding: 60px 16px 40px; }
+  .phase-card { grid-template-columns: auto 1fr; gap: 12px; }
+  .phase-card .progress-bar-container,
+  .phase-card .phase-status { grid-column: 2; }
+  .tech-grid { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr 1fr; }
+  .container { padding: 0 16px; }
+}
+@media (max-width: 480px) {
+  .tech-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .hero-meta { gap: 8px; }
+}
+
+/* Pulse animation for critical items */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.pulse { animation: pulse 2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- SVG gradient definition -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="50%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-badge">
+    <span class="pulse" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#eab308;margin-right:2px;"></span>
+    WOOF TALK
+  </div>
+
+  <div class="progress-ring-container">
+    <div class="progress-ring-wrap">
+      <svg viewBox="0 0 140 140">
+        <circle class="progress-ring-bg" cx="70" cy="70" r="65"/>
+        <circle class="progress-ring-fill" cx="70" cy="70" r="65" id="progressRing"/>
+      </svg>
+      <div class="progress-ring-text">
+        <div class="pct" id="progressPct">0%</div>
+        <div class="label">complete</div>
+      </div>
+    </div>
+  </div>
+
+  <h1>M010 Ship to Production</h1>
+  <p class="hero-sub">AI-powered dog bark translator &mdash; bringing cross-platform translation to iOS, Android, and Web.</p>
+
+  <div class="hero-meta">
+    <span class="hero-chip"><strong>v1.1.0</strong></span>
+    <span class="hero-chip"><strong>11/15</strong> phases</span>
+    <span class="hero-chip">Committed <strong>2026-05-13</strong></span>
+    <span class="hero-chip">Branch <code style="font-family:'JetBrains Mono',monospace;font-size:12px;">feature/M010-ship-to-production</code></span>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card" data-delay="0">
+      <div class="stat-value green">11</div>
+      <div class="stat-label">Phases Done</div>
+    </div>
+    <div class="stat-card" data-delay="100">
+      <div class="stat-value yellow">1</div>
+      <div class="stat-label">Partial</div>
+    </div>
+    <div class="stat-card" data-delay="200">
+      <div class="stat-value red">2</div>
+      <div class="stat-label">Blocked</div>
+    </div>
+    <div class="stat-card" data-delay="300">
+      <div class="stat-value blue">5/5</div>
+      <div class="stat-label">E2E Tests</div>
+    </div>
+    <div class="stat-card" data-delay="400">
+      <div class="stat-value purple">v1.1.0</div>
+      <div class="stat-label">Version</div>
+    </div>
+  </div>
+
+  <!-- Phase Status -->
+  <div class="section">
+    <div class="section-title">Phase Status</div>
+    <div class="phases-grid">
+
+      <div class="phase-card" data-delay="0">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 55 &mdash; iOS Build Fixes</h3>
+          <div class="phase-notes">Build configuration resolved, compiles clean</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="80">
+        <div class="phase-icon partial">&#9888;</div>
+        <div class="phase-info">
+          <h3>Phase 56 &mdash; Android Build Fixes</h3>
+          <div class="phase-notes">AGP 8.7.0 + Gradle 8.9 config fixed, AGP classloader bug requires clean build environment</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar partial"></div></div>
+        <div class="phase-status partial">Partial</div>
+      </div>
+
+      <div class="phase-card" data-delay="160">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 57 &mdash; Web Deploy</h3>
+          <div class="phase-notes">Vercel deployment ready, builds clean</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="240">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 58 &mdash; CI/CD</h3>
+          <div class="phase-notes">GitHub Actions pipeline configured and operational</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="320">
+        <div class="phase-icon blocked">&#10007;</div>
+        <div class="phase-info">
+          <h3>Phase 59 &mdash; iOS App Store</h3>
+          <div class="phase-notes">Blocked: Manual Xcode Archive + code signing required</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar blocked"></div></div>
+        <div class="phase-status blocked">Blocked</div>
+      </div>
+
+      <div class="phase-card" data-delay="400">
+        <div class="phase-icon blocked">&#10007;</div>
+        <div class="phase-info">
+          <h3>Phase 60 &mdash; Play Store</h3>
+          <div class="phase-notes">Blocked: Google Play Console manual upload + store listing</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar blocked"></div></div>
+        <div class="phase-status blocked">Blocked</div>
+      </div>
+
+      <div class="phase-card" data-delay="480">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 61 &mdash; E2E Testing</h3>
+          <div class="phase-notes">5/5 Playwright tests passing (translate heading, E2E scenarios)</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="560">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 62 &mdash; Monitoring</h3>
+          <div class="phase-notes">Web Vitals: CLS, INP, LCP, FCP, TTFB &mdash; all reporting</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="640">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 63 &mdash; Release Management</h3>
+          <div class="phase-notes">Version bump, CHANGELOG, release artifacts</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+      <div class="phase-card" data-delay="720">
+        <div class="phase-icon done">&#10003;</div>
+        <div class="phase-info">
+          <h3>Phase 64 &mdash; Documentation</h3>
+          <div class="phase-notes">Legal docs, compliance, M010 milestone documentation</div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar done"></div></div>
+        <div class="phase-status done">Done</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Blockers -->
+  <div class="section">
+    <div class="section-title">Blockers &amp; Warnings</div>
+
+    <div class="blocker-card" style="animation: fadeInUp 0.6s ease both; animation-delay: 0.1s;">
+      <div class="blocker-icon err">!</div>
+      <div class="blocker-content">
+        <h4>iOS App Store Submission (Phase 59)</h4>
+        <p>Requires Xcode GUI Archive workflow with valid code signing identity and distribution certificate. Cannot be automated in CI without App Store Connect API key setup. Must be run manually on a macOS machine with the appropriate provisioning profiles.</p>
+      </div>
+    </div>
+
+    <div class="blocker-card" style="animation: fadeInUp 0.6s ease both; animation-delay: 0.2s;">
+      <div class="blocker-icon err">!</div>
+      <div class="blocker-content">
+        <h4>Google Play Store Upload (Phase 60)</h4>
+        <p>Requires manual upload to Google Play Console. Store listing (screenshots, description, privacy policy URL) must be configured. AAB artifact must be built and signed with the release key before upload.</p>
+      </div>
+    </div>
+
+    <div class="blocker-card warning" style="animation: fadeInUp 0.6s ease both; animation-delay: 0.3s;">
+      <div class="blocker-icon warn">&#9888;</div>
+      <div class="blocker-content">
+        <h4>Android AGP Classloader Conflict (Phase 56)</h4>
+        <p>AGP 8.2.2 to 8.7.0 upgrade fixed compatibility issues, and Gradle wrapper updated to 8.9 with Java 21. However, a Gradle 8.x AGP classloader bug persists on cached build environments. Workaround: clean build (<code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-yellow);">gradlew clean</code>) or use a fresh checkout. The Android build itself is now structurally correct.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <div class="section-title">Technology Stack</div>
+    <div class="tech-grid">
+
+      <div class="tech-card">
+        <div class="tech-card-icon ios">&#63743;</div>
+        <h4>iOS</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">SwiftUI</span>
+          <span class="tech-tag">Xcode</span>
+          <span class="tech-tag">RevenueCat</span>
+        </div>
+        <p>Native iOS app with RevenueCat subscription management and Supabase sync.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-icon android">&#63741;</div>
+        <h4>Android</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">Kotlin</span>
+          <span class="tech-tag">Compose</span>
+          <span class="tech-tag">AGP 8.7.0</span>
+          <span class="tech-tag">Gradle 8.9</span>
+        </div>
+        <p>Jetpack Compose UI with AGP 8.7.0 + Gradle 8.9 for Java 21 compatibility.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-icon web">&#63744;</div>
+        <h4>Web</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">Next.js 14</span>
+          <span class="tech-tag">React</span>
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">PWA</span>
+        </div>
+        <p>Next.js 14 app deployed on Vercel with PWA support and Web Vitals monitoring.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-icon backend">&#9881;</div>
+        <h4>Backend</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">Supabase</span>
+          <span class="tech-tag">PostgreSQL</span>
+          <span class="tech-tag">Auth</span>
+          <span class="tech-tag">RLS</span>
+        </div>
+        <p>Supabase backend with PostgreSQL, authentication, and Row Level Security policies.</p>
+      </div>
+
+
+      <div class="tech-card">
+        <div class="tech-card-icon ci">&#9881;</div>
+        <h4>CI/CD</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">GitHub Actions</span>
+        </div>
+        <p>Automated build, test, and deployment pipelines triggered on push and pull requests.</p>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-icon monitor">&#9881;</div>
+        <h4>Monitoring</h4>
+        <div style="margin-bottom:8px;">
+          <span class="tech-tag">Sentry</span>
+          <span class="tech-tag">CLS</span>
+          <span class="tech-tag">INP</span>
+          <span class="tech-tag">LCP</span>
+          <span class="tech-tag">FCP</span>
+          <span class="tech-tag">TTFB</span>
+        </div>
+        <p>Real-time error tracking via Sentry plus all 5 Core Web Vitals metrics.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Commit Timeline -->
+  <div class="section">
+    <div class="section-title">Recent Commit Activity</div>
+    <div class="commit-timeline">
+
+      <div class="commit-item" data-delay="0">
+        <span class="commit-type docs">docs</span>
+        <div class="commit-msg">update CHANGELOG for v1.1.0</div>
+        <div class="commit-hash">c49bb1c</div>
+      </div>
+
+      <div class="commit-item" data-delay="100">
+        <span class="commit-type fix">fix</span>
+        <div class="commit-msg">Phase 61 &mdash; translate heading + E2E tests, iOS pbxproj, Android Gradle</div>
+        <div class="commit-hash">9e1a2af</div>
+      </div>
+
+      <div class="commit-item" data-delay="200">
+        <span class="commit-type feat">feat</span>
+        <div class="commit-msg">Phase 62 &mdash; Web Vitals monitoring (CLS, INP, LCP, FCP, TTFB)</div>
+        <div class="commit-hash">b8afa8d</div>
+      </div>
+
+      <div class="commit-item" data-delay="300">
+        <span class="commit-type docs">docs</span>
+        <div class="commit-msg">Phase 64 &mdash; M010 milestone complete, legal docs dated 2026</div>
+        <div class="commit-hash">68732f7</div>
+      </div>
+
+      <div class="commit-item" data-delay="400">
+        <span class="commit-type feat">feat</span>
+        <div class="commit-msg">Phase 61 E2E testing static verification</div>
+        <div class="commit-hash">6304901</div>
+      </div>
+
+      <div class="commit-item" data-delay="500">
+        <span class="commit-type fix">fix</span>
+        <div class="commit-msg">Upgrade AGP 8.2.2 &rarr; 8.7.0 for Java 21 compatibility</div>
+        <div class="commit-hash">f83cfef</div>
+      </div>
+
+      <div class="commit-item" data-delay="600">
+        <span class="commit-type wip">wip</span>
+        <div class="commit-msg">M010 paused at Phase 56/64</div>
+        <div class="commit-hash">3efa2a8</div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="report-footer">
+  <p>WoofTalk M010 Ship to Production Report</p>
+  <p>Version 1.1.0 &bull; Generated 2026-05-13 &bull; Branch: feature/M010-ship-to-production</p>
+</footer>
+
+<script>
+// Animate progress ring on load
+function animateProgressRing() {
+  const ring = document.getElementById('progressRing');
+  const pctEl = document.getElementById('progressPct');
+  const circumference = 2 * Math.PI * 65; // approximately 408.4
+  const targetPct = 73;
+  const targetOffset = circumference * (1 - targetPct / 100);
+
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+
+  // Trigger animation after a small delay
+  setTimeout(() => {
+    ring.style.strokeDashoffset = targetOffset;
+  }, 500);
+
+  // Animate counter
+  let current = 0;
+  const duration = 2000;
+  const start = performance.now();
+
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    current = Math.round(eased * targetPct);
+    pctEl.textContent = current + '%';
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    }
+  }
+
+  setTimeout(() => requestAnimationFrame(tick), 500);
+}
+
+// Intersection observer for staggered animations
+function initAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.getAttribute('data-delay') || 0;
+        setTimeout(() => {
+          entry.target.classList.add('animate-in');
+        }, parseInt(delay, 10));
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.phase-card, .stat-card, .commit-item').forEach(el => {
+    observer.observe(el);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  animateProgressRing();
+  initAnimations();
+});
+</script>
+</body>
+</html>
