@@ -7,7 +7,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             when (requested.id.id) {
-                "com.android.application" -> useVersion("8.2.2")
+                "com.android.application" -> useVersion("8.7.0")
                 "org.jetbrains.kotlin.android" -> useVersion("2.0.21")
                 "org.jetbrains.kotlin.plugin.compose" -> useVersion("2.0.21")
                 "com.google.devtools.ksp" -> useVersion("2.0.21-1.0.28")
@@ -24,10 +24,6 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
-}
-
-plugins {
-    id("com.google.gms.google-services") version "4.4.0" apply false
 }
 
 rootProject.name = "WoofTalk"
