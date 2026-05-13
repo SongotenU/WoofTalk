@@ -22,7 +22,8 @@ fun TranslationScreen(
     onTranslate: (String, TranslationDirection) -> Unit,
     onToggleFavorite: (String) -> Unit,
     results: List<TranslationResult>,
-    isTranslating: Boolean
+    isTranslating: Boolean,
+    modifier: Modifier = Modifier
 ) {
     var inputText by remember { mutableStateOf("") }
     var selectedLanguage by remember { mutableStateOf("Dog") }

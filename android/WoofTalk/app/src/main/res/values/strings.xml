@@ -14,4 +14,8 @@
     <!-- Quick Settings Tile -->
     <string name="tile_start_translation">Start Translation</string>
     <string name="tile_stop_translation">Stop Translation</string>
+
+    <!-- Supabase Configuration -->
+    <string name="supabase_url">https://your-project.supabase.co</string>
+    <string name="supabase_anon_key">your-anon-key</string>
 </resources>

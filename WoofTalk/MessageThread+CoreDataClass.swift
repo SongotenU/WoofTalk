@@ -2,7 +2,7 @@ import Foundation
 import CoreData
 
 @objc(MessageThread)
-public class MessageThread: NSManagedObject {
+public class MessageThread: NSManagedObject, @unchecked Sendable {
     @NSManaged public var id: UUID?
     @NSManaged public var participant1ID: String?
     @NSManaged public var participant2ID: String?
@@ -43,7 +43,7 @@ extension MessageThread {
 // MARK: - Message
 
 @objc(Message)
-public class Message: NSManagedObject {
+public class Message: NSManagedObject, @unchecked Sendable {
     @NSManaged public var id: UUID?
     @NSManaged public var threadID: String?
     @NSManaged public var senderID: String?

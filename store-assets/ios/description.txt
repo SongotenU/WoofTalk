@@ -1,0 +1,43 @@
+Talk to Your Pets
+
+WoofTalk is the ultimate pet communication app that enables natural, bidirectional translation between humans and their pets. Whether you want to understand what your dog is saying, talk to your cat, or communicate with birds, WoofTalk makes it possible through advanced AI translation technology.
+
+Key Features:
+
+• Bidirectional Translation — Human → Animal and Animal → Human for Dog, Cat, and Bird languages
+• Voice Input/Output — Speak to translate, listen to results with natural-sounding pet voices
+• Cross-Platform Sync — Start a translation on your watch, see it on your phone, continue on the web
+• Community Phrases — Browse, contribute, and vote on user-submitted translations
+• Social Features — Follow other pet lovers, view leaderboards, track your translation activity
+• Offline Mode — Core translations work even without internet (limited functionality)
+• Real-Time Updates — Community phrases and translations sync in under 1 second
+• PWA Support — Install the web app on any device for seamless access
+
+Supported Animals:
+- 🐕 Dogs — Understand barks, whines, and body language
+- 🐱 Cats — Decode meows, purrs, and tail signals
+- 🐦 Birds — Interpret chirps, songs, and calls
+
+Premium Features (via In-App Purchase):
+- Unlimited translations
+- Priority AI processing
+- Advanced animal language models
+- Ad-free experience
+- Extended translation history
+- Custom pet profiles
+
+Perfect for:
+- Pet owners who want to understand their furry friends
+- Animal lovers curious about inter-species communication
+- Families teaching kids about pet emotions
+- Anyone who's ever wondered "What is my pet thinking?"
+
+Privacy-Focused:
+- Local-first storage for your translations
+- No selling of personal data
+- Optional cloud sync via secure Supabase backend
+- Microphone access only when actively translating
+
+Download WoofTalk today and start the conversation with your pets!
+
+Note: WoofTalk uses AI technology for translation. While we strive for accuracy, animal communication is complex and results should be interpreted as entertainment and approximation.

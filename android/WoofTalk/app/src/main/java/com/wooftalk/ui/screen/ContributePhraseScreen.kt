@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.wooftalk.data.local.entity.CommunityPhraseEntity
 import com.wooftalk.domain.usecase.SpamDetectionService
@@ -24,7 +25,8 @@ fun ContributePhraseScreen(
     var isSubmitting by remember { mutableStateOf(false) }
     var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
 
-    val spamDetector = remember { SpamDetectionService(android.content.Context) }
+    val context = LocalContext.current
+    val spamDetector = remember { SpamDetectionService(context) }
 
     Scaffold(
         topBar = {
@@ -52,7 +54,7 @@ fun ContributePhraseScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Enter phrase") },
-                placeholder = { Text("e.g., 'woof woof' means 'hello'" },
+                placeholder = { Text("e.g., 'woof woof' means 'hello'") },
                 minLines = 3,
                 maxLines = 5,
                 isError = validationResult?.isValid == false
@@ -76,7 +78,7 @@ fun ContributePhraseScreen(
                     FilterChip(
                         selected = selectedLanguage == lang,
                         onClick = { selectedLanguage = lang },
-                        label = { Text(lang.capitalize()) }
+                        label = { Text(lang.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }) }
                     )
                 }
             }

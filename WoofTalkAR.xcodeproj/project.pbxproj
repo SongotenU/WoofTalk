@@ -11,6 +11,15 @@
 		B5E70D6826B6A37000A371C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E70D6726B6A37000A371C6 /* ContentView.swift */; };
 		B5E70D6F26B6A5C000A371C6 /* WoofTalkAR.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = B5E70D6E26B6A5C000A371C6 /* WoofTalkAR.entitlements */; };
 		B5E70D7226B6A6C000A371C6 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5E70D7126B6A6C000A371C6 /* Info.plist */; };
+		B632119CB64F1D65E9895D67 /* ARCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10CA4243702F2239C5837FB /* ARCoordinator.swift */; };
+		B7562D261CC6066F7798E5AD /* BarkClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7464EFFD33B3AF3C7C43183 /* BarkClassification.swift */; };
+		AAEAD8903A4D5A72FECD7066 /* ARPlacementEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C4CDD2BAC5D8916650764F /* ARPlacementEngine.swift */; };
+		B9421D884239CE07AF6535D1 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00B5200C91786D7B93A874E /* AudioRecorder.swift */; };
+		B275931AC3A3BC83CD645B5D /* BarkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F333C414634914DABB9339 /* BarkDetector.swift */; };
+		A1D085197EDE3F68E65206C3 /* GestureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B134A0355D5CAA97325E6AE6 /* GestureHandler.swift */; };
+		C4643555C27F76A3B66E8654 /* SpatialAudioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89FCC2BE534D7F784D36571 /* SpatialAudioController.swift */; };
+		EC438E62EBC23220BE1CEA54 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB50410B34E4AA49E3C98A67 /* TranslationService.swift */; };
+		F7BBCEEDFD7E04B299057EF0 /* TranslationBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29EEBF103F5E69C7504D1C1 /* TranslationBubble.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +40,15 @@
 		B5E70D7126B6A6C000A371C6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B5E70D7A26B6A91000A371C6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		B5E70D7B26B6A91000A371C6 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		C10CA4243702F2239C5837FB /* ARCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARCoordinator.swift; sourceTree = "<group>"; };
+		F7464EFFD33B3AF3C7C43183 /* BarkClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarkClassification.swift; sourceTree = "<group>"; };
+		B9C4CDD2BAC5D8916650764F /* ARPlacementEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPlacementEngine.swift; sourceTree = "<group>"; };
+		B00B5200C91786D7B93A874E /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		B7F333C414634914DABB9339 /* BarkDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarkDetector.swift; sourceTree = "<group>"; };
+		B134A0355D5CAA97325E6AE6 /* GestureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureHandler.swift; sourceTree = "<group>"; };
+		B89FCC2BE534D7F784D36571 /* SpatialAudioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialAudioController.swift; sourceTree = "<group>"; };
+		BB50410B34E4AA49E3C98A67 /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
+		A29EEBF103F5E69C7504D1C1 /* TranslationBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationBubble.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -70,6 +88,7 @@
 		B5E70D7D26B6A91000A371C6 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F7464EFFD33B3AF3C7C43183 /* BarkClassification.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -77,6 +96,12 @@
 		B5E70D7E26B6A91000A371C6 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B9C4CDD2BAC5D8916650764F /* ARPlacementEngine.swift */,
+				B00B5200C91786D7B93A874E /* AudioRecorder.swift */,
+				B7F333C414634914DABB9339 /* BarkDetector.swift */,
+				B134A0355D5CAA97325E6AE6 /* GestureHandler.swift */,
+				B89FCC2BE534D7F784D36571 /* SpatialAudioController.swift */,
+				BB50410B34E4AA49E3C98A67 /* TranslationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -84,6 +109,7 @@
 		B5E70D7F26B6A91000A371C6 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A29EEBF103F5E69C7504D1C1 /* TranslationBubble.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -159,8 +185,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5E70D6B26B6A37000A371C6 /* App.swift in Sources */,
-				B5E70D6D26B6A37000A371C6 /* ContentView.swift in Sources */,
+				B5E70D6626B6A37000A371C6 /* App.swift in Sources */,
+				B5E70D6826B6A37000A371C6 /* ContentView.swift in Sources */,
+				B632119CB64F1D65E9895D67 /* ARCoordinator.swift in Sources */,
+				B7562D261CC6066F7798E5AD /* BarkClassification.swift in Sources */,
+				AAEAD8903A4D5A72FECD7066 /* ARPlacementEngine.swift in Sources */,
+				B9421D884239CE07AF6535D1 /* AudioRecorder.swift in Sources */,
+				B275931AC3A3BC83CD645B5D /* BarkDetector.swift in Sources */,
+				A1D085197EDE3F68E65206C3 /* GestureHandler.swift in Sources */,
+				C4643555C27F76A3B66E8654 /* SpatialAudioController.swift in Sources */,
+				EC438E62EBC23220BE1CEA54 /* TranslationService.swift in Sources */,
+				F7BBCEEDFD7E04B299057EF0 /* TranslationBubble.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

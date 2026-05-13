@@ -3,7 +3,7 @@ import CoreData
 import SwiftUI
 
 @objc(DogProfile)
-public class DogProfile: NSManagedObject {
+public class DogProfile: NSManagedObject, @unchecked Sendable {
     @NSManaged public var id: UUID?
     @NSManaged public var name: String?
     @NSManaged public var breed: String?
@@ -43,6 +43,7 @@ public class DogProfile: NSManagedObject {
 
 // MARK: - DogProfileManager
 
+@MainActor
 final class DogProfileManager {
     static let shared = DogProfileManager(context: PersistenceController.shared.container.viewContext)
     private let context: NSManagedObjectContext

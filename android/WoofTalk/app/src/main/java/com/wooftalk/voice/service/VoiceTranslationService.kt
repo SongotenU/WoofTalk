@@ -28,7 +28,7 @@ class VoiceTranslationService : Service() {
     private val _translationResults = MutableSharedFlow<TranslationResult>()
     val translationResults: SharedFlow<TranslationResult> = _translationResults
 
-    private val _recognitionStatus = MutableStateFlow(RecognitionStatus.IDLE)
+    private val _recognitionStatus = MutableStateFlow<RecognitionStatus>(RecognitionStatus.IDLE)
     val recognitionStatus: StateFlow<RecognitionStatus> = _recognitionStatus.asStateFlow()
 
     var isRunning = false
@@ -88,7 +88,7 @@ class VoiceTranslationService : Service() {
             }
             serviceScope.launch {
                 engine.errors.collect { error ->
-                    _recognitionStatus.value = RecognitionStatus.ERROR(error.message)
+                    _recognitionStatus.value = RecognitionStatus.ERROR(error.message ?: "Unknown error")
                 }
             }
         }
@@ -180,7 +180,10 @@ class VoiceTranslationService : Service() {
     }
 }
 
-enum class RecognitionStatus {
-    IDLE, LISTENING, TRANSLATING, SPEAKING;
-    data class Error(val message: String) : RecognitionStatus()
+sealed class RecognitionStatus {
+    object IDLE : RecognitionStatus()
+    object LISTENING : RecognitionStatus()
+    object TRANSLATING : RecognitionStatus()
+    object SPEAKING : RecognitionStatus()
+    data class ERROR(val message: String) : RecognitionStatus()
 }

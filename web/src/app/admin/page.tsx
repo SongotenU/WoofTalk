@@ -1,5 +1,7 @@
 import { getAdminClient } from '@/lib/supabase/server-admin';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboard() {
  const supabase = getAdminClient();
 

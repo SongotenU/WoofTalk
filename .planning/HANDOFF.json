@@ -1,46 +1,49 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-14T07:00:08.078Z",
-  "phase": null,
-  "phase_name": "M009 Subscription & Payments — milestone init",
-  "phase_dir": null,
-  "plan": null,
-  "task": null,
-  "total_tasks": null,
+  "timestamp": "2026-05-06T21:04:39.880Z",
+  "phase": "56",
+  "phase_name": "Android Build Fixes & Production Prep",
+  "phase_dir": "phase-056",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 5,
   "status": "paused",
-  "completed_tasks": [
-    {"id": 1, "name": "Milestone goals gathered", "status": "done", "commit": "4a7ae14"},
-    {"id": 2, "name": "PROJECT.md updated with v1.0 milestone", "status": "done", "commit": "4a7ae14"},
-    {"id": 3, "name": "STATE.md reset for new milestone", "status": "done", "commit": "4a7ae14"},
-    {"id": 4, "name": "Old phase directories cleared (7 dirs)", "status": "done", "commit": "n/a"},
-    {"id": 5, "name": "Research spawned (4 parallel agents)", "status": "done", "commit": "n/a"}
-  ],
+  "completed_tasks": [],
   "remaining_tasks": [
-    {"id": 6, "name": "Verify research quality (agents hit rate limits but files exist on disk)", "status": "not_started"},
-    {"id": 7, "name": "Display research findings from SUMMARY.md", "status": "not_started"},
-    {"id": 8, "name": "Define requirements by category with user", "status": "not_started"},
-    {"id": 9, "name": "Write REQUIREMENTS.md with REQ-IDs", "status": "not_started"},
-    {"id": 10, "name": "Spawn roadmapper (starting phase 50)", "status": "not_started"},
-    {"id": 11, "name": "Approve and commit roadmap", "status": "not_started"}
+    {"id": 1, "name": "Android Gradle Build Fixes", "status": "not_started"},
+    {"id": 2, "name": "Hilt Dependency Injection Setup", "status": "not_started"},
+    {"id": 3, "name": "RevenueCat SDK Integration", "status": "not_started"},
+    {"id": 4, "name": "Feature Parity Verification", "status": "not_started"},
+    {"id": 5, "name": "Production Build Configuration", "status": "not_started"}
   ],
-  "blockers": [
-    {"description": "Research agents hit 429 rate limits — files exist but may have partial/incomplete content", "type": "technical", "workaround": "Verify research file quality before using; re-spawn failed researchers if content is thin"}
-  ],
+  "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "RevenueCat as cross-platform subscription provider", "rationale": "Handles StoreKit + Play Billing + web, unified entitlement API", "phase": "M009"},
-    {"decision": "Free trial → paid model (7 days)", "rationale": "Low friction entry for utility app", "phase": "M009"},
-    {"decision": "Soft paywall after trial (limited free translations/day)", "rationale": "Retention over hard lockout", "phase": "M009"},
-    {"decision": "Pricing: $4.99/mo or $39.99/yr", "rationale": "Low-end utility app pricing", "phase": "M009"},
-    {"decision": "All platforms (iOS + Android + Web)", "rationale": "RevenueCat supports all three", "phase": "M009"}
+    {"decision": "Hilt version 2.50.0 → 2.48.1", "rationale": "Version mismatch between settings.gradle.kts and app/build.gradle.kts", "phase": "56"},
+    {"decision": "Gradle wrapper URL fix", "rationale": "Download timeout from services.gradle.org, use standard URL", "phase": "56"},
+    {"decision": "Split PLAN.md into 5 individual plans (56-01 to 56-05)", "rationale": "GSD SDK requires individual plan files", "phase": "56"}
   ],
   "uncommitted_files": [
-    ".planning/research/STACK.md",
-    ".planning/research/FEATURES.md",
-    ".planning/research/ARCHITECTURE.md",
-    ".planning/research/PITFALLS.md",
-    ".planning/research/SUMMARY.md"
+    ".claude/scheduled_tasks.json",
+    ".planning/STATE.md",
+    ".planning/phases/61/SUMMARY.md",
+    "WoofTalk.xcodeproj/project.pbxproj",
+    "android/WoofTalk/app/build.gradle.kts",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/EntitlementManager.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/MainActivity.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/RevenueCatModule.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/WoofTalkApplication.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/data/remote/adapter/AuthInterceptor.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/data/remote/api/WoofTalkApi.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/push/FirebaseMessagingService.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/ui/screen/CommunityPhraseScreen.kt",
+    "android/WoofTalk/app/src/main/java/com/wooftalk/ui/tiles/TranslationTileService.kt",
+    "android/WoofTalk/app/src/main/res/values/strings.xml",
+    "android/WoofTalk/build.gradle",
+    "android/WoofTalk/gradle/wrapper/gradle-wrapper.properties",
+    "android/WoofTalk/settings.gradle.kts",
+    "web/public/sw.js"
   ],
-  "next_action": "Verify research files for quality (agents hit rate limits), then continue with Step 9 of new-milestone workflow: define requirements",
-  "context_notes": "In the middle of gsd-new-milestone workflow. Completed steps 1-7 (context, goals, version, PROJECT.md, STATE.md, commit, init, research). Next step is 9 (define requirements). Research files were written to disk by agents that partially completed before hitting 429 errors. Need to verify content quality before proceeding."
+  "next_action": "Execute Phase 56 plans (56-01 to 56-05) to fix Android build issues and prepare for production",
+  "context_notes": "M010 Ship to Production milestone - Phase 56 is the current focus. Phase 55 (iOS) completed. Need to fix Android build before proceeding to Phase 57-64."
 }

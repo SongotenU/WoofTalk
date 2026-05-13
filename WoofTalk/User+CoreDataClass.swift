@@ -3,7 +3,7 @@ import CoreData
 
 /// Core Data entity for users
 @objc(User)
-public class User: NSManagedObject {
+public class User: NSManagedObject, @unchecked Sendable {
 
     @NSManaged public var id: UUID?
     @NSManaged public var username: String?

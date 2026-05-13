@@ -1,9 +1,10 @@
 import CoreData
 
+@MainActor
 struct PersistenceController {
     static let shared = PersistenceController()
 
-    private(set) let container: NSPersistentContainer
+    let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "WoofTalk")

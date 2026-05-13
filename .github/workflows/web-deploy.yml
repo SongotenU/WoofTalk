@@ -61,4 +61,16 @@ jobs:
         run: |
           npx vercel --prod --token="$VERCEL_TOKEN" \
             --scope="$VERCEL_ORG_ID" \
-            --project="$VERCEL_PROJECT_ID"
+            --project="$VERCEL_PROJECT_ID" \
+            --confirm > /tmp/vercel-output.txt
+          cat /tmp/vercel-output.txt
+          # Extract deployment URL from output
+          DEPLOY_URL=$(grep -o 'https://[^ ]*' /tmp/vercel-output.txt | head -1)
+          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+      - name: Production health check
+        env:
+          DEPLOY_URL: ${{ env.DEPLOY_URL }}
+        run: |
+          sleep 10
+          curl -sf "$DEPLOY_URL/api/health" || (echo "Health check failed" && exit 1)
+          echo "Health check passed at $DEPLOY_URL/api/health"

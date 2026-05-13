@@ -1,0 +1,11 @@
+Welcome to WoofTalk v1.0!
+
+Initial release features:
+• Bidirectional translation between humans and pets (Dogs, Cats, Birds)
+• Voice input and output for natural conversations
+• Cross-platform sync across iOS, Android, and Web
+• Community phrases — browse and contribute translations
+• Social features — follow users, leaderboards, activity tracking
+• In-app purchases for premium features (via RevenueCat)
+
+Start talking to your pets today!

@@ -5,7 +5,7 @@ import CoreData
 
 /// Core Data entity for storing user translation corrections
 @objc(TranslationCorrection)
-public class TranslationCorrection: NSManagedObject {
+public class TranslationCorrection: NSManagedObject, @unchecked Sendable {
 
     @NSManaged public var id: UUID?
     @NSManaged public var originalInput: String?

@@ -15,6 +15,11 @@ struct WoofTalkApp: App {
                 .environment(\ .managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(EntitlementManager.shared)
                 .onAppear {
+                    // Initialize Sentry for error tracking
+                    SentryManager.shared.initialize(
+                        dsn: ProcessInfo.processInfo.environment["SENTRY_DSN"] ?? "",
+                        environment: ProcessInfo.processInfo.environment["SENTRY_ENVIRONMENT"] ?? "production"
+                    )
                     revenueCatManager.configure()
                     // FIX: Configure SupabaseManager with environment credentials
                     // This was missing - without it, client is nil and all auth fails

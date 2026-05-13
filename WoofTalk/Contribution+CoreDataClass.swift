@@ -5,7 +5,7 @@ import CoreData
 
 /// Core Data entity for contributions
 @objc(Contribution)
-public class Contribution: NSManagedObject {
+public class Contribution: NSManagedObject, @unchecked Sendable {
     
     @NSManaged public var humanText: String?
     @NSManaged public var dogTranslation: String?

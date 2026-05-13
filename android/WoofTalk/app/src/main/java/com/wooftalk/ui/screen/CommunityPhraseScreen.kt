@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,7 +46,7 @@ fun CommunityPhraseScreen(
                             }
                             onLanguageFilter(selectedLanguage)
                         },
-                        label = { Text(selectedLanguage?.capitalize() ?: "All") }
+                        label = { Text(selectedLanguage?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() } ?: "All") }
                     )
                 }
             )
@@ -128,7 +129,7 @@ private fun PhraseCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = phrase.language.capitalize(),
+                    text = phrase.language.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -147,6 +148,7 @@ private fun PhraseCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PhraseDetailBottomSheet(
     phrase: CommunityPhraseEntity,
@@ -156,7 +158,7 @@ private fun PhraseDetailBottomSheet(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(phrase.phraseText, style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Language: ${phrase.language.capitalize()}", style = MaterialTheme.typography.bodyMedium)
+            Text("Language: ${phrase.language.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }}", style = MaterialTheme.typography.bodyMedium)
             Text("Upvotes: ${phrase.upvotes}", style = MaterialTheme.typography.bodyMedium)
             Text("Downvotes: ${phrase.downvotes}", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(16.dp))

@@ -2,7 +2,7 @@ import Foundation
 import CoreData
 
 @objc(CommunityPhrase)
-public class CommunityPhrase: NSManagedObject {
+public class CommunityPhrase: NSManagedObject, @unchecked Sendable {
     @NSManaged public var id: UUID?
     @NSManaged public var humanText: String?
     @NSManaged public var dogTranslation: String?

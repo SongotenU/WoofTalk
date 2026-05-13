@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function InviteAcceptPage() {
+function InviteAcceptContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [status, setStatus] = useState<"loading" | "success" | "error" | "expired">("loading");
@@ -15,7 +15,7 @@ export default function InviteAcceptPage() {
 
   useEffect(() => {
     if (loading) return; // Wait for auth state to load
-    
+
     if (!token) {
       setStatus("error");
       setMessage("Invalid invite link — no token found");
@@ -127,5 +127,19 @@ export default function InviteAcceptPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export const dynamic = 'force-dynamic';
+
+export default function InviteAcceptPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="inline-block w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <InviteAcceptContent />
+    </Suspense>
   );
 }

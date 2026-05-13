@@ -1,6 +1,6 @@
 # WoofTalk Terms of Service
 
-**Last Updated:** March 14, 2025
+**Last Updated:** May 8, 2026
 
 Please read these Terms of Service ("Terms") carefully before using the WoofTalk mobile application ("App"). By using the App, you agree to be bound by these Terms. If you disagree with any part of these Terms, you may not access the App.
 

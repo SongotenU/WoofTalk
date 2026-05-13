@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { EntitlementProvider } from "@/providers/EntitlementProvider";
 import { ThemeProvider } from "@/lib/theme-provider";
@@ -13,10 +13,6 @@ export const metadata: Metadata = {
   title: "WoofTalk — Translate Between Human & Animal Languages",
   description: "Translate between human and dog, cat, bird languages with voice input/output. Works offline as a PWA.",
   manifest: "/manifest.json",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#4CAF50" },
-    { media: "(prefers-color-scheme: dark)", color: "#2E7D32" },
-  ],
   openGraph: {
     title: "WoofTalk — Talk to Your Pets",
     description: "Translate between human and animal languages with AI-powered voice translation. Works offline.",
@@ -39,6 +35,15 @@ export const metadata: Metadata = {
     description: "Translate between human and animal languages with AI-powered voice translation.",
     images: ["https://wooftalk.app/og-image.png"],
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#4CAF50" },
+    { media: "(prefers-color-scheme: dark)", color: "#2E7D32" },
+  ],
 };
 
 export default function RootLayout({

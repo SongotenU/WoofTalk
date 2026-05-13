@@ -26,19 +26,19 @@
 		9F2C83B82F61687F00E4A788 /* WoofTalk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalk;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83CB2F61688100E4A788 /* WoofTalkTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkTests;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 		9F2C83D52F61688100E4A788 /* WoofTalkUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WoofTalkUITests;
-			excludes = ( ".build", "Info.plist", "Info2.plist" );
+			excludes = ( ".build", );
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -325,7 +325,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
+				GENERATE_INFOPLIST_FILE = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -396,10 +397,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "audio";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -429,10 +430,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "audio";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -461,6 +462,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = vandopha.WoofTalkTests;
@@ -483,6 +486,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8YQ9ESMV9L;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
+				INFOPLIST_FILE = WoofTalk/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = vandopha.WoofTalkTests;

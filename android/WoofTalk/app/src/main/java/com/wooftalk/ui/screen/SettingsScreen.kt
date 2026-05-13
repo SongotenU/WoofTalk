@@ -26,7 +26,8 @@ fun SettingsScreen(
     entitlementManager: EntitlementManager,
     onNavigateToPaywall: () -> Unit,
     onRestorePurchases: () -> Unit = {},
-    onManageSubscription: () -> Unit = {}
+    onManageSubscription: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val isPremium by entitlementManager.isPremium.collectAsState()
     val isTrial by entitlementManager.isTrialActive.collectAsState()
